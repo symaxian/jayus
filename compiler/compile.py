@@ -5,8 +5,6 @@ import os
 import getopt
 import shutil
 
-print 'Compiling: '
-
 # The order in which to compile the files
 #   Taken from jayusLoader.js
 FILE_PRIORITY = [
@@ -186,6 +184,11 @@ if __name__ == '__main__':
 
     OUTPUT_DIR = '../compiled/'
 
+    # Get the version
+
+    # version = getVersion()
+    version = 'latest'
+
     # OUTPUT_DIR_2 = '../jayus/compiled/'
 
     jsmacroFile = 'jsmacro.py'
@@ -198,16 +201,15 @@ if __name__ == '__main__':
 
         if o == "--jsmacro":
             jsmacroFile = a
-        
-        if o == '--srcdir':
+
+        if o == "--srcdir":
             INPUT_DIR = a
 
-        if o == '--dstdir':
+        if o == "--dstdir":
             OUTPUT_DIR = a
 
-    # Get the version
-
-    version = getVersion()
+        if o == "-version" || o == "-v":
+            version = a
 
     # Create the temporary directory
 
@@ -229,14 +231,6 @@ if __name__ == '__main__':
     # Compile multiple versions of the code
     compileJS(filenames, fileData, OUTPUT_DIR+'jayus-'+version+'-debug.min.js', 'WHITESPACE_ONLY', ['DEBUG'])
     compileJS(filenames, fileData, OUTPUT_DIR+'jayus-'+version+'.min.js', 'SIMPLE_OPTIMIZATIONS')
-
-    # Copy the compiled versions into the compiled directory
-    # shutil.copyfile(OUTPUT_DIR+'jayus-'+version+'-debug.min.js', OUTPUT_DIR_2+'jayus-'+version+'-debug.min.js')
-    # shutil.copyfile(OUTPUT_DIR+'jayus-'+version+'.min.js', OUTPUT_DIR_2+'jayus-'+version+'.min.js')
-
-    # Copy the compiled versions and rename them as the latest version
-    shutil.copyfile(OUTPUT_DIR+'jayus-'+version+'-debug.min.js', OUTPUT_DIR+'jayus-latest-debug.min.js')
-    shutil.copyfile(OUTPUT_DIR+'jayus-'+version+'.min.js', OUTPUT_DIR+'jayus-latest.min.js')
 
     # Remove the temporary directory
     if REMOVE_TEMP_DIR:
