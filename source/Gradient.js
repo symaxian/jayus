@@ -79,10 +79,20 @@ jayus.Gradient = jayus.Dependency.extend({
 		this.dirty(jayus.DIRTY.STYLE);
 	},
 
-	//@ From Gradient
-	translate: function LinearGradient_translate(x, y){
+	/**
+	Translates the gradient.
+	<br> Note that because the start and end objects of the gradient are kept as references, this method just translates both of them.
+	@method {Self} translate
+	@paramset 1
+	@param {Point} point
+	@paramset 2
+	@param {Number} x
+	@param {Number} y
+	*/
+
+	translate: function Gradient_translate(x, y){
 		//#ifdef DEBUG
-		jayus.debug.matchCoordinate('LinearGradient.translate', x, y);
+		jayus.debug.matchCoordinate('Gradient.translate', x, y);
 		//#endif
 		if(arguments.length === 1){
 			y = x.y;

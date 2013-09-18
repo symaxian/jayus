@@ -120,12 +120,8 @@ jayus.Grid = jayus.RectEntity.extend({
 		this.items = [[null]];
 	},
 
-	childMoved: function(){
-		this.dirty();
-	},
-
-	childDirtied: function(){
-		this.dirty();
+	componentDirtied: function Grid_componentDirtied(component, componentType, type){
+		// FIXME: Grid.componentDirtied()
 	},
 
 		//
@@ -230,8 +226,12 @@ jayus.Grid = jayus.RectEntity.extend({
 			y = x.y;
 			x = x.x;
 		}
-		this.xPadding = x;
-		this.yPadding = y;
+		if(this.xPadding !== xPadding || this.yPadding !== yPadding){
+			this.xPadding = x;
+			this.yPadding = y;
+			this.dirty(jayus.DIRTY.ALL);
+		}
+		return this;
 	},
 
 		//
@@ -265,7 +265,7 @@ jayus.Grid = jayus.RectEntity.extend({
 	},
 
 	/**
-	Returns whether or not the given row/col pair is valid.
+	Returns whether or not there is a slot in the grid with the given index.
 	@method {Boolean} hasSlot
 	@paramset Syntax 1
 	@param {Point} index
@@ -316,7 +316,7 @@ jayus.Grid = jayus.RectEntity.extend({
 		//_________//
 
 	/**
-	Returns whether the given object is in the grid.
+	Returns whether the given entity is in the grid.
 	@method {Boolean} hasChild
 	@paramset Syntax 1
 	@param {Entity} item
@@ -346,6 +346,27 @@ jayus.Grid = jayus.RectEntity.extend({
 	},
 
 	/**
+	Returns whether or not there is an entity in the specified slot.
+	@method {Boolean} hasChildAt
+	@paramset Syntax 1
+	@param {Point} index
+	@paramset Syntax 2
+	@param {Number} x
+	@param {Number} y
+	*/
+
+	hasChildAt: function Grid_hasChildAt(x, y){
+		//#ifdef DEBUG
+		jayus.debug.matchCoordinate('Grid.hasChildAt', x, y);
+		//#endif
+		if(arguments.length === 1){
+			y = x.y;
+			x = x.x;
+		}
+		return this.getChildAt(x, y) !== null;
+	},
+
+	/**
 	Returns the index of the specified entity in the grid, else null.
 	<br> The index object returned has two properties, row and col.
 	@method {Object|null} indexOf
@@ -356,20 +377,20 @@ jayus.Grid = jayus.RectEntity.extend({
 	*/
 
 	indexOf: function Grid_indexOf(item){
-		var i, j;
+		var row, col;
 		if(item instanceof jayus.Entity){
-			for(i=0;i<this.getRowCount();i++){
-				j = this.items[0].indexOf(item);
+			for(row=0;row<this.getRowCount();row++){
+				j = this.items[row].indexOf(item);
 				if(j >= 0){
-					return new jayus.Point(j, i);
+					return new jayus.Point(col, row);
 				}
 			}
 		}
 		else{
-			for(i=0;i<this.getRowCount();i++){
-				for(j=0;j<this.getColumnCount();j++){
-					if(this.get(j, i).id === id){
-						return new jayus.Point(j, i);
+			for(row=0;row<this.getRowCount();row++){
+				for(col=0;col<this.getColumnCount();col++){
+					if(this.get(col, row).id === id){
+						return new jayus.Point(col, row);
 					}
 				}
 			}
@@ -378,54 +399,50 @@ jayus.Grid = jayus.RectEntity.extend({
 	},
 
 	/**
-	Returns the specified item.
-	<br> Returns null if the slot is empty.
-	@method {Entity|null} getChild
+	Returns the child at the given index.
+	@method {Entity|null} getChildAt
 	@paramset Syntax 1
 	@param {Point} index
 	@paramset Syntax 2
 	@param {Number} x
 	@param {Number} y
-	@paramset Syntax 3
+	*/
+
+	getChildAt: function Grid_getChildAt(x, y){
+		//#ifdef DEBUG
+		jayus.debug.matchCoordinate('Grid.getChildAt', x, y);
+		//#endif
+		if(arguments.length === 1){
+			y = x.y;
+			x = x.x;
+		}
+		if(this.hasSlot(x, y)){
+			return this.items[y][x];
+		}
+		return null;
+	},
+
+	/**
+	Returns the child with the specified id.
+	<br> Returns null if the child was not found.
+	@method {Entity|null} getChild
 	@param {String} id
 	*/
 
-	getChild: overloadArgumentType({
-
-		object: function Grid_getChild(index){
-			//#ifdef DEBUG
-			jayus.debug.match('Grid.getChild', index, 'index', jayus.TYPES.OBJECT);
-			//#endif
-			return this.getChild(index.y, index.x);
-		},
-
-		number: function Grid_getChild(x, y){
-			//#ifdef DEBUG
-			jayus.debug.matchArgumentsAs('Grid.getChild', arguments, jayus.TYPES.NUMBER, 'row', 'column');
-			//#endif
-			if(this.hasSlot(x, y)){
-				return this.items[y][x];
-			}
-			return null;
-		},
-
-		// FIXME Grid.getChild() - Id can be of any type
-		string: function Grid_getChild(id){
-			//#ifdef DEBUG
-			jayus.debug.match('Grid.getChild', id, 'id', jayus.TYPES.DEFINED);
-			//#endif
-			var i, j;
-			for(i=0;i<this.getRowCount();i++){
-				for(j=0;j<this.getColumnCount();j++){
-					if(this.getChildAt(j, i).id === id){
-						return this.items[i][j];
-					}
+	getChild: function Grid_getChild(id){
+		//#ifdef DEBUG
+		jayus.debug.match('Grid.getChild', id, 'id', jayus.TYPES.DEFINED);
+		//#endif
+		var i, j;
+		for(i=0;i<this.getRowCount();i++){
+			for(j=0;j<this.getColumnCount();j++){
+				if(this.getChildAt(j, i).id === id){
+					return this.items[i][j];
 				}
 			}
-			return null;
 		}
-
-	}),
+		return null;
+	},
 
 	/**
 	Sets the given child at the specified slot in the grid.
@@ -443,7 +460,7 @@ jayus.Grid = jayus.RectEntity.extend({
 
 		2: function Grid_setChild(index, child){
 			//#ifdef DEBUG
-			jayus.debug.matchArguments('Grid.setChild', arguments, 'index', jayus.TYPES.NUMBER, 'child', jayus.TYPES.ENTITY);
+			jayus.debug.matchArguments('Grid.setChild', arguments, 'index', jayus.TYPES.POINT, 'child', jayus.TYPES.ENTITY);
 			//#endif
 			return this.setChild(index.x, index.y, child);
 		},
@@ -463,7 +480,7 @@ jayus.Grid = jayus.RectEntity.extend({
 				// Update the new child
 				if(child !== null){
 					child.setParent(this);
-					child.translate(x*this.slotWidth+x*this.xPadding, y*this.slotHeight+y*this.yPadding);
+					child.translate(x*(this.slotWidth+this.xPadding), y*(this.slotHeight+this.yPadding));
 					// FIXME: Grid.setChild() - Update cursor on added child
 				}
 				this.dirty();
@@ -479,7 +496,7 @@ jayus.Grid = jayus.RectEntity.extend({
 
 	/**
 	Returns the child under the given position, or null.
-	@method {Entity|null} getChildAt
+	@method {Entity|null} getChildUnder
 	@paramset Syntax 1
 	@param {Point} position
 	@paramset Syntax 2
@@ -487,29 +504,21 @@ jayus.Grid = jayus.RectEntity.extend({
 	@param {Number} y
 	*/
 
-	// FIXME: Grid.getChildAt() - This is a horrible way to brute force this
-	getChildAt: function Grid_getChildAt(x, y){
+	getChildUnder: function Grid_getChildUnder(x, y){
 		//#ifdef DEBUG
-		jayus.debug.matchCoordinate('Grid.getChildAt', x, y);
+		jayus.debug.matchCoordinate('Grid.getChildUnder', x, y);
 		//#endif
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
 		}
-		var child = null;
-		this.forEach(function(){
-			if(this.intersectsAt(x, y)){
-				child = this;
-				return null;
-			}
-		});
-		return child;
+		return this.getChildAt(this.getSlotUnder(x, y));
 	},
 
 	/**
 	Returns the index of the slot under the given position.
-	<br> An array consisting of [row,col] is returned.
-	@method {Slot} getSlotAt
+	<br> WARNING: Untested
+	@method {Slot} getSlotUnder
 	@paramset Syntax 1
 	@param {Point} pos
 	@paramset Syntax 2
@@ -517,19 +526,16 @@ jayus.Grid = jayus.RectEntity.extend({
 	@param {Number} y
 	*/
 
-	// FIXME: Grid.getSlotAt() - Should this include transformations?
-	// FIXME: Grid.getSlotAt() - Does not include padding
-	getSlotAt: function Grid_getSlotAt(x, y){
+	// FIXME: Grid.getSlotUnder() - Should this include transformations?
+	getSlotUnder: function Grid_getSlotUnder(x, y){
 		//#ifdef DEBUG
-		jayus.debug.matchCoordinate('Grid.getSlotAt', x, y);
+		jayus.debug.matchCoordinate('Grid.getSlotUnder', x, y);
 		//#endif
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
 		}
-		x -= this.x;
-		y -= this.y;
-		return new jayus.Point(Math.floor(x/this.slotWidth), Math.floor(y/this.slotHeight));
+		return new jayus.Point(Math.floor((x-this.x)/(this.slotWidth+this.xPadding)), Math.floor((y-this.y)/(this.slotHeight+this.yPadding)));
 	},
 
 	/**
@@ -551,7 +557,10 @@ jayus.Grid = jayus.RectEntity.extend({
 			y = x.y;
 			x = x.x;
 		}
-		return this.hasSlot(x, y) ? new jayus.Rectangle(this.x+x*(this.slotWidth+this.xPadding), this.y+y*(this.slotHeight+this.yPadding), this.slotWidth, this.slotHeight) : null;
+		if(this.hasSlot(x, y)){
+			return new jayus.Rectangle(this.x+x*(this.slotWidth+this.xPadding), this.y+y*(this.slotHeight+this.yPadding), this.slotWidth, this.slotHeight);
+		}
+		return null;
 	},
 
 		//
@@ -565,87 +574,61 @@ jayus.Grid = jayus.RectEntity.extend({
 	@param {Entity} item
 	@paramset Syntax 2
 	@param {String} id
-	@paramset Syntax 3
-	@param {Number} row
-	@param {Number} col
 	*/
 
 	removeChild: overloadArgumentType({
 
 		object: function Grid_removeChild(child){
-			for(var i=0;i<this.getRowCount();i++){
-				for(var j=0;j<this.getColumnCount();j++){
-					if(this.getChild(i,j) === child){
-						// Clear the child's parent
-						child.removeParent();
-						// Remove the child
-						this.items[i][j] = null;
-						return this;
-					}
-				}
+			var index = this.indexOf(child);
+			if(index !== null){
+				// Clear the child's parent
+				child.removeParent();
+				// Remove the child
+				this.items[index.y][index.x] = null;
 			}
 			return this;
 		},
 
 		string: function Grid_removeChild(id){
-			for(var i=0;i<this.getRowCount();i++){
-				for(var j=0;j<this.getColumnCount();j++){
-					if(this.getChild(i,j).id === id){
-						// Cache the child
-						var child = this.items[i][j];
-						// Clear the child's parent
-						child.removeParent();
-						// Remove the child
-						this.items[i][j] = null;
-						return this;
-					}
-				}
-			}
-			return this;
-		},
-
-		number: function Grid_removeChild(row,col){
-			if(this.has(row,col)){
-				// Cache the item
-				var item = this.items[row][col];
-				// Clear the item's parent
-				item.removeParent();
-				// Remove the item
-				this.items[row][col] = null;
+			var index = this.indexOf(id);
+			if(index !== null){
+				// Clear the child's parent
+				this.items[index.y][index.x].removeParent();
+				// Remove the child
+				this.items[index.y][index.x] = null;
 			}
 			return this;
 		}
 
 	}),
 
-	// removeChild2: function Grid_removeChild2(a, b){
-	// 	var row, col, item, checkId;
-	// 	if(arguments.length === 1){
-	// 		checkId = typeof a === 'string';
-	// 		LOOP:for(row=0;row<this.getRowCount();row++){
-	// 			for(col=0;col<this.getColumnCount();col++){
-	// 				item = this.getChild(row, col);
-	// 				if(checkId && item.id === a || !checkId && item === a){
-	// 					break LOOP;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	else{
-	// 		row = a;
-	// 		col = b;
-	// 		if(!this.has(row, col)){
-	// 			// ERROR
-	// 		}
-	// 	}
-	// 	// Get the item
-	// 	item = this.items[row][col];
-	// 	// Clear the item's parent
-	// 	item.removeParent();
-	// 	// Remove the item
-	// 	this.items[row][col] = null;
-	// 	return this;
-	// },
+	/**
+	Removes the child from the specified slot in the grid.
+	@method {Self} removeChildAt
+	@paramset Syntax 1
+	@param {Point} index
+	@paramset Syntax 2
+	@param {Number} x
+	@param {Number} y
+	*/
+
+	removeChildAt: function Grid_removeChildAt(x, y){
+		//#ifdef DEBUG
+		jayus.debug.matchCoordinate('Grid.removeChildAt', x, y);
+		//#endif
+		if(arguments.length === 1){
+			y = x.y;
+			x = x.x;
+		}
+		// Get the child at the index
+		var child = this.getChildAt(x, y);
+		if(child !== null){
+			// If exists, clear its parent and empty the slot
+			child.removeParent();
+			this.items[y][x] = null;
+		}
+		return this;
+	},
 
 		//
 		//	Size
@@ -824,9 +807,9 @@ jayus.Grid = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('Grid.onEach', method, 'method', jayus.TYPES.STRING);
 		//#endif
-		return this.forEachSlot(function(item){
+		return this.forEachSlot(function(x, y, item){
 			if(item !== null){
-				item[method].apply(item, args);
+				item[method].apply(item, x, y, args);
 			}
 		});
 	},
@@ -843,9 +826,9 @@ jayus.Grid = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('Grid.forEach', func, 'func', jayus.TYPES.FUNCTION);
 		//#endif
-		return this.forEachSlot(function(row, col, item){
+		return this.forEachSlot(function(x, y, item){
 			if(item !== null){
-				func.call(this, row, col, item);
+				func.call(this, x, y, item);
 			}
 		});
 	},
@@ -900,7 +883,7 @@ jayus.Grid = jayus.RectEntity.extend({
 
 	/**
 	Calls the given function on each slot in the grid.
-	<br> The arguments passed to the function are the rowIndex, columnIndex, and value at the slot(or null).
+	<br> The arguments passed to the function are the columnIndex, rowIndex, and entity in the slot(or null).
 	@method {Self} forEachSlot
 	@param {Function} func
 	*/
@@ -909,9 +892,11 @@ jayus.Grid = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('Grid.forEachSlot', func, 'func', jayus.TYPES.FUNCTION);
 		//#endif
-		for(var i=0;i<this.items.length;i++){
-			for(var j=0;j<this.items[0].length;j++){
-				if(func.call(this, i, j, this.items[i][j]) === null){
+		// Loop through the slots
+		var x, y;
+		for(x=0;x<this.getColumnCount();x++){
+			for(y=0;y<this.getRowCount();y++){
+				if(func.call(this, x, y, this.items[y][x]) === null){
 					return this;
 				}
 			}
@@ -963,14 +948,15 @@ jayus.Grid = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('Grid.fireOnEach', event, 'event', jayus.TYPES.STRING);
 		//#endif
-		// Loop through the children
-		var i, j;
-		for(i=0;i<this.getRowCount();i++){
-			for(j=0;j<this.getColumnCount();j++){
-				// Check for a child
-				if(this.has(i, j)){
-					// Fire the event on the child, return true if accepted
-					if(this.get(i, j).fire(event, data)){
+		// Loop through the slots
+		var x, y, item;
+		for(x=0;x<this.getColumnCount();x++){
+			for(y=0;y<this.getRowCount();y++){
+				// Get the slot entry
+				item = this.items[y][x];
+				// Fire the event it it's not null
+				if(item !== null){
+					if(item.fire(event, data)){
 						return true;
 					}
 				}
@@ -993,13 +979,14 @@ jayus.Grid = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('Grid.fireOnCursor', event, 'event', jayus.TYPES.STRING);
 		//#endif
-		// Loop through the children
-		var i, j, item;
-		for(i=0;i<this.items.length;i++){
-			for(j=0;j<this.items[i].length;j++){
-				item = this.items[i];
+		// Loop through the slots
+		var x, y, item;
+		for(x=0;x<this.getColumnCount();x++){
+			for(y=0;y<this.getRowCount();y++){
+				// Get the slot entry
+				item = this.items[y][x];
 				// Check if the cursor is over the child
-				if(item.underCursor){
+				if(item !== null && item.underCursor){
 					// Check if the child is a group, fire the event on the group's children, return true if accepted
 					if(item.isParent && item.fireOnCursor(event, data)){
 						return true;
@@ -1042,7 +1029,7 @@ jayus.Grid = jayus.RectEntity.extend({
 		jayus.debug.match('Grid.runOnCursor', func, 'func', jayus.TYPES.FUNCTION);
 		//#endif
 		// Loop through the children
-		this.forEach(function(i, j, item){
+		this.forEach(function(x, y, item){
 			// Check if the cursor is over the child
 			if(item.underCursor){
 				// If the child is a parent, run on its children
