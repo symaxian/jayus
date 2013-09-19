@@ -85,17 +85,15 @@ jayus.Dependency = jayus.Animatable.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('Dependency.attach', dependent, 'dependent', jayus.TYPES.OBJECT);
 		//#endif
-		// Check if we already have a dependent
-		if(this.dependentCount){
-			// If we alredy have a single one, place them both into an array
-			if(this.dependentCount === 1){
-				this.dependents = [this.dependents, dependent];
-			}
-			// Else just append the new one
-			else{
-				this.dependents.push(dependent);
-			}
+		// If we have a single one, place them both into an array
+		if(this.dependentCount === 1){
+			this.dependents = [this.dependents, dependent];
 		}
+		// If we have more than one, just append it
+		else if(this.dependentCount){
+			this.dependents.push(dependent);
+		}
+		// Else just set the dependent
 		else{
 			this.dependents = dependent;
 		}
@@ -141,20 +139,18 @@ jayus.Dependency = jayus.Animatable.extend({
 	*/
 
 	informDependents: function Dependency_informDependents(type){
-		if(this.dependentCount){
-			if(this.dependentCount === 1){
+		if(this.dependentCount === 1){
+			//#ifdef DEBUG
+			jayus.debug.verifyMethod(this.dependents, 'componentDirtied');
+			//#endif
+			this.dependents.componentDirtied(this, type);
+		}
+		else{
+			for(var i=0;i<this.dependentCount;i++){
 				//#ifdef DEBUG
-				jayus.debug.verifyMethod(this.dependents, 'componentDirtied');
+				jayus.debug.verifyMethod(this.dependents[i], 'componentDirtied');
 				//#endif
-				this.dependents.componentDirtied(this, type);
-			}
-			else{
-				for(var i=0;i<this.dependentCount;i++){
-					//#ifdef DEBUG
-					jayus.debug.verifyMethod(this.dependents[i], 'componentDirtied');
-					//#endif
-					this.dependents[i].componentDirtied(this, type);
-				}
+				this.dependents[i].componentDirtied(this, type);
 			}
 		}
 	},
