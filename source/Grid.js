@@ -120,7 +120,7 @@ jayus.Grid = jayus.RectEntity.extend({
 		this.items = [[null]];
 	},
 
-	componentDirtied: function Grid_componentDirtied(component, componentType, type){
+	componentDirtied: function Grid_componentDirtied(component, type){
 		// FIXME: Grid.componentDirtied()
 	},
 

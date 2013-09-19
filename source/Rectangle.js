@@ -455,9 +455,10 @@ jayus.Rectangle = jayus.Shape.extend({
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setFrame, [this.x, this.y, this.width, this.height], [x, y, width, height]);
 		}
-		this.frozen++;
-		this.setOrigin(x, y).setSize(width, height);
-		this.frozen--;
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
 		this.dirty(jayus.DIRTY.FRAME);
 		return this;
 	},

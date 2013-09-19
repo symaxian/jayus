@@ -240,10 +240,12 @@ jayus.Circle = jayus.Shape.extend({
 	},
 	//#endif
 
+	//@ From Shape
 	clone: function Circle_clone(){
 		return new jayus.Circle(this.x, this.y, this.radius);
 	},
 
+	//@ From Shape
 	cloneOnto: function Circle_cloneOnto(ret){
 		ret.x = this.x;
 		ret.y = this.y;

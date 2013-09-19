@@ -66,13 +66,13 @@ jayus.Scene = jayus.RectEntity.extend({
 
 	childrenAdded: null,
 
-	componentDirtied: function Scene_componentDirtied(componentType, component, type){
-		if(componentType === 'ENTITY'){
+	componentDirtied: function Scene_componentDirtied(component, type){
+		if(component.componentType === 'ENTITY'){
 			if(type & jayus.DIRTY.SCOPE){
 				component.scopeChanged = true;
 			}
 		}
-		jayus.RectEntity.prototype.componentDirtied.call(this, componentType, component, type);
+		jayus.RectEntity.prototype.componentDirtied.call(this, component, type);
 		this.dirty(jayus.DIRTY.CONTENT);
 	},
 

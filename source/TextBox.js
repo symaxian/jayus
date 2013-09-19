@@ -54,6 +54,10 @@ jayus.TextBox = jayus.Text.extend({
 		//  Frame
 		//_________//
 
+	formContents: function(){
+		this.refreshMetrics();
+	},
+
 	refreshMetrics: function TextBox_refreshMetrics(){
 
 		if(this.fontDesc === null){
@@ -98,7 +102,12 @@ jayus.TextBox = jayus.Text.extend({
 			currentLineLength = 0;
 
 			nextWord = words[i];
-			nextWordLength = getWordLen(nextWord);
+			if(nextWord === ' ' || nextWord === '\n'){
+				nextWordLength = 0;
+			}
+			else{
+				nextWordLength = getWordLen(nextWord);
+			}
 
 			do {
 

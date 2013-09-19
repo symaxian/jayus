@@ -137,21 +137,14 @@ jayus.Point = jayus.Dependency.extend({
 	Sets the x and y coordinates.
 	<br> Can be animated.
 	@method {Self} set
-	@paramset 1
-	@param {Point} point
-	@paramset 2
 	@param {Number} x
 	@param {Number} y
 	*/
 
 	set: function Point_set(x, y){
 		//#ifdef DEBUG
-		jayus.debug.matchCoordinate('Point.set', x, y);
+		jayus.debug.matchArgumentsAs('Point.set', arguments, jayus.TYPES.NUMBER, 'x', 'y');
 		//#endif
-		if(arguments.length === 1){
-			y = x.y;
-			x = x.x;
-		}
 		// Check if animated
 		if(this.actionsToAnimate){
 			// Clear the animate flag and return the animator
@@ -206,6 +199,19 @@ jayus.Point = jayus.Dependency.extend({
 
 	clone: function Point_clone(){
 		return new jayus.Point(this.x, this.y);
+	},
+
+	/**
+	Clones this point onto the sent one.
+	<br> Does not dirty the sent point.
+	@method {Point} cloneOnto
+	@param {Point} ret
+	*/
+
+	cloneOnto: function Point_cloneOnto(ret){
+		ret.x = this.x;
+		ret.y = this.y;
+		return ret;
 	},
 
 	/**

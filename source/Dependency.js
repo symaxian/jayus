@@ -146,14 +146,14 @@ jayus.Dependency = jayus.Animatable.extend({
 				//#ifdef DEBUG
 				jayus.debug.verifyMethod(this.dependents, 'componentDirtied');
 				//#endif
-				this.dependents.componentDirtied(this.componentType, this, type);
+				this.dependents.componentDirtied(this, type);
 			}
 			else{
 				for(var i=0;i<this.dependentCount;i++){
 					//#ifdef DEBUG
 					jayus.debug.verifyMethod(this.dependents[i], 'componentDirtied');
 					//#endif
-					this.dependents[i].componentDirtied(this.componentType, this, type);
+					this.dependents[i].componentDirtied(this, type);
 				}
 			}
 		}

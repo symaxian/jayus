@@ -32,6 +32,15 @@ Defines the global jayus object.
 
 TODO:
 
+		Allow declarative semantics for points/shapes/sizes WHEREVER POSSIBLE
+			Include numbers? Booleans?
+
+		FIX SIZING:
+			Sizing is a mess right now
+			hasFlexibleWidth/Height is crap
+			Not well handled with either events nor reforming
+			Some reforms come from size, some sizes come from reforms
+
 		Make debug panel better
 			Resizable
 			Scrolling
@@ -332,7 +341,7 @@ Credits:
 /**
 Jayus, the awesome scenegraph.
 @project Jayus API documentation
-@author Symaxian
+@author symaxian
 @version alpha
 @description A nimble, elegant HTML5 canvas scenegraph.
 */

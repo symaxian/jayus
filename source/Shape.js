@@ -65,6 +65,7 @@ jayus.Shape = jayus.Dependency.extend({
 
 	/**
 	Clones the shape onto the given shape(of the same type).
+	<br> Does not dirty the given shape.
 	@method {Shape} cloneOnto
 	@param {Shape} ret
 	*/

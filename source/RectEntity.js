@@ -463,22 +463,15 @@ jayus.RectEntity = jayus.Entity.extend({
 		throw new Error('RectEntity.setSize() - Entity size is not flexible');
 	},
 
-
-	setSizeFromParent: function(width, height){
-		this.frozen--;
-		this.setSize(width, height);
-		this.frozen++;
-	},
-
 	intersectsAt: function RectEntity_intersectsAt(x, y){
 		return this.getBounds().intersectsAt(x, y);
-		if(this.bounds !== null){
-			return this.boundsClone.intersectsAt(x, y);
-		}
-		if(this.isTransformed){
-			return this.getFrame().intersectsAt(x, y);
-		}
-		return this.x <= x && x <= this.x+this.width && this.y <= y && y <= this.y+this.height;
+		// if(this.bounds !== null){
+		// 	return this.boundsClone.intersectsAt(x, y);
+		// }
+		// if(this.isTransformed){
+		// 	return this.getFrame().intersectsAt(x, y);
+		// }
+		// return this.x <= x && x <= this.x+this.width && this.y <= y && y <= this.y+this.height;
 	},
 
 	getUnFrame: function RectEntity_getUnFrame(){
@@ -556,7 +549,7 @@ jayus.RectEntity = jayus.Entity.extend({
 		return this;
 	},
 
-	componentDirtied: function RectEntity_componentDirtied(componentType, component, type){
+	componentDirtied: function RectEntity_componentDirtied(component, type){
 		if(component === this.bounds){
 			this.bounds.cloneOnto(this.boundsClone);
 		}

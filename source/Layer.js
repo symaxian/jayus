@@ -53,8 +53,8 @@ jayus.Layer = jayus.Entity.extend({
 
 	childrenAdded: null,
 
-	componentDirtied: function Layer_componentDirtied(componentType, component, type){
-		if(componentType === 'ENTITY'){
+	componentDirtied: function Layer_componentDirtied(component, type){
+		if(component.componentType === 'ENTITY'){
 			if(type & jayus.DIRTY.SCOPE){
 				component.scopeChanged = true;
 			}

@@ -220,7 +220,7 @@ jayus.Brush = jayus.Dependency.extend({
 		}
 	},
 
-	componentDirtied: function Brush_componentDirtied(componentType, component, type){
+	componentDirtied: function Brush_componentDirtied(component, type){
 		this.dirty(jayus.DIRTY.STYLE);
 	},
 

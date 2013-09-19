@@ -74,7 +74,7 @@ jayus.Gradient = jayus.Dependency.extend({
 	//  Methods
 	//___________//
 
-	componentDirtied: function Gradient_componentDirtied(componentType, component, type){
+	componentDirtied: function Gradient_componentDirtied(component, type){
 		this.reformNative = true;
 		this.dirty(jayus.DIRTY.STYLE);
 	},

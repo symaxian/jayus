@@ -123,24 +123,26 @@ jayus.Polygon = jayus.Shape.extend({
 	*/
 
 	init: function Polygon_init(xPoints, yPoints){
-		if(arguments.length === 1){
-			//#ifdef DEBUG
-			jayus.debug.matchArray('Polygon.init', xPoints, 'xPoints', jayus.TYPES.POINT);
-			//#endif
-			this.xPoints = [];
-			this.yPoints = [];
-			for(var i=0;i<xPoints.length;i++){
-				this.xPoints[i] = xPoints[i].x;
-				this.yPoints[i] = xPoints[i].y;
-			}
-		}
-		else if(arguments.length === 2){
+		if(arguments.length === 2){
 			//#ifdef DEBUG
 			jayus.debug.matchArray('Polygon.init', xPoints, 'xPoints', jayus.TYPES.NUMBER);
 			jayus.debug.matchArray('Polygon.init', yPoints, 'yPoints', jayus.TYPES.NUMBER);
 			//#endif
 			this.xPoints = xPoints;
 			this.yPoints = yPoints;
+		}
+		else{
+			this.xPoints = [];
+			this.yPoints = [];
+			if(arguments.length === 1){
+				//#ifdef DEBUG
+				jayus.debug.matchArray('Polygon.init', xPoints, 'xPoints', jayus.TYPES.POINT);
+				//#endif
+				for(var i=0;i<xPoints.length;i++){
+					this.xPoints[i] = xPoints[i].x;
+					this.yPoints[i] = xPoints[i].y;
+				}
+			}
 		}
 	},
 

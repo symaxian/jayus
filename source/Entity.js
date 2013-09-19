@@ -419,21 +419,16 @@ jayus.Entity = jayus.Responder.extend({
 
 	//@ From Dependency
 	dirty: function Entity_dirty(type){
-		if(typeof type !== 'number'){
-			throw new Error('Entity.dirty() - No type specified');
-		}
+		//#ifdef DEBUG
+		jayus.debug.match('Entity.dirty', type, 'type', jayus.TYPES.NUMBER);
+		//#endif
 		if(!this.frozen){
-
+			this.fire('dirty', { type: type });
 			if(type & jayus.DIRTY.POSITION){
 				this.matrixDirty = true;
-				// Fire the event
-				this.fire('moved');
 			}
-
 			this.dirtied = true;
-
 			this.informDependents(type);
-
 		}
 		return this;
 	},

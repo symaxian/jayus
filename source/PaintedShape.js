@@ -82,7 +82,7 @@ jayus.PaintedShape = jayus.Entity.extend({
 		}
 	},
 
-	componentDirtied: function PaintedShape_componentDirtied(componentType, component, type){
+	componentDirtied: function PaintedShape_componentDirtied(component, type){
 		this.dirty(jayus.DIRTY.CONTENT);
 	},
 

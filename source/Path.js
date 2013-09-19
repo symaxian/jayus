@@ -43,7 +43,7 @@ jayus.Path = jayus.Shape.extend({
 	//  Properties
 	//______________//
 
-	shapeType: 16,
+	shapeType: jayus.SHAPES.PATH,
 
 	/**
 	An array of the path segments.
@@ -55,7 +55,7 @@ jayus.Path = jayus.Shape.extend({
 	segments: null,
 
 	/*
-	The left-most x coordinate.
+	The x coordinate of the frame.
 	<br> Do not modify.
 	@property {Number} x1
 	*/
@@ -63,7 +63,7 @@ jayus.Path = jayus.Shape.extend({
 	x1: 0,
 
 	/*
-	The top-most y coordinate.
+	The y coordinate of the frame.
 	<br> Do not modify.
 	@property {Number} y1
 	*/
@@ -71,7 +71,7 @@ jayus.Path = jayus.Shape.extend({
 	y1: 0,
 
 	/*
-	The right-most x coordinate.
+	The x2 coordinate of the frame.
 	<br> Do not modify.
 	@property {Number} x2
 	*/
@@ -79,7 +79,7 @@ jayus.Path = jayus.Shape.extend({
 	x2: 0,
 
 	/*
-	The bottom-most y coordinate.
+	The y2 coordinate of the frame.
 	<br> Do not modify.
 	@property {Number} y2
 	*/
@@ -987,7 +987,7 @@ jayus.Path.Circle = function Path_Circle(x, y, radius){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Path.Circle()', arguments, 'center', jayus.TYPES.POINT, 'radius', jayus.TYPES.NUMBER);
 		//#endif
-		radius = x;
+		radius = y;
 		y = x.y;
 		x = x.x;
 	}

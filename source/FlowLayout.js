@@ -97,7 +97,7 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 		//  Children
 		//____________//
 
-	componentDirtied: function Box_componentDirtied(component, componentType, type){
+	componentDirtied: function Box_componentDirtied(component, type){
 		if(type === jayus.DIRTY.SIZE){
 			this.reform();
 		}
