@@ -130,7 +130,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 				this.tileHeight = data.tileheight;
 			}
 			this.loaded = true;
-			this.changeSize(this.map.width*this.map.tilewidth, this.map.height*this.map.tileheight);
+			this.setSize(this.map.width*this.map.tilewidth, this.map.height*this.map.tileheight);
 
 			// var req = new XMLHttpRequest();
 			// var that = this;

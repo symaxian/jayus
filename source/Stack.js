@@ -61,53 +61,42 @@ jayus.Stack = jayus.RectEntity.extend({
 	//  Methods
 	//___________//
 
+	init: function Stack_init(){
+		jayus.RectEntity.prototype.init.apply(this, arguments);
+		this.children = new jayus.List(this);
+		//#ifdef DEBUG
+		this.children.typeId = jayus.TYPES.ENTITY;
+		//#endif
+		this.addHandler('dirty', function(type){
+			if(type & jayus.DIRTY.SIZE){
+				// this.formContents();
+			}
+		});
+	},
+
 		//
 		//  Children
 		//____________//
 
 	listItemAdded: function Stack_listItemAdded(list, item){
-		this.formSelf();
+		this.formContents();
 	},
 
 	listItemRemoved: function Stack_listItemRemoved(list, item){
-		this.formSelf();
+		this.formContents();
 	},
 
 	listItemsAdded: function Stack_listItemsAdded(list, items){
-		for(var i=0;i<items.length;i++){
-			this.listItemAdded(list, items[i]);
-		}
+		this.formContents();
 	},
 
 	listItemsRemoved: function Stack_listItemsRemoved(list, items){
-		for(var i=0;i<items.length;i++){
-			this.listItemRemoved(list, items[i]);
-		}
-	},
-
-	childDirtied: function Stack_childDirtied(){
-		this.dirty();
-	},
-
-	childMoved: function Stack_childMoved(){
-		this.dirty();
-	},
-
-	childSizeChanged: function Stack_childSizeChanged(){
-		this.formSelf();
+		this.formContents();
 	},
 
 		//
 		//  Initiation
 		//______________//
-
-	init: function Stack_init(){
-		jayus.Entity.prototype.init.apply(this,arguments);
-		this.children = new jayus.List(this);
-		//#ifdef DEBUG
-		this.children.typeId = jayus.TYPES.ENTITY;
-		//#endif
-	},
 
 	hasFlexibleWidth: function Stack_hasFlexibleWidth(){
 		return false;
@@ -133,7 +122,7 @@ jayus.Stack = jayus.RectEntity.extend({
 		//#endif
 		if(this.reversed !== on){
 			this.reversed = on;
-			this.formSelf();
+			this.formContents();
 		}
 		return this;
 	},
@@ -154,7 +143,7 @@ jayus.Stack = jayus.RectEntity.extend({
 		//#endif
 		if(this.spacing !== spacing){
 			this.spacing = spacing;
-			this.formSelf();
+			this.formContents();
 		}
 		return this;
 	},
@@ -182,7 +171,7 @@ jayus.Stack = jayus.RectEntity.extend({
 	},
 
 	reform: function Stack_reform(){
-		this.formSelf(this.width, this.height);
+		this.formContents(this.width, this.height);
 	},
 
 	paintContents: jayus.Scene.prototype.paintContents
@@ -218,7 +207,7 @@ jayus.hStack = jayus.Stack.extend({
 	//  Methods
 	//___________//
 
-	formSelf: function hStack_formSelf(){
+	formContents: function hStack_formContents(){
 
 		var w = 0,
 			h = 0,
@@ -259,7 +248,7 @@ jayus.hStack = jayus.Stack.extend({
 			height = h;
 		}
 
-		this.changeSize(width, height);
+		this.setSize(width, height);
 
 	}
 
@@ -318,7 +307,7 @@ jayus.vStack = jayus.Stack.extend({
 	//  Methods
 	//___________//
 
-	formSelf: function vStack_formSelf(){
+	formContents: function vStack_formContents(){
 
 		var h = 0,
 			w = 0;
@@ -344,7 +333,7 @@ jayus.vStack = jayus.Stack.extend({
 			width = w;
 		}
 
-		this.changeSize(width, height);
+		this.setSize(width, height);
 
 	}
 

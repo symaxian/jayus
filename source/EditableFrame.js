@@ -140,22 +140,7 @@ jayus.EditableFrame = jayus.Frame.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('Frame.init', child, 'child', jayus.TYPES.ENTITY);
 		//#endif
-		jayus.Entity.prototype.init.apply(this);
-		this.setChild(child);
-		// this.dirty();
-		this.initHandlers();
-	},
-
-	// pointChanged: function EditableFrame_pointChanged(){
-	// 	if(this.hasParent){
-	// 		this.parent.childMoved(this);
-	// 	}
-	// 	else{
-	// 		this.dirty();
-	// 	}
-	// },
-
-	initHandlers: function EditableFrame_initHandlers(){
+		jayus.Frame.prototype.init.call(this, child);
 
 		this.addHandler('cursorMove', function(e){
 			// Check if not currently dragging something
@@ -332,7 +317,7 @@ jayus.EditableFrame = jayus.Frame.extend({
 							height = that.height;
 						}
 
-						that.changeSize(width, height);
+						that.setSize(width, height);
 
 						// Reposition the entity
 						that.setPosAt(anchorX, anchorY, pos);

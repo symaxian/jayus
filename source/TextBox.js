@@ -42,6 +42,15 @@ jayus.TextBox = jayus.Text.extend({
 	//  Methods
 	//___________//
 
+	init: function TextBox_init(){
+		jayus.Text.prototype.init.apply(this, arguments);
+		this.addHandler('dirty', function(type){
+			if(type & jayus.DIRTY.SIZE){
+				this.refreshMetrics();
+			}
+		});
+	},
+
 	hasFlexibleWidth: function TextBox_hasFlexibleWidth(){
 		return true;
 	},
@@ -53,10 +62,6 @@ jayus.TextBox = jayus.Text.extend({
 		//
 		//  Frame
 		//_________//
-
-	formContents: function(){
-		this.refreshMetrics();
-	},
 
 	refreshMetrics: function TextBox_refreshMetrics(){
 

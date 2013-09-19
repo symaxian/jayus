@@ -423,7 +423,7 @@ jayus.Entity = jayus.Responder.extend({
 		jayus.debug.match('Entity.dirty', type, 'type', jayus.TYPES.NUMBER);
 		//#endif
 		if(!this.frozen){
-			this.fire('dirty', { type: type });
+			this.fire('dirty', type);
 			if(type & jayus.DIRTY.POSITION){
 				this.matrixDirty = true;
 			}

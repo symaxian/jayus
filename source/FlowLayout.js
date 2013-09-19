@@ -65,6 +65,8 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 
 	height: 100,
 
+	forming: false,
+
 	//
 	//  Methods
 	//___________//
@@ -79,6 +81,11 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
 		//#endif
+		this.addHandler('dirty', function(type){
+			if(type & jayus.DIRTY.SIZE){
+				this.formContents();
+			}
+		});
 	},
 
 		//
@@ -98,36 +105,33 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 		//____________//
 
 	componentDirtied: function Box_componentDirtied(component, type){
-		if(type === jayus.DIRTY.SIZE){
-			this.reform();
-		}
-		else{
-			this.dirty(jayus.DIRTY.CONTENT);
+		if(!this.forming){
+			this.dirty(jayus.DIRTY.ALL);
 		}
 	},
 
 	listItemAdded: function FlowLayout_listItemAdded(list, item){
 		item.setParent(this);
-		this.reform();
+		this.dirty(jayus.DIRTY.ALL);
 	},
 
 	listItemsAdded: function FlowLayout_listItemsAdded(list, items){
 		for(var i=0;i<items.length;i++){
 			items[i].setParent(this);
 		}
-		this.reform();
+		this.dirty(jayus.DIRTY.ALL);
 	},
 
 	listItemRemoved: function FlowLayout_listItemRemoved(list, item){
 		item.removeParent();
-		this.reform();
+		this.dirty(jayus.DIRTY.ALL);
 	},
 
 	listItemsRemoved: function FlowLayout_listItemsRemoved(list, items){
 		for(var i=0;i<items.length;i++){
 			items[i].removeParent();
 		}
-		this.reform();
+		this.dirty(jayus.DIRTY.ALL);
 	},
 
 		//
@@ -147,7 +151,7 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 		//#endif
 		if(this.alignment !== alignment){
 			this.alignment = alignment;
-			this.reform();
+			this.formContents();
 		}
 		return this;
 	},
@@ -165,20 +169,13 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 		//  Frame
 		//_________//
 
-	reform: function FlowLayout_reform(){
-		this.formContents(this.width, this.height);
-		this.dirty(jayus.DIRTY.SIZE);
-	},
-
-	formContents: function FlowLayout_formContents(width, height){
+	formContents: function FlowLayout_formContents(){
 
 		// if(width > this.width && this.lineHeights.length === 1){
 		// 	return;
 		// }
 
-		if(width === this.width && height > this.height){
-			return;
-		}
+		this.forming = true;
 
 		var i = 0,
 			j,
@@ -223,13 +220,13 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 				nextItem = this.children.items[i];
 				nextItemWidth = nextItem.width;
 
-			} while(currentLineWidth+nextItemWidth < width);
+			} while(currentLineWidth+nextItemWidth < this.width);
 
 			// Re-align the lines if there is a non-left alignment
 			if(this.alignment !== 0){
 				for(j=0;j<currentLine.length;j++){
 					item = currentLine[j];
-					item.x += (width-currentLineWidth)*this.alignment;
+					item.x += (this.width-currentLineWidth)*this.alignment;
 				}
 			}
 
@@ -248,10 +245,12 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 
 		for(i=0;i<this.children.items.length;i++){
 			item = this.children.items[i];
-			item.fire('moved');
+			item.dirty(jayus.DIRTY.POSITION);
 		}
 
 		this.lineHeights = lineHeights;
+
+		this.forming = false;
 
 	},
 

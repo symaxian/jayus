@@ -192,7 +192,7 @@ jayus.Text = jayus.RectEntity.extend({
 			this.lineWidths[i] = jayus.measureTextOnto(this.lines[i], this.font, tempRet).width;
 		}
 
-		this.changeSize(jayus.math.max(this.lineWidths), this.lines.length*this.fontDesc.height);
+		this.setSize(jayus.math.max(this.lineWidths), this.lines.length*this.fontDesc.height);
 
 	},
 

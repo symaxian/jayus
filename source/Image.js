@@ -118,7 +118,7 @@ jayus.Image = jayus.RectEntity.extend({
 						that.loaded = true;
 						that.image = data.image;
 						if(!that.hasSection){
-							that.changeSize(data.image.width, data.image.height);
+							that.setSize(data.image.width, data.image.height);
 						}
 					}
 				});
@@ -164,7 +164,7 @@ jayus.Image = jayus.RectEntity.extend({
 				// Set image
 				this.loaded = true;
 				this.image = jayus.images.images[filepath];
-				this.changeSize(this.image.width, this.image.height);
+				this.setSize(this.image.width, this.image.height);
 			}
 			else{
 				// Load the file
@@ -172,7 +172,7 @@ jayus.Image = jayus.RectEntity.extend({
 				jayus.images.load(filepath, function(source, image){
 					that.loaded = true;
 					that.image = jayus.images.images[filepath];
-					that.changeSize(image.width, image.height);
+					that.setSize(image.width, image.height);
 				});
 			}
 		}
@@ -180,7 +180,7 @@ jayus.Image = jayus.RectEntity.extend({
 			// Set the image and size
 			this.loaded = true;
 			this.image = image;
-			this.changeSize(this.image.width, this.image.height);
+			this.setSize(this.image.width, this.image.height);
 		}
 	},
 
@@ -232,7 +232,7 @@ jayus.Image = jayus.RectEntity.extend({
 		if(this.width !== width || this.height !== height){
 			this.sectionY = y;
 			this.sectionX = x;
-			this.changeSize(width, height);
+			this.setSize(width, height);
 		}
 		else if(this.sectionX !== x || this.sectionY !== y){
 			this.sectionY = y;
@@ -254,7 +254,7 @@ jayus.Image = jayus.RectEntity.extend({
 	clearSection: function Image_clearSection(){
 		if(this.hasSection){
 			this.hasSection = false;
-			this.changeSize(this.image.width, this.image.height);
+			this.setSize(this.image.width, this.image.height);
 		}
 		return this;
 	},

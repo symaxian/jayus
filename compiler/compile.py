@@ -208,7 +208,7 @@ if __name__ == '__main__':
         if o == "--dstdir":
             OUTPUT_DIR = a
 
-        if o == "-version" || o == "-v":
+        if o == "-version" or o == "-v":
             version = a
 
     # Create the temporary directory

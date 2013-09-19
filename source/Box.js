@@ -75,6 +75,8 @@ jayus.Box = jayus.RectEntity.extend({
 
 	isParent: true,
 
+	forming: false,
+
 	//
 	//  Methods
 	//___________//
@@ -89,6 +91,11 @@ jayus.Box = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
 		//#endif
+		this.addHandler('dirty', function(type){
+			if(type & jayus.DIRTY.SIZE){
+				this.formContents();
+			}
+		});
 	},
 
 		//
@@ -96,41 +103,33 @@ jayus.Box = jayus.RectEntity.extend({
 		//____________//
 
 	componentDirtied: function Box_componentDirtied(component, type){
-		if(type === jayus.DIRTY.SIZE){
-			this.reform();
-		}
-		else{
-			this.dirty(jayus.DIRTY.CONTENT);
+		if(!this.forming){
+			this.dirty(jayus.DIRTY.ALL);
 		}
 	},
 
 	listItemAdded: function Box_listItemAdded(list, item){
 		item.setParent(this);
-		this.reform();
+		this.dirty(jayus.DIRTY.ALL);
 	},
 
 	listItemsAdded: function Box_listItemsAdded(list, items){
 		for(var i=0;i<items.length;i++){
 			items[i].setParent(this);
 		}
-		this.reform();
+		this.dirty(jayus.DIRTY.ALL);
 	},
 
 	listItemRemoved: function Box_listItemRemoved(list, item){
 		item.removeParent();
-		this.reform();
+		this.dirty(jayus.DIRTY.ALL);
 	},
 
 	listItemsRemoved: function Box_listItemsRemoved(list, items){
 		for(var i=0;i<items.length;i++){
 			items[i].removeParent();
 		}
-		this.reform();
-	},
-
-	reform: function Box_reform(){
-		this.formContents(this.width, this.height);
-		this.dirty(jayus.DIRTY.SIZE);
+		this.dirty(jayus.DIRTY.ALL);
 	},
 
 		//
@@ -149,7 +148,7 @@ jayus.Box = jayus.RectEntity.extend({
 		//#endif
 		if(this.reversed !== on){
 			this.reversed = on;
-			this.reform();
+			this.formContents();
 		}
 		return this;
 	},
@@ -171,7 +170,7 @@ jayus.Box = jayus.RectEntity.extend({
 		//#endif
 		if(this.spacing !== spacing){
 			this.spacing = spacing;
-			this.reform();
+			this.formContents();
 		}
 		return this;
 	},
@@ -242,11 +241,13 @@ jayus.hBox = jayus.Box.extend({
 		return true;
 	},
 
-	formContents: function hBox_formContents(width, height){
+	formContents: function hBox_formContents(){
+
+		this.forming = true;
 
 		var i, item,
 			x = 0,
-			space = width-(this.children.items.length-1)*this.spacing,
+			space = this.width-(this.children.items.length-1)*this.spacing,
 			totalWeight = 0,
 			totalFixedSize = 0,
 			itemWidth, itemHeight;
@@ -276,7 +277,7 @@ jayus.hBox = jayus.Box.extend({
 			item = this.children.items[i];
 			// Get the height
 			if(item.hasFlexibleHeight()){
-				itemHeight = height;
+				itemHeight = this.height;
 			}
 			else{
 				itemHeight = item.height;
@@ -296,11 +297,15 @@ jayus.hBox = jayus.Box.extend({
 			item.x = x;
 			x += itemWidth+this.spacing;
 			// Set the item size
-			item.frozen--;
-			item.changeSize(itemWidth, itemHeight);
-			item.frozen++;
+			item.setSize(itemWidth, itemHeight);
+			// item.frozen--;
+			// item.width = itemWidth;
+			// item.height = itemHeight;
+			// item.frozen++;
 
 		}
+
+		this.forming = false;
 
 	}
 
@@ -344,11 +349,13 @@ jayus.vBox = jayus.Box.extend({
 		return false;
 	},
 
-	formContents: function vBox_formContents(width, height){
+	formContents: function vBox_formContents(){
+
+		this.forming = true;
 
 		var i, item,
 			y = 0,
-			space = height-(this.children.items.length-1)*this.spacing,
+			space = this.height-(this.children.items.length-1)*this.spacing,
 			totalWeight = 0,
 			totalFixedSize = 0,
 			itemWidth, itemHeight;
@@ -378,7 +385,7 @@ jayus.vBox = jayus.Box.extend({
 			item = this.children.items[i];
 			// Get the width
 			if(item.hasFlexibleWidth()){
-				itemWidth = width;
+				itemWidth = this.width;
 			}
 			else{
 				itemWidth = item.width;
@@ -398,10 +405,13 @@ jayus.vBox = jayus.Box.extend({
 			item.y = y;
 			y += itemHeight+this.spacing;
 			// Set the item size
-			item.frozen--;
-			item.changeSize(itemWidth, itemHeight);
-			item.frozen++;
+			item.setSize(itemWidth, itemHeight);
+			// item.frozen--;
+			// item.changeSize(itemWidth, itemHeight);
+			// item.frozen++;
 		}
+
+		this.forming = false;
 
 	}
 

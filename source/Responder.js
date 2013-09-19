@@ -247,13 +247,13 @@ jayus.Responder = jayus.createClass({
 	<br> Returns true if accepted.
 	@method {Boolean} fire
 	@param {String} event
-	@param {Object} data Optional
+	@param {*} data Optional
 	*/
 
 	fire: function Responder_fire(event, data){
 		//#ifdef DEBUG
 		jayus.debug.match('Responder.fire', event, 'event', jayus.TYPES.STRING);
-		jayus.debug.matchOptional('Responder.fire', data, 'data', jayus.TYPES.OBJECT);
+		jayus.debug.matchOptional('Responder.fire', data, 'data', jayus.TYPES.DEFINED);
 		//#endif
 		var i, opts, result;
 		if(this.hasHandlers && this.isHandler[event]){

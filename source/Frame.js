@@ -97,23 +97,11 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 
 	marginBottom: 6,
 
+	forming: false,
+
 	//
 	//  Methods
 	//___________//
-
-	// childDirtied: function Frame_childDirtied(){
-	// 	this.dirty();
-	// },
-
-	// childMoved: function Frame_childMoved(){
-	// 	this.dirty();
-	// },
-
-	// childResized: function Frame_childResized(){
-	// 	if(this.hasParent){
-	// 		this.parent.childResized(this);
-	// 	}
-	// },
 
 	updateCursorOnChildren: function Frame_updateCursorOnChildren(x, y){
 		if(this.propagateCursor){
@@ -146,12 +134,29 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 		jayus.Entity.prototype.init.apply(this);
 		this.setChild(child);
 		// this.dirty();
+		this.addHandler('dirty', function(type){
+			if(type & jayus.DIRTY.SIZE || type & jayus.DIRTY.POSITION){
+				this.formContents();
+			}
+		});
 	},
 
 	setChild: function Frame_setChild(child){
 		jayus.Wrapper.setChild.call(this, child);
-		this.changeSize(child.width+this.marginLeft+this.marginRight, child.height+this.marginTop+this.marginBottom);
+		this.setSize(child.width+this.marginLeft+this.marginRight, child.height+this.marginTop+this.marginBottom);
 		return this;
+	},
+
+	componentDirtied: function Frame_componentDirtied(component, type){
+		if(!this.forming){
+			if(type & jayus.DIRTY.SIZE){
+				// Set the frame's size then tell the parent
+				this.setSize(this.child.width+this.marginLeft+this.marginRight, this.child.height+this.marginTop+this.marginBottom);
+			}
+			else{
+				this.dirty(jayus.DIRTY.ALL);
+			}
+		}
 	},
 
 		//
@@ -210,23 +215,13 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 		return this.child.hasFlexibleHeight();
 	},
 
-	childSizeChanged: function Frame_childSizeChanged(child){
-		// Set the frame's size then tell the parent
-		this.width = this.child.width+this.marginLeft+this.marginRight;
-		this.height = this.child.height+this.marginTop+this.marginBottom;
-		this.fire('resized');
-		if(this.hasParent){
-			this.parent.childSizeChanged(this);
-		}
-	},
-
-	formContents: function Frame_formContents(width, height){
-		this.child.frozen--;
+	formContents: function Frame_formContents(){
+		this.forming = true;
 		// Set the childs origin
 		this.child.setOrigin(this.marginLeft, this.marginTop);
 		// Set the childs size
-		this.child.changeSize(width-this.marginLeft-this.marginRight, height-this.marginTop-this.marginBottom);
-		this.child.frozen++;
+		this.child.setSize(this.width-this.marginLeft-this.marginRight, this.height-this.marginTop-this.marginBottom);
+		this.forming = false;
 	},
 
 	/**
@@ -263,13 +258,13 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 			this.child.setWidth(this.width-this.marginLeft-this.marginRight);
 		}
 		else{
-			this.changeSize(this.child.width+left+right, this.child.height);
+			this.setSize(this.child.width+left+right, this.child.height);
 		}
 		if(this.child.hasFlexibleHeight()){
 			this.child.setHeight(this.height-this.marginTop-this.marginBottom);
 		}
 		else{
-			this.changeSize(this.child.width, this.child.height+top+bottom);
+			this.setSize(this.child.width, this.child.height+top+bottom);
 		}
 		this.child.frozen--;
 		return this;
