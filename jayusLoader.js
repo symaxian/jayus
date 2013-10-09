@@ -2,6 +2,7 @@
  * Useful when testing, just import this script rather than importing every script individually or the compiled version.
  * <br> The client code needs to be loaded after this file from its own script tag[s], possibly asynchronously.
  * <br> Works by looking for the script tag in the document that loaded this file and appends the jayus source script tags after it.
+ * <br> Only works when included using a script tag, this excludes jQuery.getScript() and similar functions.
  */
 
 (function(document){
@@ -68,29 +69,26 @@
 	];
 
 	// Get the jayus loader script tag
-	var tag, tags = document.getElementsByTagName('script');
-	for(var i=0;i<tags.length;i++){
-		if(tags[i].src.indexOf('jayusLoader.js')+1){
-			tag = tags[i];
+	var tags = document.getElementsByTagName('script'),
+		i, tag;
+
+	for(i=0;i<tags.length;i++){
+		tag = tags[i];
+		if(tag.src.indexOf('jayusLoader.js')+1){
+			// Get the jayus directory
+			var basePath = tag.src.split('jayusLoader.js')[0];
+			// Loop through the jayus file list
+			for(i=0;i<files.length;i++){
+				// Create an asynchronous script tag for the filename
+				var script = document.createElement('script');
+				script.type = 'text/javascript';
+				script.async = false;
+				script.src = basePath+'source/'+files[i];
+				// Insert it after the last script tag
+				document.head.appendChild(script);
+			}
 			break;
 		}
-	}
-
-	// Get the jayus directory
-	var basePath = tag.src.split('jayusLoader.js')[0];
-
-	// Get the element after the jayusLoader.js tag
-	var currentElement = tag.nextSibling;
-
-	// Loop through the jayus file list
-	for(i=0;i<files.length;i++){
-		// Create an asynchronous script tag for the filename
-		var script = document.createElement('script');
-		script.type = 'text/javascript';
-		script.async = false;
-		script.src = basePath+'source/'+files[i];
-		// Insert it after the last script tag
-		document.head.insertBefore(script,currentElement);
 	}
 
 })(document);
