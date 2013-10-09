@@ -57,6 +57,14 @@ jayus.Stack = jayus.RectEntity.extend({
 
 	isParent: true,
 
+	//#ifdef DEBUG
+
+	hasFlexibleWidth: false,
+
+	hasFlexibleHeight: false,
+
+	//#endif
+
 	//
 	//  Methods
 	//___________//
@@ -92,18 +100,6 @@ jayus.Stack = jayus.RectEntity.extend({
 
 	listItemsRemoved: function Stack_listItemsRemoved(list, items){
 		this.formContents();
-	},
-
-		//
-		//  Initiation
-		//______________//
-
-	hasFlexibleWidth: function Stack_hasFlexibleWidth(){
-		return false;
-	},
-
-	hasFlexibleHeight: function Stack_hasFlexibleHeight(){
-		return false;
 	},
 
 		//
@@ -248,7 +244,7 @@ jayus.hStack = jayus.Stack.extend({
 			height = h;
 		}
 
-		this.setSize(width, height);
+		this.changeSize(width, height);
 
 	}
 
@@ -333,7 +329,7 @@ jayus.vStack = jayus.Stack.extend({
 			width = w;
 		}
 
-		this.setSize(width, height);
+		this.changeSize(width, height);
 
 	}
 

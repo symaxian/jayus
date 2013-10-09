@@ -92,14 +92,6 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 		//  Size
 		//________//
 
-	hasFlexibleWidth: function Scene_hasFlexibleWidth(){
-		return true;
-	},
-
-	hasFlexibleHeight: function Scene_hasFlexibleHeight(){
-		return false;
-	},
-
 		//
 		//  Children
 		//____________//

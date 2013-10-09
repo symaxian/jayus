@@ -105,6 +105,14 @@ jayus.Text = jayus.RectEntity.extend({
 
 	lineWidths: null,
 
+	//#ifdef DEBUG
+
+	hasFlexibleWidth: false,
+
+	hasFlexibleHeight: false,
+
+	//#endif
+
 	//
 	//  Methods
 	//___________//
@@ -163,14 +171,6 @@ jayus.Text = jayus.RectEntity.extend({
 		//  Frame
 		//_________//
 
-	hasFlexibleWidth: function Text_hasFlexibleWidth(){
-		return false;
-	},
-
-	hasFlexibleHeight: function Text_hasFlexibleHeight(){
-		return false;
-	},
-
 	refreshMetrics: function Text_refreshMetrics(){
 
 		if(this.fontDesc === null){
@@ -192,7 +192,7 @@ jayus.Text = jayus.RectEntity.extend({
 			this.lineWidths[i] = jayus.measureTextOnto(this.lines[i], this.font, tempRet).width;
 		}
 
-		this.setSize(jayus.math.max(this.lineWidths), this.lines.length*this.fontDesc.height);
+		this.changeSize(jayus.math.max(this.lineWidths), this.lines.length*this.fontDesc.height);
 
 	},
 

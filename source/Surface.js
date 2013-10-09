@@ -105,14 +105,6 @@ jayus.Surface = jayus.RectEntity.extend({
 		//  Size
 		//________//
 
-	hasFlexibleWidth: function Surface_hasFlexibleWidth(){
-		return true;
-	},
-
-	hasFlexibleHeight: function Surface_hasFlexibleHeight(){
-		return true;
-	},
-
 	formContents: function Display_formContents(width, height){
 		this.canvas.width = width;
 		this.canvas.height = height;

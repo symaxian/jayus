@@ -223,24 +223,6 @@ jayus.hBox = jayus.Box.extend({
 	//  Methods
 	//___________//
 
-	hasFlexibleWidth: function hBox_hasFlexibleWidth(){
-		if(!this.children.items.length){
-			return true;
-		}
-		var i, item;
-		for(i=0;i<this.children.items.length;i++){
-			item = this.children.items[i];
-			if(item.hasFlexibleWidth()){
-				return true;
-			}
-		}
-		return false;
-	},
-
-	hasFlexibleHeight: function hBox_hasFlexibleHeight(){
-		return true;
-	},
-
 	formContents: function hBox_formContents(){
 
 		this.forming = true;
@@ -330,24 +312,6 @@ jayus.vBox = jayus.Box.extend({
 	//
 	//  Methods
 	//___________//
-
-	hasFlexibleWidth: function vBox_hasFlexibleWidth(){
-		return true;
-	},
-
-	hasFlexibleHeight: function vBox_hasFlexibleHeight(){
-		if(!this.children.items.length){
-			return true;
-		}
-		var i, item;
-		for(i=0;i<this.children.items.length;i++){
-			item = this.children.items[i];
-			if(item.hasFlexibleHeight()){
-				return true;
-			}
-		}
-		return false;
-	},
 
 	formContents: function vBox_formContents(){
 

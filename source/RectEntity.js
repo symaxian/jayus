@@ -144,6 +144,14 @@ jayus.RectEntity = jayus.Entity.extend({
 
 	body: null,
 
+	//#ifdef DEBUG
+
+	hasFlexibleWidth: true,
+
+	hasFlexibleHeight: true,
+
+	//#endif
+
 	//
 	//  Methods
 	//___________//
@@ -395,15 +403,14 @@ jayus.RectEntity = jayus.Entity.extend({
 	setWidth: function RectEntity_setWidth(width){
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.setWidth', width, 'width', jayus.TYPES.NUMBER);
+		if(!this.hasFlexibleWidth){
+			throw new Error('RectEntity.setWidth() - Entity width is not flexible');
+		}
 		//#endif
-		// if(this.hasFlexibleWidth()){
-			if(width !== this.width){
-				this.width = width;
-				this.dirty(jayus.DIRTY.SIZE);
-			}
-			return this;
-		// }
-		// throw new Error('RectEntity.setWidth() - Entity width is not flexible');
+		if(width !== this.width){
+			this.changeSize(width, this.height);
+		}
+		return this;
 	},
 
 	/**
@@ -416,15 +423,14 @@ jayus.RectEntity = jayus.Entity.extend({
 	setHeight: function RectEntity_setHeight(height){
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.setHeight', height, 'height', jayus.TYPES.NUMBER);
+		if(!this.hasFlexibleHeight){
+			throw new Error('RectEntity.setHeight() - Entity height is not flexible');
+		}
 		//#endif
-		// if(this.hasFlexibleHeight()){
-			if(height !== this.height){
-				this.height = height;
-				this.dirty(jayus.DIRTY.SIZE);
-			}
-			return this;
-		// }
-		// throw new Error('RectEntity.setHeight() - Entity height is not flexible');
+		if(height !== this.height){
+			this.changeSize(this.width, height);
+		}
+		return this;
 	},
 
 	/**
@@ -441,18 +447,24 @@ jayus.RectEntity = jayus.Entity.extend({
 	setSize: function RectEntity_setSize(width, height){
 		//#ifdef DEBUG
 		jayus.debug.matchSize('RectEntity.setSize', width, height);
+		if(!this.hasFlexibleWidth || !this.hasFlexibleHeight){
+			throw new Error('RectEntity.setSize() - Entity size is not flexible');
+		}
 		//#endif
 		if(arguments.length === 1){
 			height = width.height;
 			width = width.width;
 		}
-		// if(this.hasFlexibleWidth() && this.hasFlexibleHeight()){
-			this.width = width;
-			this.height = height;
-			this.dirty(jayus.DIRTY.SIZE);
-			return this;
-		// }
-		// throw new Error('RectEntity.setSize() - Entity size is not flexible');
+		if(this.width !== width || this.height !== height){
+			this.changeSize(width, height);
+		}
+		return this;
+	},
+
+	changeSize: function RectEntity_changeSize(width, height){
+		this.width = width;
+		this.height = height;
+		this.dirty(jayus.DIRTY.SIZE);
 	},
 
 	intersectsAt: function RectEntity_intersectsAt(x, y){

@@ -324,6 +324,11 @@ jayus.Entity = jayus.Responder.extend({
 	*/
 
 	init: function Entity_init(){
+		this.addHandler('dirty', function(type){
+			if(type & jayus.DIRTY.POSITION){
+				this.matrixDirty = true;
+			}
+		});
 		if(this.enableDragEvents){
 			this.handle({
 
@@ -424,9 +429,6 @@ jayus.Entity = jayus.Responder.extend({
 		//#endif
 		if(!this.frozen){
 			this.fire('dirty', type);
-			if(type & jayus.DIRTY.POSITION){
-				this.matrixDirty = true;
-			}
 			this.dirtied = true;
 			this.informDependents(type);
 		}

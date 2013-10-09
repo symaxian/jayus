@@ -143,7 +143,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 
 	setChild: function Frame_setChild(child){
 		jayus.Wrapper.setChild.call(this, child);
-		this.setSize(child.width+this.marginLeft+this.marginRight, child.height+this.marginTop+this.marginBottom);
+		this.changeSize(child.width+this.marginLeft+this.marginRight, child.height+this.marginTop+this.marginBottom);
 		return this;
 	},
 
@@ -151,7 +151,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 		if(!this.forming){
 			if(type & jayus.DIRTY.SIZE){
 				// Set the frame's size then tell the parent
-				this.setSize(this.child.width+this.marginLeft+this.marginRight, this.child.height+this.marginTop+this.marginBottom);
+				this.changeSize(this.child.width+this.marginLeft+this.marginRight, this.child.height+this.marginTop+this.marginBottom);
 			}
 			else{
 				this.dirty(jayus.DIRTY.ALL);
@@ -207,20 +207,12 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 		//  Margin
 		//___________//
 
-	hasFlexibleWidth: function Frame_hasFlexibleWidth(){
-		return this.child.hasFlexibleWidth();
-	},
-
-	hasFlexibleHeight: function Frame_hasFlexibleHeight(){
-		return this.child.hasFlexibleHeight();
-	},
-
 	formContents: function Frame_formContents(){
 		this.forming = true;
 		// Set the childs origin
 		this.child.setOrigin(this.marginLeft, this.marginTop);
 		// Set the childs size
-		this.child.setSize(this.width-this.marginLeft-this.marginRight, this.height-this.marginTop-this.marginBottom);
+		this.child.changeSize(this.width-this.marginLeft-this.marginRight, this.height-this.marginTop-this.marginBottom);
 		this.forming = false;
 	},
 
@@ -258,13 +250,13 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 			this.child.setWidth(this.width-this.marginLeft-this.marginRight);
 		}
 		else{
-			this.setSize(this.child.width+left+right, this.child.height);
+			this.changeSize(this.child.width+left+right, this.child.height);
 		}
 		if(this.child.hasFlexibleHeight()){
 			this.child.setHeight(this.height-this.marginTop-this.marginBottom);
 		}
 		else{
-			this.setSize(this.child.width, this.child.height+top+bottom);
+			this.changeSize(this.child.width, this.child.height+top+bottom);
 		}
 		this.child.frozen--;
 		return this;

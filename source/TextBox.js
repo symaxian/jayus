@@ -38,6 +38,14 @@ jayus.debug.className = 'TextBox';
 
 jayus.TextBox = jayus.Text.extend({
 
+	//#ifdef DEBUG
+
+	hasFlexibleWidth: true,
+
+	hasFlexibleHeight: true,
+
+	//#endif
+
 	//
 	//  Methods
 	//___________//
@@ -49,14 +57,6 @@ jayus.TextBox = jayus.Text.extend({
 				this.refreshMetrics();
 			}
 		});
-	},
-
-	hasFlexibleWidth: function TextBox_hasFlexibleWidth(){
-		return true;
-	},
-
-	hasFlexibleHeight: function TextBox_hasFlexibleHeight(){
-		return true;
 	},
 
 		//

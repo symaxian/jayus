@@ -84,6 +84,14 @@ jayus.Image = jayus.RectEntity.extend({
 
 	loaded: false,
 
+	//#ifdef DEBUG
+
+	hasFlexibleWidth: false,
+
+	hasFlexibleHeight: false,
+
+	//#endif
+
 	//
 	//  Methods
 	//___________//
@@ -118,7 +126,9 @@ jayus.Image = jayus.RectEntity.extend({
 						that.loaded = true;
 						that.image = data.image;
 						if(!that.hasSection){
-							that.setSize(data.image.width, data.image.height);
+							that.width = data.image.width;
+							that.height = data.image.height;
+							that.dirty(jayus.DIRTY.SIZE);
 						}
 					}
 				});
@@ -132,14 +142,6 @@ jayus.Image = jayus.RectEntity.extend({
 			this.width = this.image.width;
 			this.height = this.image.height;
 		}
-	},
-
-	hasFlexibleWidth: function Image_hasFlexibleWidth(){
-		return false;
-	},
-
-	hasFlexibleHeight: function Image_hasFlexibleHeight(){
-		return false;
 	},
 
 		//
@@ -164,7 +166,9 @@ jayus.Image = jayus.RectEntity.extend({
 				// Set image
 				this.loaded = true;
 				this.image = jayus.images.images[filepath];
-				this.setSize(this.image.width, this.image.height);
+				this.width = this.image.width;
+				this.height = this.image.height;
+				this.dirty(jayus.DIRTY.SIZE);
 			}
 			else{
 				// Load the file
@@ -172,7 +176,9 @@ jayus.Image = jayus.RectEntity.extend({
 				jayus.images.load(filepath, function(source, image){
 					that.loaded = true;
 					that.image = jayus.images.images[filepath];
-					that.setSize(image.width, image.height);
+					that.width = image.width;
+					that.height = image.height;
+					that.dirty(jayus.DIRTY.SIZE);
 				});
 			}
 		}
@@ -180,7 +186,9 @@ jayus.Image = jayus.RectEntity.extend({
 			// Set the image and size
 			this.loaded = true;
 			this.image = image;
-			this.setSize(this.image.width, this.image.height);
+			this.width = this.image.width;
+			this.height = this.image.height;
+			this.dirty(jayus.DIRTY.SIZE);
 		}
 	},
 
@@ -232,7 +240,9 @@ jayus.Image = jayus.RectEntity.extend({
 		if(this.width !== width || this.height !== height){
 			this.sectionY = y;
 			this.sectionX = x;
-			this.setSize(width, height);
+			this.width = width;
+			this.height = height;
+			this.dirty(jayus.DIRTY.SIZE);
 		}
 		else if(this.sectionX !== x || this.sectionY !== y){
 			this.sectionY = y;
@@ -241,10 +251,6 @@ jayus.Image = jayus.RectEntity.extend({
 		}
 		return this;
 	},
-
-
-
-
 
 	/**
 	Removes the source section rectangle from the image.
@@ -263,8 +269,8 @@ jayus.Image = jayus.RectEntity.extend({
 		//  Utilities
 		//_____________//
 
-	//@ From Entity
 	//#ifdef DEBUG
+	//@ From Entity
 	toString: function Image_toString(){
 		return '(Image:'+this.image+')';
 	},

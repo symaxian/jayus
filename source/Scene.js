@@ -113,14 +113,6 @@ jayus.Scene = jayus.RectEntity.extend({
 		this.dirty(jayus.DIRTY.CONTENT);
 	},
 
-	hasFlexibleWidth: function Scene_hasFlexibleWidth(){
-		return true;
-	},
-
-	hasFlexibleHeight: function Scene_hasFlexibleHeight(){
-		return true;
-	},
-
 	formContents: function Scene_formContents(width, height){
 		if(this.buffered){
 			this.canvas.width = width;

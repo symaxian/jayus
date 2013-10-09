@@ -149,8 +149,8 @@ jayus.EditableFrame = jayus.Frame.extend({
 				// Save which display is used
 				this.display = e.display;
 				var cursor = e.display.cursor,
-					varWidth = this.child.hasFlexibleWidth(),
-					varHeight = this.child.hasFlexibleHeight();
+					varWidth = this.child.hasFlexibleWidth,
+					varHeight = this.child.hasFlexibleHeight;
 				// Check the distance to the corners
 				if(varWidth && varHeight){
 					if(this.enabledHandles.nw && jayus.distance(this.getPosAt(0, 0), cursor) < this.cornerThreshold){
