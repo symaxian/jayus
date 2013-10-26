@@ -40,6 +40,8 @@ TODO:
 			hasFlexibleWidth/Height is crap
 			Not well handled with either events nor reforming
 			Some reforms come from size, some sizes come from reforms
+			Theres a problem in only using 1 size property, requested vs actual
+				User should set requested, not set actual
 
 		Make debug panel better
 			Resizable
@@ -1237,18 +1239,15 @@ jayus = {
 						averageLatency: 0,
 						inits: [],
 						initTotal: 0,
-						color: this.getRoutineColor(name),
-						bar: new jayus.Scene(0, this.barHeight),
-						label: new jayus.Text(name[0].toUpperCase()+name.slice(1), '16px sans-serif', { fill: 'black' }),
-						tag: new jayus.Text('', '12px sans-serif', { fill: 'black' })
+						color: this.getRoutineColor(name)
 					};
-					data.bar.setBg({ fill: data.color });
 					for(i=0;i<this.windowSize;i++){
 						data.latencies.push(0);
 						data.inits.push(0);
 					}
 					this.routineData[name] = data;
-					this.graph2.children.add(data.bar, data.label, data.tag);
+					data.hStack = new jayus.chart.Bar(name, this.graph2.width, 20);
+					this.barStack.children.add(data.hStack);
 				}
 
 				data.time += time;
@@ -1286,16 +1285,22 @@ jayus = {
 			if(!this.initialized){
 
 				this.vBox = new jayus.vBox();
-				this.vBox.setOrigin(2, 0).setSize(this.width, this.height);
+				this.vBox.setSize(this.width, this.height);
 
 				this.topLabel = new jayus.Text('', '13px sans-serif', { fill: '#DDD' });
+				this.topLabel.setOrigin(4, 4);
+				setInterval(function(){
+					jayus.chart.topLabel.setText('Framerate: '+(jayus.fps+'').substr(0, 4));
+				}, 100);
 
 				this.graph = new jayus.Scene();
 				// FIXME: Enable optimized buffering, broken for some reason
 				this.graph.setOptimizedBuffering(false);
 
-				this.graph2 = new jayus.Scene().setBg({ fill: 'dimgrey' });
-				this.graph2.setOptimizedBuffering(false);
+				this.barStack = new jayus.vStack();
+				this.barStack.setSpacing(2);
+				this.graph2 = new jayus.Frame(this.barStack).setBg({ fill: '#333' });
+				this.graph2.setMargin(0, 0, 2, 2);
 
 				this.vBox.children.add(this.topLabel, this.graph, this.graph2);
 
@@ -1363,6 +1368,47 @@ jayus = {
 
 				this.initialized = true;
 
+				this.Bar = jayus.Scene.extend({
+
+					width: this.graph.width,
+
+					barHeight: 12,
+
+					maxBarWidth: 200,
+
+					init: function(name, width, height){
+						jayus.Scene.prototype.init.call(this, width, height);
+						this.color = jayus.chart.getRoutineColor(name);
+
+						this.setBg({ fill: '#777' });
+
+						this.name = new jayus.Text(name, '14px sans-serif', { fill: 'black' });
+						this.name.setOrigin(4, this.height/2 - this.name.height/2);
+
+						this.bar = new jayus.Scene(0, this.barHeight).setBg({ fill: this.color });
+						this.bar.setOrigin(150, this.height/2 - this.bar.height/2);
+
+						this.label = new jayus.Text('0 ms', '12px sans-serif', { fill: 'black' });
+						this.label.setY(this.height/2 - this.label.height/2);
+
+						this.children.add(this.name, this.bar, this.label);
+					},
+
+					setBarWidth: function(width){
+						this.bar.setWidth(width*(this.width-150-6));
+					},
+
+					setAverageLatency: function(latency){
+						var num = (Math.round(10*latency)/10)+'';
+						if(num.length === 1){
+							num += '.0';
+						}
+						this.label.setText(num+' ms');
+						this.label.setX(150-4-this.label.width);
+					}
+
+				});
+
 			}
 
 			this.display.show();
@@ -1404,7 +1450,6 @@ jayus = {
 					this.routineData.render.time = 1;
 				}
 
-				var labelColumnWidth = 0;
 				var totalLatency = 0;
 				var routineNames = [];
 
@@ -1413,19 +1458,12 @@ jayus = {
 					data = this.routineData[routine];
 					routineNames.push(routine);
 					data.averageLatency = jayus.math.average(data.latencies);
+					data.hStack.averageLatency = data.averageLatency;
 					totalLatency += data.averageLatency;
-					width = data.label.width;
-					if(width > labelColumnWidth){
-						labelColumnWidth = width;
-					}
-					data.visible = data.averageLatency > 0;
 				}
 
-				labelColumnWidth += 10;
-
-				// Sort the routines, descending
-				routineNames.sort(function(a, b){
-					return jayus.chart.routineData[a].averageLatency < jayus.chart.routineData[b].averageLatency;
+				this.barStack.children.sort(function(a, b){
+					return a.averageLatency < b.averageLatency;
 				});
 
 				// Draw the bars
@@ -1447,30 +1485,16 @@ jayus = {
 					this.index = -1;
 				}
 
-				this.topLabel.setText('Framerate: '+(jayus.fps+'').substr(0, 4));
-
 				for(i=0;i<routineNames.length;i++){
 					data = this.routineData[routineNames[i]];
-					var bar = data.bar;
-					var offset = 10+i*(this.barSpacing+this.barHeight);
-					if(data.visible){
-						bar.setOrigin(labelColumnWidth, offset);
-						bar.setWidth(data.averageLatency/totalLatency*(this.graph2.width-labelColumnWidth));
-
-						data.label.setOrigin(5, bar.y+bar.height/2 - data.label.height/2);
-
-						data.tag.setText(Math.round(data.averageLatency)+' ms');
-						data.tag.setOrigin(bar.x+bar.width-data.tag.width-10, bar.y+bar.height/2 - data.tag.height/2);
-						bar.show();
-						data.label.show();
-						data.tag.show();
+					if(data.averageLatency > 0){
+						data.hStack.setBarWidth(data.averageLatency/totalLatency);
+						data.hStack.setAverageLatency(data.averageLatency);
+						data.hStack.show();
 					}
 					else{
-						bar.hide();
-						data.label.hide();
-						data.tag.hide();
+						data.hStack.hide();
 					}
-
 				}
 
 				this.windowIndex++;

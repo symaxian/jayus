@@ -448,6 +448,7 @@ jayus.RectEntity = jayus.Entity.extend({
 		//#ifdef DEBUG
 		jayus.debug.matchSize('RectEntity.setSize', width, height);
 		if(!this.hasFlexibleWidth || !this.hasFlexibleHeight){
+			console.log(this);
 			throw new Error('RectEntity.setSize() - Entity size is not flexible');
 		}
 		//#endif

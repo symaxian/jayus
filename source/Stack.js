@@ -82,24 +82,49 @@ jayus.Stack = jayus.RectEntity.extend({
 		});
 	},
 
+	componentDirtied: function Stack_componentDirtied(component, type){
+
+		this.dirty(jayus.DIRTY.ALL);
+
+	},
+
 		//
 		//  Children
 		//____________//
 
 	listItemAdded: function Stack_listItemAdded(list, item){
 		this.formContents();
+		item.setParent(this);
+		this.dirty(jayus.DIRTY.CONTENT);
 	},
 
 	listItemRemoved: function Stack_listItemRemoved(list, item){
 		this.formContents();
+		item.removeParent();
+		this.dirty(jayus.DIRTY.CONTENT);
 	},
 
 	listItemsAdded: function Stack_listItemsAdded(list, items){
 		this.formContents();
+		for(var i=0;i<items.length;i++){
+			item = items[i];
+			item.setParent(this);
+		}
+		this.dirty(jayus.DIRTY.CONTENT);
 	},
 
 	listItemsRemoved: function Stack_listItemsRemoved(list, items){
 		this.formContents();
+		for(var i=0;i<items.length;i++){
+			item = items[i];
+			item.removeParent();
+		}
+		this.dirty(jayus.DIRTY.CONTENT);
+	},
+
+	listItemsMoved: function Stack_listItemsMoved(){
+		this.formContents();
+		this.dirty(jayus.DIRTY.CONTENT);
 	},
 
 		//
@@ -186,6 +211,10 @@ An Entity that organizes child widgets into a horizontal row.
 @extends jayus.Stack
 */
 
+//#ifdef DEBUG
+jayus.debug.className = 'hStack';
+//#endif
+
 jayus.hStack = jayus.Stack.extend({
 
 	/**
@@ -259,6 +288,10 @@ A widget that organizes child widgets into a vertical column.
 @class jayus.vStack
 @extends jayus.Stack
 */
+
+//#ifdef DEBUG
+jayus.debug.className = 'vStack';
+//#endif
 
 jayus.vStack = jayus.Stack.extend({
 

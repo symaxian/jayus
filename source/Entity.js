@@ -277,6 +277,15 @@ jayus.Entity = jayus.Responder.extend({
 		this.dirty(jayus.DIRTY.ALL);
 	},
 
+	toggleExposed: function Entity_toggleExposed(){
+		if(this.debugRenderer !== null){
+			this.unexpose();
+		}
+		else{
+			this.expose();
+		}
+	},
+
 	exposeAll: function Entity_exposeAll(){
 		this.debugRenderer = jayus.debug.defaultDebugRenderer;
 		this.exposingAll = true;
@@ -318,6 +327,26 @@ jayus.Entity = jayus.Responder.extend({
 	//  Methods
 	//___________//
 
+	/*
+	The number of subsequent actions to animate.
+	<br> Do not modify.
+	@property {Number} actionsToAnimate
+	*/
+
+	actionsToAnimate: 0,
+
+	/**
+	Sets the next action performed on the entity to be animated.
+	<br> Only applies to animatable methods.
+	<br> When a function is set to be animated, instead of performing the action the method will return an animator that will perform that action when started.
+	@method {Self} animate
+	*/
+
+	animate: function Animatable_animate(){
+		this.actionsToAnimate++;
+		return this;
+	},
+
 	/**
 	Initiates the Entity.
 	@constructor init
@@ -329,6 +358,14 @@ jayus.Entity = jayus.Responder.extend({
 				this.matrixDirty = true;
 			}
 		});
+		//#ifdef DEBUG
+		// this.addHandler('cursorOver', function(e){
+		// 	this.expose();
+		// });
+		// this.addHandler('cursorOut', function(e){
+		// 	this.unexpose();
+		// });
+		//#endif
 		if(this.enableDragEvents){
 			this.handle({
 
@@ -1302,5 +1339,3 @@ jayus.Entity = jayus.Responder.extend({
 	*///@ Abstract Function
 
 });
-
-jayus.applyObject(jayus.Animatable.prototype, jayus.Entity.prototype);

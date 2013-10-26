@@ -91,7 +91,7 @@ jayus.Box = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
 		//#endif
-		this.addHandler('dirty', function(type){
+		this.addHandler('dirty', function Box_dirtyHandler(type){
 			if(type & jayus.DIRTY.SIZE){
 				this.formContents();
 			}
@@ -242,7 +242,7 @@ jayus.hBox = jayus.Box.extend({
 			if(typeof item.policy !== 'object'){
 				item.policy = new jayus.SizePolicy();
 			}
-			if(item.hasFlexibleWidth()){
+			if(item.hasFlexibleWidth){
 				totalFixedSize += item.policy.size;
 				if(item.policy.expand){
 					totalWeight += item.policy.weight;
@@ -258,14 +258,14 @@ jayus.hBox = jayus.Box.extend({
 		for(i=0;i<this.children.items.length;i++){
 			item = this.children.items[i];
 			// Get the height
-			if(item.hasFlexibleHeight()){
+			if(item.hasFlexibleHeight){
 				itemHeight = this.height;
 			}
 			else{
 				itemHeight = item.height;
 			}
 			// Get the width
-			if(item.hasFlexibleWidth()){
+			if(item.hasFlexibleWidth){
 				if(item.policy.expand){
 					itemWidth = item.policy.size+extraSpace*(item.policy.weight/totalWeight);
 				}
@@ -279,8 +279,9 @@ jayus.hBox = jayus.Box.extend({
 			item.x = x;
 			x += itemWidth+this.spacing;
 			// Set the item size
-			item.setSize(itemWidth, itemHeight);
+			// item.setSize(itemWidth, itemHeight);
 			// item.frozen--;
+			item.changeSize(itemWidth, itemHeight);
 			// item.width = itemWidth;
 			// item.height = itemHeight;
 			// item.frozen++;
@@ -332,7 +333,7 @@ jayus.vBox = jayus.Box.extend({
 			if(typeof item.policy !== 'object'){
 				item.policy = new jayus.SizePolicy();
 			}
-			if(item.hasFlexibleHeight()){
+			if(item.hasFlexibleHeight){
 				totalFixedSize += item.policy.size;
 				if(item.policy.expand){
 					totalWeight += item.policy.weight;
@@ -348,14 +349,14 @@ jayus.vBox = jayus.Box.extend({
 		for(i=0;i<this.children.items.length;i++){
 			item = this.children.items[i];
 			// Get the width
-			if(item.hasFlexibleWidth()){
+			if(item.hasFlexibleWidth){
 				itemWidth = this.width;
 			}
 			else{
 				itemWidth = item.width;
 			}
 			// Get the height
-			if(item.hasFlexibleHeight()){
+			if(item.hasFlexibleHeight){
 				if(item.policy.expand){
 					itemHeight = item.policy.size+extraSpace*(item.policy.weight/totalWeight);
 				}
@@ -369,9 +370,9 @@ jayus.vBox = jayus.Box.extend({
 			item.y = y;
 			y += itemHeight+this.spacing;
 			// Set the item size
-			item.setSize(itemWidth, itemHeight);
+			// item.setSize(itemWidth, itemHeight);
 			// item.frozen--;
-			// item.changeSize(itemWidth, itemHeight);
+			item.changeSize(itemWidth, itemHeight);
 			// item.frozen++;
 		}
 

@@ -122,7 +122,6 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	/**
 	Initiates the Frame object.
 	@constructor init
-	@paramset Syntax 1
 	@param {Entity} child
 	*/
 
@@ -133,7 +132,8 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 		//#endif
 		jayus.Entity.prototype.init.apply(this);
 		this.setChild(child);
-		// this.dirty();
+		// this.dirty(jayus.DIRTY.ALL);
+		this.formContents();
 		this.addHandler('dirty', function(type){
 			if(type & jayus.DIRTY.SIZE || type & jayus.DIRTY.POSITION){
 				this.formContents();
@@ -246,13 +246,13 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 		this.marginBottom = bottom;
 		// Check to resize child first, else resize self and tell parent
 		this.child.frozen++;
-		if(this.child.hasFlexibleWidth()){
+		if(this.child.hasFlexibleWidth){
 			this.child.setWidth(this.width-this.marginLeft-this.marginRight);
 		}
 		else{
 			this.changeSize(this.child.width+left+right, this.child.height);
 		}
-		if(this.child.hasFlexibleHeight()){
+		if(this.child.hasFlexibleHeight){
 			this.child.setHeight(this.height-this.marginTop-this.marginBottom);
 		}
 		else{

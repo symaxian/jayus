@@ -121,6 +121,8 @@ jayus.TiledMap = jayus.RectEntity.extend({
 			this.map = jayus.objects.get(filepath);
 			for(var i=0;i<this.map.tilesets.length;i++){
 				var data = this.map.tilesets[i];
+				console.log(data.image);
+				data.image = '../'+data.image;
 				jayus.images.load(data.image);
 				var sheet = new jayus.SpriteSheet();
 				// console.log(data);
