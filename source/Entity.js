@@ -310,6 +310,35 @@ jayus.Entity = jayus.Responder.extend({
 
 	//#endif
 
+	/**
+	Applies the given properties to the Entity.
+	<br> See the Property Application article for detiled information.
+	@method {Self} apply
+	*/
+
+	apply: function Entity_apply(obj){
+		//# if DEBUG
+		jayus.debug.match('Entity.apply', obj, 'type', jayus.TYPES.OBJECT);
+		//# end
+		for(var property in obj){
+			if(obj.hasOwnProperty(property)){
+				if(typeof this[property] === 'function'){
+					if(obj[property] instanceof Array){
+						this[property].apply(this,obj[property]);
+					}
+					else{
+						this[property](obj[property]);
+					}
+				}
+				else{
+					this[property] = obj[property];
+				}
+			}
+		}
+		return this;
+	},
+
+
 		//
 		//  Transforms
 		//______________//

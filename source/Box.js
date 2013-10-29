@@ -330,13 +330,13 @@ jayus.vBox = jayus.Box.extend({
 		for(i=0;i<this.children.items.length;i++){
 			item = this.children.items[i];
 			// Set the default policy
-			if(typeof item.policy !== 'object'){
-				item.policy = new jayus.SizePolicy();
+			if(typeof item.heightPolicy !== 'object'){
+				item.heightPolicy = new jayus.SizePolicy();
 			}
 			if(item.hasFlexibleHeight){
-				totalFixedSize += item.policy.size;
-				if(item.policy.expand){
-					totalWeight += item.policy.weight;
+				totalFixedSize += item.heightPolicy.size;
+				if(item.heightPolicy.expand){
+					totalWeight += item.heightPolicy.weight;
 				}
 			}
 			else{
@@ -357,11 +357,11 @@ jayus.vBox = jayus.Box.extend({
 			}
 			// Get the height
 			if(item.hasFlexibleHeight){
-				if(item.policy.expand){
-					itemHeight = item.policy.size+extraSpace*(item.policy.weight/totalWeight);
+				if(item.heightPolicy.expand){
+					itemHeight = item.heightPolicy.size+extraSpace*(item.heightPolicy.weight/totalWeight);
 				}
 				else{
-					itemHeight = item.policy.size;
+					itemHeight = item.heightPolicy.size;
 				}
 			}
 			else{

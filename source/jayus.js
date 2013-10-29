@@ -1104,6 +1104,30 @@ jayus = {
 		}
 	},
 
+	parse: function jayus_parse(obj){
+		var type = obj.type;
+		if(typeof jayus[type] === 'function'){
+			for(var key in obj){
+				var value = obj[key];
+				if(value instanceof Array){
+					for(var i=0;i<value.length;i++){
+						if(typeof value[i] === 'object' && typeof value[i].type === 'string'){
+							value[i] = this.parse(value[i]);
+						}
+					}
+				}
+				else if(typeof value === 'object' && typeof value.type === 'string'){
+					obj[key] = this.parse(value);
+				}
+			}
+			var ret = new jayus[type]();
+			ret.apply(obj);
+			// ret.reform();
+			// ret.reformMatrix();
+			return ret;
+		}
+	},
+
 	//
 	//  Debug Panel
 	//_______________//
@@ -1121,13 +1145,13 @@ jayus = {
 				return true;
 			}
 		});
-		jayus.addHandler('keyPress', function(e){
-			if(e.key === 'backslash'){
-				lol = Cel.wrappers[0].exportChart();
-				document.body.appendChild(lol);
-				return true;
-			}
-		});
+		// jayus.addHandler('keyPress', function(e){
+		// 	if(e.key === 'backslash'){
+		// 		lol = Cel.wrappers[0].exportChart();
+		// 		document.body.appendChild(lol);
+		// 		return true;
+		// 	}
+		// });
 	},
 
 	chart: {
@@ -1287,10 +1311,50 @@ jayus = {
 				this.vBox = new jayus.vBox();
 				this.vBox.setSize(this.width, this.height);
 
-				this.topLabel = new jayus.Text('', '13px sans-serif', { fill: '#DDD' });
-				this.topLabel.setOrigin(4, 4);
+				this.topRow = new jayus.Scene(this.width, 30);
+				var bg = new jayus.LinearGradient(0, 0, 0, 30);
+				bg.addColorStop(0, '#DDD');
+				bg.addColorStop(1, '#CCC');
+				this.topRow.setBg({ fill: bg });
+				this.topRow.heightPolicy = new jayus.SizePolicy();
+				this.topRow.heightPolicy.size = 30;
+				this.topRow.heightPolicy.expand = false;
+
+				// var title = new jayus.Text('Debug Panel', '14px sans-serif', { fill: '#111' });
+				// title.setOrigin(8, 4);
+
+				this.title = jayus.parse({
+					type: 'Text',
+					setText: 'Debug Panel',
+					setFont: '14px sans-serif',
+					setBrush: {
+						fill: '#111'
+					},
+					setOrigin: [8, 4]
+				});
+
+				this.fpsLabel = jayus.parse({
+					type: 'Text',
+					setText: '',
+					setFont: '12px sans-serif',
+					setBrush: {
+						fill: '#111'
+					},
+					setOrigin: [0, 4]
+				});
+
+				this.topRow.children.add(this.title, this.fpsLabel);
+
+				// this.topLabel = new jayus.Text('', '13px sans-serif', { fill: '#DDD' });
+				// this.topLabel.setOrigin(4, 4);
 				setInterval(function(){
-					jayus.chart.topLabel.setText('Framerate: '+(jayus.fps+'').substr(0, 4));
+					var label = jayus.chart.fpsLabel;
+					var fps = (Math.round(jayus.fps*10)/10)+'';
+					if(fps.length === 2){
+						fps += '.0';
+					}
+					label.setText('Framerate: '+fps);
+					label.setX(label.parent.width-4-label.width);
 				}, 100);
 
 				this.graph = new jayus.Scene();
@@ -1302,7 +1366,7 @@ jayus = {
 				this.graph2 = new jayus.Frame(this.barStack).setBg({ fill: '#333' });
 				this.graph2.setMargin(0, 0, 2, 2);
 
-				this.vBox.children.add(this.topLabel, this.graph, this.graph2);
+				this.vBox.children.add(this.topRow, this.graph, this.graph2);
 
 				// Graph
 

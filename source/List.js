@@ -479,8 +479,12 @@ jayus.List = jayus.createClass({
 	},
 
 	sort: function List_sort(comparator){
+		//#ifdef DEBUG
+		jayus.debug.match('List.sort', comparator, 'comparator', jayus.TYPES.FUNCTION);
+		//#endif
 		this.items.sort(comparator);
 		this.parent.listItemsMoved();
+		return this;
 	}
 
 });
