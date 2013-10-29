@@ -1136,7 +1136,7 @@ jayus = {
 	addDefaultHandlers: function jayus_addDefaultHandlers(){
 		jayus.addHandler('keyPress', function(e){
 			if(e.key === 'grave' && e.event.ctrlKey){
-				if(jayus.chart.isVisible()){
+				if(jayus.chart.visible){
 					jayus.chart.hide();
 				}
 				else{
@@ -1263,15 +1263,43 @@ jayus = {
 						averageLatency: 0,
 						inits: [],
 						initTotal: 0,
-						color: this.getRoutineColor(name)
+						color: this.getRoutineColor(name),
+						widget: null
 					};
 					for(i=0;i<this.windowSize;i++){
 						data.latencies.push(0);
 						data.inits.push(0);
 					}
 					this.routineData[name] = data;
-					data.hStack = new jayus.chart.Bar(name, this.graph2.width, 20);
-					this.barStack.children.add(data.hStack);
+
+					data.row = document.createElement('tr');
+
+					var title = document.createElement('td');
+					title.style.color = '#CCC';
+					title.style.fontSize = '11pt';
+					title.innerText = name;
+
+					data.latencyLabel = document.createElement('td');
+					data.latencyLabel.style.color = '#BBB';
+					data.latencyLabel.style.fontSize = '10pt';
+					data.latencyLabel.style.textAlign = 'right';
+					data.latencyLabel.innerText = '0 ms';
+
+					data.progressBar = document.createElement('div');
+					data.progressBar.style.margin = '4px';
+					$(data.progressBar).progressbar({
+						value: 0
+					});
+
+					data.progressBarValue = data.progressBar.childNodes[0];
+					$(data.progressBarValue).css('background', data.color);
+
+					data.row.appendChild(title);
+					data.row.appendChild(data.latencyLabel);
+					data.row.appendChild(data.progressBar);
+
+					jayus.chart.latencyTable.appendChild(data.row);
+
 				}
 
 				data.time += time;
@@ -1300,10 +1328,6 @@ jayus = {
 			// }
 		},
 
-		isVisible: function jayus_chart_isVisible(){
-			return this.initialized && this.display.visible;
-		},
-
 		show: function jayus_chart_show(){
 
 			if(!this.initialized){
@@ -1320,19 +1344,6 @@ jayus = {
 				this.topRow.heightPolicy.size = 30;
 				this.topRow.heightPolicy.expand = false;
 
-				// var title = new jayus.Text('Debug Panel', '14px sans-serif', { fill: '#111' });
-				// title.setOrigin(8, 4);
-
-				this.title = jayus.parse({
-					type: 'Text',
-					setText: 'Debug Panel',
-					setFont: '14px sans-serif',
-					setBrush: {
-						fill: '#111'
-					},
-					setOrigin: [8, 4]
-				});
-
 				this.fpsLabel = jayus.parse({
 					type: 'Text',
 					setText: '',
@@ -1343,7 +1354,7 @@ jayus = {
 					setOrigin: [0, 4]
 				});
 
-				this.topRow.children.add(this.title, this.fpsLabel);
+				this.topRow.children.add(this.fpsLabel);
 
 				// this.topLabel = new jayus.Text('', '13px sans-serif', { fill: '#DDD' });
 				// this.topLabel.setOrigin(4, 4);
@@ -1361,16 +1372,17 @@ jayus = {
 				// FIXME: Enable optimized buffering, broken for some reason
 				this.graph.setOptimizedBuffering(false);
 
-				this.barStack = new jayus.vStack();
-				this.barStack.setSpacing(2);
-				this.graph2 = new jayus.Frame(this.barStack).setBg({ fill: '#333' });
-				this.graph2.setMargin(0, 0, 2, 2);
-
-				this.vBox.children.add(this.topRow, this.graph, this.graph2);
+				this.vBox.children.add(this.topRow, this.graph);
 
 				// Graph
 
 				this.graphSurface = new jayus.Surface(this.graph.width, this.graph.height);
+
+				// this.graphSurface.setWidth({
+				// 	source: this.display,
+				// 	property: 'width',
+				// 	dirty: jayus.DIRTY.SIZE
+				// });
 
 				this.graph.children.add(this.graphSurface);
 
@@ -1399,96 +1411,62 @@ jayus = {
 				this.display = new jayus.Display(this.width, this.height);
 				this.display.children.add(this.vBox);
 
-				var canvas = this.display.canvas,
-					beingMoved = false,
-					startX, startY;
+				var div = document.createElement('div');
 
-				canvas.onmousemove = function(e){
-					if(beingMoved){
-						canvas.style.left = (e.pageX - startX) + 'px';
-						canvas.style.top = (e.pageY - startY) + 'px';
-					}
-				};
-
-				canvas.onmousedown = function(e){
-					beingMoved = true;
-					startX = e.layerX;
-					startY = e.layerY;
-				};
-
-				canvas.onmouseup = function(){
-					beingMoved = false;
-				};
-
-				canvas.style.position = 'absolute';
+				var canvas = this.display.canvas;
 				canvas.style.border = '#aaa 1px solid';
 				canvas.style.backgroundColor = 'black';
-				this.display.setCursor('move');
+				div.appendChild(canvas);
 
-				document.body.appendChild(canvas);
+				table = document.createElement('table');
+				table.style.width = '100%';
+				div.appendChild(table);
 
-				canvas.style.left = '50px';
-				canvas.style.top = '50px';
+				$(table).append($.parseHTML('<colgroup><col span="1" style="width: 15%;"><col span="1" style="width: 15%;"><col span="1" style="width: 70%;"></colgroup>'));
+
+				jayus.chart.latencyTable = table;
+
+				$(div).dialog({
+					title: 'Jayus Debug Panel',
+					open: function() {
+						$(this).data("width.dialog", $(canvas).width() + 60);
+					},
+					resize: function() {
+						jayus.chart.display.setWidth($(jayus.chart.dialogContainer).width()-4);
+						return false;
+					},
+					close: function() {
+						jayus.chart.visible = false;
+					}
+				});
+
+				jayus.chart.dialog = div.parentNode;
+
+				jayus.chart.dialogContainer = jayus.chart.dialog.childNodes[1];
+
+				this.display.setSize($(jayus.chart.dialogContainer).width()-4, $(jayus.chart.dialogContainer).height()-4);
 
 				this.initialized = true;
 
-				this.Bar = jayus.Scene.extend({
-
-					width: this.graph.width,
-
-					barHeight: 12,
-
-					maxBarWidth: 200,
-
-					init: function(name, width, height){
-						jayus.Scene.prototype.init.call(this, width, height);
-						this.color = jayus.chart.getRoutineColor(name);
-
-						this.setBg({ fill: '#777' });
-
-						this.name = new jayus.Text(name, '14px sans-serif', { fill: 'black' });
-						this.name.setOrigin(4, this.height/2 - this.name.height/2);
-
-						this.bar = new jayus.Scene(0, this.barHeight).setBg({ fill: this.color });
-						this.bar.setOrigin(150, this.height/2 - this.bar.height/2);
-
-						this.label = new jayus.Text('0 ms', '12px sans-serif', { fill: 'black' });
-						this.label.setY(this.height/2 - this.label.height/2);
-
-						this.children.add(this.name, this.bar, this.label);
-					},
-
-					setBarWidth: function(width){
-						this.bar.setWidth(width*(this.width-150-6));
-					},
-
-					setAverageLatency: function(latency){
-						var num = (Math.round(10*latency)/10)+'';
-						if(num.length === 1){
-							num += '.0';
-						}
-						this.label.setText(num+' ms');
-						this.label.setX(150-4-this.label.width);
-					}
-
-				});
-
 			}
 
-			this.display.show();
+			this.visible = true;
+			
+			$(jayus.chart.dialog).show();
 
 		},
 
 		hide: function jayus_chart_hide(){
-			if(this.initialized){
-				this.display.hide();
+			if(this.initialized && this.visible){
+				$(jayus.chart.dialog).hide();
 				this.graphSurface.clear();
 				this.index = 0;
+				this.visible = false;
 			}
 		},
 
 		mark: function jayus_chart_mark(text){
-			if(this.isVisible()){
+			if(this.visible){
 				var ctx = this.graphSurface.context,
 					metrics = jayus.measureText(text, this.markFont);
 				ctx.fillStyle = this.markColor;
@@ -1500,7 +1478,7 @@ jayus = {
 		order: ['render', 'box2d', 'animation', 'cursor'],
 
 		update: function jayus_chart_update(){
-			if(this.isVisible()){
+			if(this.visible){
 
 				var ctx = this.graphSurface.context,
 					y = this.graphSurface.height,
@@ -1522,13 +1500,8 @@ jayus = {
 					data = this.routineData[routine];
 					routineNames.push(routine);
 					data.averageLatency = jayus.math.average(data.latencies);
-					data.hStack.averageLatency = data.averageLatency;
 					totalLatency += data.averageLatency;
 				}
-
-				this.barStack.children.sort(function(a, b){
-					return a.averageLatency < b.averageLatency;
-				});
 
 				// Draw the bars
 				for(i=0;i<routineNames.length;i++){
@@ -1551,15 +1524,31 @@ jayus = {
 
 				for(i=0;i<routineNames.length;i++){
 					data = this.routineData[routineNames[i]];
-					if(data.averageLatency > 0){
-						data.hStack.setBarWidth(data.averageLatency/totalLatency);
-						data.hStack.setAverageLatency(data.averageLatency);
-						data.hStack.show();
+
+					$(data.progressBar).progressbar({
+						value: 100 * data.averageLatency/totalLatency
+					});
+
+					var num = (Math.round(10*data.averageLatency)/10)+'';
+					if(num.length === 1 && num !== '0'){
+						num += '.0';
 					}
-					else{
-						data.hStack.hide();
-					}
+					$(data.latencyLabel).text(num+' ms');
+
 				}
+
+
+				var parent = $(jayus.chart.latencyTable);
+				var items = parent.children();
+				items.sort(function(a, b) {
+					// console.log(a);
+					if(a.nodeName === 'TR' && b.nodeName === 'TR'){
+						var vA = parseFloat(a.childNodes[2].attributes['aria-valuenow'].value);
+						var vB = parseFloat(b.childNodes[2].attributes['aria-valuenow'].value);
+						return (vA < vB) ? 1 : (vA > vB) ? 0 : 0;
+					}
+				});
+				parent.append(items);
 
 				this.windowIndex++;
 				if(this.windowIndex === this.windowSize){
