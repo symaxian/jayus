@@ -1323,6 +1323,51 @@ jayus.Entity = jayus.Responder.extend({
 	},
 
 		//
+		//  Style
+		//_________//
+
+	/**
+	Sets the style.
+	<br> Sets the entity as dirty.
+	@method {Self} setStyle
+	@param {Brush} style
+	*/
+
+	setStyle: function RectEntity_setStyle(style){
+		//#ifdef DEBUG
+		jayus.debug.match('RectEntity.setStyle', style, 'style', jayus.TYPES.OBJECT);
+		//#endif
+		// Detach self from the old style
+		if(this.hasStyle){
+			this.style.detach(this);
+		}
+		// Create the style object if not given
+		if(!(style instanceof jayus.Brush)){
+			style = new jayus.Brush(style);
+		}
+		// Set and attach self to the new style
+		this.style = style;
+		this.style.attach(this);
+		this.hasStyle = true;
+		return this.dirty(jayus.DIRTY.STYLE);
+	},
+
+	/**
+	Removes the style.
+	@method {Self} clearBg
+	*/
+
+	clearBg: function RectEntity_clearBg(){
+		if(this.hasStyle){
+			this.style.detach(this);
+			this.style = null;
+			this.hasStyle = false;
+			this.dirty(jayus.DIRTY.STYLE);
+		}
+		return this;
+	},
+
+		//
 		//  Rendering
 		//_____________//
 

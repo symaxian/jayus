@@ -787,6 +787,19 @@ jayus = {
 	},
 
 	/**
+	Returns an object holding the parameters extracted from the current URL.
+	@method {Object} getUrlParameters
+	*/
+
+	getUrlParameters: function jayus_getUrlParameters(){
+		for(var i=0, vars = {}, param, paramArray = window.location.href.slice(window.location.href.indexOf('?')+1).split('&');i<paramArray.length;i++){
+			param = paramArray[i].split('=');
+			vars[param[0]] = param[1];
+		}
+		return vars;
+	},
+
+	/**
 	Initializes Jayus.
 	<br> Note that this method does not start jayus, the display canvas will appear on the page but will be blank until jayus is started.
 	<br> Jayus does not need to be running to accept input, input events should be tracked and fired from this point on.
@@ -1378,38 +1391,48 @@ jayus = {
 
 				this.graphSurface = new jayus.Surface(this.graph.width, this.graph.height);
 
-				// this.graphSurface.setWidth({
-				// 	source: this.display,
-				// 	property: 'width',
-				// 	dirty: jayus.DIRTY.SIZE
-				// });
-
 				this.graph.children.add(this.graphSurface);
 
-				this.graph.addHandler('resized', function(){
-					// Helper function
-					var addLabel = function(ms){
-						var y = jayus.chart.graph.height-(ms/jayus.chart.topMS)*jayus.chart.graph.height,
-							line = new jayus.PaintedShape(
-								new jayus.Polygon.Line(0, Math.floor(y)+0.5, jayus.chart.graph.width, Math.floor(y)+0.5),
-								{ stroke: 'dimgrey' }
-							),
-							text = new jayus.Text(ms+' ms', '10px sans-serif', { fill: 'dimgrey' }).setOrigin(4, y-12);
-						jayus.chart.graph.children.
-							update(ms+'line', line.setId(ms+'line')).
-							update(ms+'text', text.setId(ms+'text'));
-					};
-					// Add labels for 60 and 30 fps
-					addLabel(16);
-					addLabel(33);
-					// Set the graph height
-					jayus.chart.graphSurface.setHeight(this.height);
+				this.graph.addHandler('dirty', function(dirty){
+					if(dirty & jayus.DIRTY.SIZE){
+						// Helper function
+						var addLabel = function(ms){
+							var y = jayus.chart.graph.height-(ms/jayus.chart.topMS)*jayus.chart.graph.height,
+								line = new jayus.PaintedShape(
+									new jayus.Polygon.Line(0, Math.floor(y)+0.5, jayus.chart.graph.width, Math.floor(y)+0.5),
+									{ stroke: 'dimgrey' }
+								),
+								text = new jayus.Text(ms+' ms', '10px sans-serif', { fill: 'dimgrey' }).setOrigin(4, y-12);
+							jayus.chart.graph.children.
+								update(ms+'line', line.setId(ms+'line')).
+								update(ms+'text', text.setId(ms+'text'));
+						};
+						// Add labels for 60 and 30 fps
+						addLabel(16);
+						addLabel(33);
+						// Set the graph height
+						jayus.chart.graphSurface.setHeight(this.height);
+					}
 				});
 
 				this.graph.fire('resized');
 
 				this.display = new jayus.Display(this.width, this.height);
 				this.display.children.add(this.vBox);
+
+				// this.vBox.setWidth({
+				// 	source: this.display,
+				// 	property: 'width',
+				// 	dirty: jayus.DIRTY.SIZE
+				// });
+
+				// this.vBox.setRemoteWidth(this.display, 'width');
+
+				this.display.addHandler('dirty', function(dirty) {
+					if(dirty & jayus.DIRTY.SIZE){
+						jayus.chart.vBox.setWidth(this.width);
+					}
+				});
 
 				var div = document.createElement('div');
 
@@ -1422,7 +1445,7 @@ jayus = {
 				table.style.width = '100%';
 				div.appendChild(table);
 
-				$(table).append($.parseHTML('<colgroup><col span="1" style="width: 15%;"><col span="1" style="width: 15%;"><col span="1" style="width: 70%;"></colgroup>'));
+				$(table).append('<colgroup><col span="1" style="width: 15%;"><col span="1" style="width: 15%;"><col span="1" style="width: 70%;"></colgroup>');
 
 				jayus.chart.latencyTable = table;
 
@@ -1454,6 +1477,8 @@ jayus = {
 			
 			$(jayus.chart.dialog).show();
 
+			jayus.fire('debugPanelShown');
+
 		},
 
 		hide: function jayus_chart_hide(){
@@ -1463,6 +1488,7 @@ jayus = {
 				this.index = 0;
 				this.visible = false;
 			}
+			jayus.fire('debugPanelHidden');
 		},
 
 		mark: function jayus_chart_mark(text){
@@ -1487,10 +1513,6 @@ jayus = {
 					data,
 					width,
 					height;
-
-				if(this.routineData.render.time === 0){
-					this.routineData.render.time = 1;
-				}
 
 				var totalLatency = 0;
 				var routineNames = [];
@@ -1518,7 +1540,7 @@ jayus = {
 				ctx.clearRect(this.index+1, 0, 2, this.graph.height);
 
 				this.index++;
-				if(this.index === this.graph.width){
+				if(this.index >= this.graph.width){
 					this.index = -1;
 				}
 
@@ -1537,7 +1559,6 @@ jayus = {
 
 				}
 
-
 				var parent = $(jayus.chart.latencyTable);
 				var items = parent.children();
 				items.sort(function(a, b) {
@@ -1545,7 +1566,8 @@ jayus = {
 					if(a.nodeName === 'TR' && b.nodeName === 'TR'){
 						var vA = parseFloat(a.childNodes[2].attributes['aria-valuenow'].value);
 						var vB = parseFloat(b.childNodes[2].attributes['aria-valuenow'].value);
-						return (vA < vB) ? 1 : (vA > vB) ? 0 : 0;
+						// return (vA < vB) ? 1 : (vA > vB) ? 0 : 0;
+						return (vA < vB) ? 1 : 0;
 					}
 				});
 				parent.append(items);

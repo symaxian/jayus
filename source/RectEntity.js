@@ -413,6 +413,36 @@ jayus.RectEntity = jayus.Entity.extend({
 		return this;
 	},
 
+	widthDesc: null,
+
+	setRemoteWidth: function RectEntity_setRemoteWidth(source, key){
+		//#ifdef DEBUG
+		if(!this.hasFlexibleWidth){
+			throw new Error('RectEntity.setRemoteWidth() - Entity width is not flexible');
+		}
+		//#endif
+		this.widthDesc = {
+			source: source,
+			key: key
+		};
+		
+		// if(typeof source === 'string'){
+		// 	if(source === 'parent'){
+		// 		source = this.parent;
+		// 	}
+		// }
+
+		var that = this;
+		source.addHandler('dirty', function() {
+			var width = this[key];
+			if(width !== that.width){
+				that.changeSize(width, that.height);
+			}
+		});
+
+		return this;
+	},
+
 	/**
 	Sets the height of the entity.
 	<br> Throws an error if not possible.
@@ -749,6 +779,10 @@ jayus.RectEntity = jayus.Entity.extend({
 		//#endif
 		// Save the context
 		ctx.save();
+		// Apply any styling
+		if(this.hasStyle){
+			this.style.applyTo(ctx);
+		}
 		// Apply alpha
 		if(this.alpha !== 1){
 			ctx.globalAlpha *= this.alpha;

@@ -237,6 +237,16 @@ jayus.Brush = jayus.Dependency.extend({
 		this.frozen++;
 		for(var key in styling){
 			if(styling.hasOwnProperty(key)){
+				//#ifdef DEBUG
+				if(typeof this['set'+key[0].toUpperCase()+key.slice(1)] !== 'function'){
+					var msg = 'Brush.apply() - Unknown property "'+key+'" present in styling object sent';
+					if(key === 'shadowColor'){
+						msg += ', did you mean to set the "shadow" property?';
+					}
+					console.warn(msg);
+					continue;
+				}
+				//#endif
 				this['set'+key[0].toUpperCase()+key.slice(1)](styling[key]);
 			}
 		}
