@@ -34,7 +34,7 @@ An Entity that represents an editable image.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Surface';
-//#endif
+//#end
 
 jayus.Surface = jayus.RectEntity.extend({
 
@@ -90,7 +90,7 @@ jayus.Surface = jayus.RectEntity.extend({
 		if(arguments.length === 2){
 			//#ifdef DEBUG
 			jayus.debug.matchArgumentsAs('Surface.init', arguments, jayus.TYPES.NUMBER, 'width', 'height');
-			//#endif
+			//#end
 			this.width = width;
 			this.height = height;
 		}
@@ -162,7 +162,7 @@ jayus.Surface = jayus.RectEntity.extend({
 		4: function Surface_fill(r, g, b, a){
 			//#ifdef DEBUG
 			jayus.debug.matchArgumentsAs('Surface.fill', arguments, jayus.TYPES.NUMBER, 'r', 'g', 'b', 'a');
-			//#endif
+			//#end
 			// Save the context
 			var ctx = this.context;
 			ctx.save();
@@ -209,7 +209,7 @@ jayus.Surface = jayus.RectEntity.extend({
 		else if(arguments.length === 1){
 			//#ifdef DEBUG
 			jayus.debug.match('Surface.getBuffer()', x, 'section', jayus.TYPES.RECTANGLE);
-			//#endif
+			//#end
 			height = x.height;
 			width = x.width;
 			y = x.y;
@@ -218,7 +218,7 @@ jayus.Surface = jayus.RectEntity.extend({
 		else if(arguments.length === 3){
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('Surface.getBuffer()', arguments, 'origin', jayus.TYPES.POINT, 'width', jayus.TYPES.NUMBER, 'height', jayus.TYPES.NUMBER);
-			//#endif
+			//#end
 			height = width;
 			width = y;
 			y = x.y;
@@ -228,7 +228,7 @@ jayus.Surface = jayus.RectEntity.extend({
 		else{
 			jayus.debug.matchArgumentsAs('Surface.getBuffer()', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'width', 'height');
 		}
-		//#endif
+		//#end
 		// Get and return the buffer
 		return this.context.getImageData(x, y, width, height);
 	},
@@ -255,7 +255,7 @@ jayus.Surface = jayus.RectEntity.extend({
 		if(arguments.length === 1){
 			//#ifdef DEBUG
 			jayus.debug.match('Surface.putBuffer', x, 'buffer', jayus.TYPES.BUFFER);
-			//#endif
+			//#end
 			buffer = x;
 			y = 0;
 			x = 0;
@@ -263,7 +263,7 @@ jayus.Surface = jayus.RectEntity.extend({
 		else if(arguments.length === 2){
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('Surface.putBuffer', arguments, 'position', jayus.TYPES.POINT, 'buffer', jayus.TYPES.BUFFER);
-			//#endif
+			//#end
 			buffer = y;
 			y = x.y;
 			x = x.x;
@@ -272,7 +272,7 @@ jayus.Surface = jayus.RectEntity.extend({
 		else{
 			jayus.debug.matchArguments('Surface.putBuffer', arguments, 'x', jayus.TYPES.NUMBER, 'y', jayus.TYPES.NUMBER, 'buffer', jayus.TYPES.BUFFER);
 		}
-		//#endif
+		//#end
 		// Put the buffer onto the canvas
 		this.context.putImageData(buffer, x, y);
 		// Mark the surface as dirty
@@ -297,7 +297,7 @@ jayus.Surface = jayus.RectEntity.extend({
 	getPixel: function Surface_getPixel(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Surface.getPixel', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -343,35 +343,35 @@ jayus.Surface = jayus.RectEntity.extend({
 		2: function Surface_setPixel(pixel, color){
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('Surface.setPixel', arguments, 'pixel', jayus.TYPES.POINT, 'color', jayus.TYPES.COLOR);
-			//#endif
+			//#end
 			return this.setPixel(pixel.x, pixel.y, color.r, color.g, color.b, color.a);
 		},
 
 		3: function Surface_setPixel(x, y, color){
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('Surface.setPixel', arguments, 'x', jayus.TYPES.NUMBER, 'y', jayus.TYPES.NUMBER, 'color', jayus.TYPES.COLOR);
-			//#endif
+			//#end
 			return this.setPixel(x, y, color.r, color.g, color.b, color.a);
 		},
 
 		4: function Surface_setPixel(pixel, r, g, b){
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('Surface.setPixel', arguments, 'pixel', jayus.TYPES.POINT, 'r', jayus.TYPES.NUMBER, 'g', jayus.TYPES.NUMBER, 'b', jayus.TYPES.NUMBER);
-			//#endif
+			//#end
 			return this.setPixel(pixel.x, pixel.y, r, g, b, 1);
 		},
 
 		5: function Surface_setPixel(x, y, r, g, b){
 			//#ifdef DEBUG
 			jayus.debug.matchArgumentsAs('Surface.setPixel', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'r', 'g', 'b');
-			//#endif
+			//#end
 			return this.setPixel(x, y, r, g, b, 1);
 		},
 
 		6: function Surface_setPixel(x, y, r, g, b, a){
 			//#ifdef DEBUG
 			jayus.debug.matchArgumentsAs('Surface.setPixel', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'r', 'g', 'b', 'a');
-			//#endif
+			//#end
 			// Create a buffer of size (1,1)
 			var buffer = this.context.createImageData(1, 1),
 				data = buffer.data;
@@ -392,31 +392,31 @@ jayus.Surface = jayus.RectEntity.extend({
 	// 		case 2:
 	// 			//#ifdef DEBUG
 	// 			jayus.debug.matchArguments('Surface.setPixel', arguments, 'pixel', jayus.TYPES.POINT, 'color', jayus.TYPES.COLOR);
-	// 			//#endif
+	// 			//#end
 	// 			return this.setPixel(x.x, x.y, y.r, y.g, y.b, r.a);
 
 	// 		case 3:
 	// 			//#ifdef DEBUG
 	// 			jayus.debug.matchArguments('Surface.setPixel', arguments, 'x', jayus.TYPES.NUMBER, 'y', jayus.TYPES.NUMBER, 'color', jayus.TYPES.COLOR);
-	// 			//#endif
+	// 			//#end
 	// 			return this.setPixel(x, y, r.r, r.g, r.b, r.a);
 
 	// 		case 4:
 	// 			//#ifdef DEBUG
 	// 			jayus.debug.matchArguments('Surface.setPixel', arguments, 'pixel', jayus.TYPES.POINT, 'r', jayus.TYPES.NUMBER, 'g', jayus.TYPES.NUMBER, 'b', jayus.TYPES.NUMBER);
-	// 			//#endif
+	// 			//#end
 	// 			return this.setPixel(x.x, x.y, y, r, g, 1);
 
 	// 		case 5:
 	// 			//#ifdef DEBUG
 	// 			jayus.debug.matchArgumentsAs('Surface.setPixel', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'r', 'g', 'b');
-	// 			//#endif
+	// 			//#end
 	// 			a = 1;
 
 	// 		case 6:
 	// 			//#ifdef DEBUG
 	// 			jayus.debug.matchArgumentsAs('Surface.setPixel', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'r', 'g', 'b', 'a');
-	// 			//#endif
+	// 			//#end
 	// 			// Create a buffer of size (1,1)
 	// 			var buffer = this.context.createImageData(1, 1),
 	// 				data = buffer.data;
@@ -445,7 +445,7 @@ jayus.Surface = jayus.RectEntity.extend({
 	getPixelFrame: function Surface_getPixelFrame(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Surface.getPixelFrame', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -470,7 +470,7 @@ jayus.Surface = jayus.RectEntity.extend({
 	getPixelAt: function Surface_getPixelAt(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Surface.getPixelAt', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -504,7 +504,7 @@ jayus.Surface = jayus.RectEntity.extend({
 	blurImage: function Surface_blurImage(intensity){
 		//#ifdef DEBUG
 		jayus.debug.match('Surface.blurImage', intensity, 'intensity', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Cache some vars
 		var data = this.getBuffer().data,
 			w = this.width,
@@ -565,7 +565,7 @@ jayus.Surface = jayus.RectEntity.extend({
 	toString: function Surface_toString(){
 		return '(Surface:'+this.width+','+this.height+')';
 	},
-	//#endif
+	//#end
 
 	/**
 	Returns a CanvasPattern representing the image on the surface.
@@ -586,7 +586,7 @@ jayus.Surface = jayus.RectEntity.extend({
 				throw new Error('Surface.toPattern() - Invalid repetition'+jayus.debug.toString(repetition)+' sent, "repeat", "repeat-x", "repeat-y", or "no-repeat" required');
 			}
 		}
-		//#endif
+		//#end
 		return this.context.createPattern(this.canvas, repetition);
 	},
 

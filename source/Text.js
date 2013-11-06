@@ -34,7 +34,7 @@ Represents a single line of text.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Text';
-//#endif
+//#end
 
 jayus.Text = jayus.RectEntity.extend({
 
@@ -111,7 +111,7 @@ jayus.Text = jayus.RectEntity.extend({
 
 	hasFlexibleHeight: false,
 
-	//#endif
+	//#end
 
 	//
 	//  Methods
@@ -149,7 +149,7 @@ jayus.Text = jayus.RectEntity.extend({
 		else if(arguments.length === 3){
 			jayus.debug.matchArguments('Text.init', arguments, 'text', jayus.TYPES.STRING, 'font', jayus.TYPES.STRING, 'brush', jayus.TYPES.OBJECT);
 		}
-		//#endif
+		//#end
 		// Set the properties
 		if(arguments.length){
 			this.text = text;
@@ -242,7 +242,7 @@ jayus.Text = jayus.RectEntity.extend({
 	setText: function Text_setText(text){
 		//#ifdef DEBUG
 		jayus.debug.match('Text.setText', text, 'text', jayus.TYPES.STRING);
-		//#endif
+		//#end
 		// Check that the text is different
 		if(this.text !== text){
 			// Set the text
@@ -267,7 +267,7 @@ jayus.Text = jayus.RectEntity.extend({
 	setFont: function Text_setFont(font){
 		//#ifdef DEBUG
 		jayus.debug.match('Text.setFont', font, 'font', jayus.TYPES.STRING);
-		//#endif
+		//#end
 		// Check that the font is different
 		if(this.font !== font){
 			// Set the font
@@ -293,7 +293,7 @@ jayus.Text = jayus.RectEntity.extend({
 	setAlignment: function TextBox_setAlignment(alignment){
 		//#ifdef DEBUG
 		jayus.debug.match('TextBox.setAlignment', alignment, 'alignment', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		if(this.alignment !== alignment){
 			this.alignment = alignment;
 			if(this.lines.length > 1){
@@ -317,7 +317,7 @@ jayus.Text = jayus.RectEntity.extend({
 	setBrush: function Text_setBrush(brush){
 		//#ifdef DEBUG
 		jayus.debug.match('Text.setBrush', brush, 'brush', jayus.TYPES.OBJECT);
-		//#endif
+		//#end
 		// Detach self from the old brush
 		if(this.hasBrush){
 			this.brush.detach(this);

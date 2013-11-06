@@ -44,7 +44,7 @@ Arranges children in a manner similar to that of word-wrapped text.
 
 //#ifdef DEBUG
 jayus.debug.className = 'FlowLayout';
-//#endif
+//#end
 
 jayus.FlowLayout = jayus.RectEntity.extend({
 
@@ -80,7 +80,7 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 		this.children = new jayus.List(this);
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
-		//#endif
+		//#end
 		this.addHandler('dirty', function(type){
 			if(type & jayus.DIRTY.SIZE){
 				this.formContents();
@@ -140,7 +140,7 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 	setAlignment: function FlowLayout_setAlignment(alignment){
 		//#ifdef DEBUG
 		jayus.debug.match('FlowLayout.setAlignment', alignment, 'alignment', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		if(this.alignment !== alignment){
 			this.alignment = alignment;
 			this.formContents();

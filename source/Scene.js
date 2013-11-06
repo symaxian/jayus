@@ -36,7 +36,7 @@ A entity for manipulating and rendering child entities within a fixed area.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Scene';
-//#endif
+//#end
 
 jayus.Scene = jayus.RectEntity.extend({
 
@@ -133,11 +133,11 @@ jayus.Scene = jayus.RectEntity.extend({
 		this.children = new jayus.List(this);
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
-		//#endif
+		//#end
 		if(arguments.length){
 			//#ifdef DEBUG
 			jayus.debug.matchArgumentsAs('Scene.init', arguments, jayus.TYPES.NUMBER, 'width', 'height');
-			//#endif
+			//#end
 			this.width = width;
 			this.height = height;
 		}
@@ -163,7 +163,7 @@ jayus.Scene = jayus.RectEntity.extend({
 	setOptimizedBuffering: function Scene_setOptimizedBuffering(on){
 		//#ifdef DEBUG
 		jayus.debug.match('Scene.setOptimizedBuffering', on, 'on', jayus.TYPES.BOOLEAN);
-		//#endif
+		//#end
 		if(this.optimizeBuffering !== on){
 			this.optimizeBuffering = on;
 			this.redrawAll = true;
@@ -272,7 +272,7 @@ jayus.Scene = jayus.RectEntity.extend({
 			if(this.showDamage){
 				this.clearDamage();
 			}
-			//#endif
+			//#end
 
 			ctx.save();
 
@@ -315,7 +315,7 @@ jayus.Scene = jayus.RectEntity.extend({
 					if(this.showDamage){
 						this.paintRedraw(item);
 					}
-					//#endif
+					//#end
 				}
 			}
 
@@ -325,7 +325,7 @@ jayus.Scene = jayus.RectEntity.extend({
 					this.paintDamage(damagedRegions[i]);
 				}
 			}
-			//#endif
+			//#end
 
 			ctx.restore();
 

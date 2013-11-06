@@ -35,7 +35,7 @@ Standard Circle shape.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Circle';
-//#endif
+//#end
 
 jayus.Circle = jayus.Shape.extend({
 
@@ -90,28 +90,33 @@ jayus.Circle = jayus.Shape.extend({
 	@constructor init
 	@paramset Syntax 1
 	@paramset Syntax 2
+	@param {Object} properties
+	@paramset Syntax 3
 	@param {Point} center
 	@param {Number} radius
-	@paramset Syntax 3
+	@paramset Syntax 4
 	@param {Number} x
 	@param {Number} y
 	@param {Number} radius
 	*/
 
-	init: function Circle_init(x, y, radius){
-		if(arguments.length){
+	init: function Circle_init(x, y, radius) {
+		if (arguments.length === 1) {
+			this.initFromObject(x);
+		}
+		else if (arguments.length) {
 			//#ifdef DEBUG
-			if(arguments.length === 2){
+			if (arguments.length === 2) {
 				jayus.debug.matchArguments('Circle.init', arguments, 'center', jayus.TYPES.POINT, 'radius', jayus.TYPES.POINT);
 			}
-			else if(arguments.length === 3){
+			else if (arguments.length === 3) {
 				jayus.debug.matchArgumentsAs('Circle.init', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'radius');
 			}
-			else{
+			else {
 				throw new TypeError('Circle.init() - Invalid number of parameters sent, 0, 2, or 3 required');
 			}
-			//#endif
-			if(arguments.length === 2){
+			//#end
+			if (arguments.length === 2) {
 				radius = y;
 				y = x.y;
 				x = x.x;
@@ -122,7 +127,36 @@ jayus.Circle = jayus.Shape.extend({
 		}
 	},
 
-	pointChanged: function Circle_pointChanged(){},
+	pointChanged: function Circle_pointChanged() {},
+
+	//@ From Parsable
+	initFromObject: function Circle_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Circle.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		// Apply parent properties
+		jayus.Dependency.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		this.x = object.x;
+		this.y = object.y;
+		this.radius = object.radius;
+		this.toPolygonDetail = object.toPolygonDetail;
+		// Set as dirty
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	//@ From Parsable
+	toObject: function Circle_toObject() {
+		// Get object from parent
+		var object = jayus.Dependency.prototype.toObject.call(this);
+		// Add our own properties
+		object.__type__ = 'Circle';
+		object.x = this.x;
+		object.y = this.y;
+		object.radius = this.radius;
+		object.toPolygonDetail = this.toPolygonDetail;
+		return object;
+	},
 
 		//
 		//  Center
@@ -133,7 +167,7 @@ jayus.Circle = jayus.Shape.extend({
 	@method {Point} getCenter
 	*/
 
-	getCenter: function Circle_getCenter(){
+	getCenter: function Circle_getCenter() {
 		return new jayus.Point(this.x, this.y);
 	},
 
@@ -169,11 +203,11 @@ jayus.Circle = jayus.Shape.extend({
 	setCenter: jayus.Point.prototype.set,
 
 	//@ From Shape
-	translate: function Circle_translate(x, y){
+	translate: function Circle_translate(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Circle.translate', x, y);
-		//#endif
-		if(arguments.length === 1){
+		//#end
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
@@ -181,7 +215,7 @@ jayus.Circle = jayus.Shape.extend({
 	},
 
 	//@ From Shape
-	alignToCanvas: function Circle_alignToCanvas(){
+	alignToCanvas: function Circle_alignToCanvas() {
 		// Can we do anything here?
 		return this;
 	},
@@ -195,7 +229,7 @@ jayus.Circle = jayus.Shape.extend({
 	@method {Number} getRadius
 	*/
 
-	getRadius: function Circle_getRadius(){
+	getRadius: function Circle_getRadius() {
 		return this.radius;
 	},
 
@@ -206,17 +240,17 @@ jayus.Circle = jayus.Shape.extend({
 	@param {Number} radius
 	*/
 
-	setRadius: function Circle_setRadius(radius){
+	setRadius: function Circle_setRadius(radius) {
 		//#ifdef DEBUG
 		jayus.debug.match('Circle.setRadius', radius, 'radius', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setRadius, this.radius, radius);
 		}
-		if(this.radius !== radius){
+		if (this.radius !== radius) {
 			this.radius = radius;
 			this.dirty(jayus.DIRTY.SIZE);
 		}
@@ -228,15 +262,15 @@ jayus.Circle = jayus.Shape.extend({
 		//________________//
 
 	//@ From Shape
-	intersectsAt: function Circle_intersectsAt(x, y){
+	intersectsAt: function Circle_intersectsAt(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Circle.intersectsAt', arguments, jayus.TYPES.NUMBER, 'x', 'y');
-		//#endif
+		//#end
 		return (this.x-x)*(this.x-x) + (this.y-y)*(this.y-y) <= this.radius*this.radius;
 	},
 
 	//@ From Shape
-	getScope: function Circle_getScope(){
+	getScope: function Circle_getScope() {
 		return new jayus.Rectangle(this.x-this.radius, this.y-this.radius, this.radius*2, this.radius*2);
 	},
 
@@ -245,18 +279,18 @@ jayus.Circle = jayus.Shape.extend({
 		//_____________//
 
 	//#ifdef DEBUG
-	toString: function Circle_toString(){
+	toString: function Circle_toString() {
 		return '(Circle: '+this.x+','+this.y+','+this.radius+')';
 	},
-	//#endif
+	//#end
 
 	//@ From Shape
-	clone: function Circle_clone(){
+	clone: function Circle_clone() {
 		return new jayus.Circle(this.x, this.y, this.radius);
 	},
 
 	//@ From Shape
-	cloneOnto: function Circle_cloneOnto(ret){
+	cloneOnto: function Circle_cloneOnto(ret) {
 		ret.x = this.x;
 		ret.y = this.y;
 		ret.radius = this.radius;
@@ -264,15 +298,15 @@ jayus.Circle = jayus.Shape.extend({
 	},
 
 	//@ From Shape
-	toPolygon: function Circle_toPolygon(detail){
-		if(!arguments.length){
+	toPolygon: function Circle_toPolygon(detail) {
+		if (!arguments.length) {
 			detail = this.toPolygonDetail;
 		}
 		//#ifdef DEBUG
-		else{
+		else {
 			jayus.debug.match('Circle.toPolygon', detail, 'detail', jayus.TYPES.NUMBER);
 		}
-		//#endif
+		//#end
 		return new jayus.Polygon.Regular(detail, this.radius);
 	},
 
@@ -281,10 +315,10 @@ jayus.Circle = jayus.Shape.extend({
 		//_____________//
 
 	//@ From Shape
-	etchOntoContext:function Circle_etchOntoContext(ctx){
+	etchOntoContext:function Circle_etchOntoContext(ctx) {
 		//#ifdef DEBUG
 		jayus.debug.matchContext('Circle.etchOntoContext', ctx);
-		//#endif
+		//#end
 		ctx.beginPath();
 		ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
 	}

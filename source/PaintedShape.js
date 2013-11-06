@@ -35,7 +35,7 @@ An Entity that holds a Shape and allows it to be added to the scenegraph.
 
 //#ifdef DEBUG
 jayus.debug.className = 'PaintedShape';
-//#endif
+//#end
 
 jayus.PaintedShape = jayus.Entity.extend({
 
@@ -117,7 +117,7 @@ jayus.PaintedShape = jayus.Entity.extend({
 	setShape: function PaintedShape_setShape(shape){
 		//#ifdef DEBUG
 		jayus.debug.match('PaintedShape.setShape', shape, 'shape', jayus.TYPES.SHAPE);
-		//#endif
+		//#end
 		if(this.shape !== shape){
 			this.shape.detach(this);
 			this.shape = shape;
@@ -141,7 +141,7 @@ jayus.PaintedShape = jayus.Entity.extend({
 	setBrush: function PaintedShape_setBrush(brush){
 		//#ifdef DEBUG
 		jayus.debug.match('PaintedShape.setBrush', brush, 'brush', jayus.TYPES.OBJECT);
-		//#endif
+		//#end
 		// Detach self from the old brush
 		if(this.hasBrush){
 			this.brush.detach(this);
@@ -231,7 +231,7 @@ jayus.PaintedShape = jayus.Entity.extend({
 	drawOntoContext: function PaintedShape_drawOntoContext(ctx){
 		//#ifdef DEBUG
 		jayus.debug.matchContext('PaintedShape.drawOntoContext', ctx);
-		//#endif
+		//#end
 		if(this.hasBrush){
 			// Save the context
 			ctx.save();
@@ -251,7 +251,7 @@ jayus.PaintedShape = jayus.Entity.extend({
 			if(this.debugRenderer !== null){
 				this.debugRenderer(ctx);
 			}
-			//#endif
+			//#end
 		}
 	}
 

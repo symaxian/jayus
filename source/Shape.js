@@ -34,7 +34,7 @@ An abstract class that represents a geometric shape.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Shape';
-//#endif
+//#end
 
 jayus.Shape = jayus.Dependency.extend({
 

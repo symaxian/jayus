@@ -35,7 +35,7 @@ Represents padded border around an Entity.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Frame';
-//#endif
+//#end
 
 jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 
@@ -129,7 +129,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 		//#ifdef DEBUG
 		jayus.debug.match('Frame.init', child, 'child', jayus.TYPES.ENTITY);
 		jayus.chart.tallyInit(jayus.TYPES.ENTITY);
-		//#endif
+		//#end
 		jayus.Entity.prototype.init.apply(this);
 		this.setChild(child);
 		// this.dirty(jayus.DIRTY.ALL);
@@ -173,7 +173,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	setBrush: function Frame_setBrush(brush){
 		//#ifdef DEBUG
 		jayus.debug.match('Frame.setBrush', brush, 'brush', jayus.TYPES.OBJECT);
-		//#endif
+		//#end
 		// Detach self from the old brush
 		if(this.hasBrush){
 			this.brush.detach(this);
@@ -232,14 +232,14 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 		if(arguments.length === 1){
 			//#ifdef DEBUG
 			jayus.debug.match('Frame.setMargin', left, 'margin', jayus.TYPES.NUMBER);
-			//#endif
+			//#end
 			bottom = top = right = left;
 		}
 		//#ifdef DEBUG
 		else{
 			jayus.debug.matchArgumentsAs('Frame.setMargin', arguments, jayus.TYPES.NUMBER, 'left', 'right', 'top', 'bottom');
 		}
-		//#endif
+		//#end
 		this.marginLeft = left;
 		this.marginRight = right;
 		this.marginTop = top;
@@ -272,7 +272,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	setMarginLeft: function Frame_setMarginLeft(margin){
 		//#ifdef DEBUG
 		jayus.debug.match('Frame.setMarginLeft', margin, 'margin', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.setMargin(margin, this.marginRight, this.marginTop, this.marginBottom);
 	},
 
@@ -286,7 +286,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	setMarginRight: function Frame_setMarginRight(margin){
 		//#ifdef DEBUG
 		jayus.debug.match('Frame.setMarginRight', margin, 'margin', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.setMargin(this.marginLeft, margin, this.marginTop, this.marginBottom);
 	},
 
@@ -300,7 +300,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	setMarginTop: function Frame_setMarginTop(margin){
 		//#ifdef DEBUG
 		jayus.debug.match('Frame.setMarginTop', margin, 'margin', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.setMargin(this.marginLeft, this.marginRight, margin, this.marginBottom);
 	},
 
@@ -314,7 +314,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	setMarginBottom: function Frame_setMarginBottom(margin){
 		//#ifdef DEBUG
 		jayus.debug.match('Frame.setMarginBottom', margin, 'margin', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.setMargin(this.marginLeft, this.marginRight, this.marginTop, margin);
 	},
 
@@ -325,7 +325,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	paintContents: function Frame_paintContents(ctx){
 		//#ifdef DEBUG
 		jayus.debug.matchContext('Frame.paintContents', ctx);
-		//#endif
+		//#end
 		// Draw the frame
 		if(this.hasBrush){
 			if(this.brush.fill || this.brush.stroking){

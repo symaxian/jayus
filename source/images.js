@@ -75,7 +75,7 @@ jayus.images = {
 		}
 	},
 
-	//#endif
+	//#end
 
 	/**
 	Returns whether the specified image has been requested.
@@ -88,7 +88,7 @@ jayus.images = {
 		//#ifdef DEBUG
 		jayus.debug.match('jayus.images.has', filepath, 'filepath', jayus.TYPES.STRING);
 		this.checkFilepath(filepath);
-		//#endif
+		//#end
 		return typeof this.images[filepath] === 'object';
 	},
 
@@ -102,7 +102,7 @@ jayus.images = {
 		//#ifdef DEBUG
 		jayus.debug.match('jayus.images.isLoaded', filepath, 'filepath', jayus.TYPES.STRING);
 		this.checkFilepath(filepath);
-		//#endif
+		//#end
 		return typeof this.images[filepath] === 'object' && (this.images[filepath].loaded || this.images[filepath].tagName === 'CANVAS');
 	},
 
@@ -117,11 +117,11 @@ jayus.images = {
 		//#ifdef DEBUG
 		jayus.debug.match('jayus.images.get', filepath, 'filepath', jayus.TYPES.STRING);
 		this.checkFilepath(filepath);
-		//#endif
+		//#end
 		if(!this.has(filepath)){
 			//#ifdef DEBUG
 			console.warn('jayus.images.get() - Image "'+filepath+'" not yet loaded');
-			//#endif
+			//#end
 			this.load(filepath);
 		}
 		return this.images[filepath];
@@ -161,7 +161,7 @@ jayus.images = {
 		//#ifdef DEBUG
 		jayus.debug.match('jayus.images.load', filepath, 'filepath', jayus.TYPES.STRING);
 		this.checkFilepath(filepath);
-		//#endif
+		//#end
 		// Check if not loaded
 		if(!this.has(filepath)){
 			//#ifdef DEBUG
@@ -169,7 +169,7 @@ jayus.images = {
 				throw new TypeError('jayus.images.load() - Invalid filepath'+jayus.debug.toString(filepath)+' sent as argument '+i+', String required');
 			}
 			// console.log('jayus.images.load() - Loading image file "'+filepath+'"');
-			//#endif
+			//#end
 			// Create and save a new image
 			var image = new Image();
 			image.isSheet = false;

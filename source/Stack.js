@@ -37,7 +37,7 @@ Base class for the hStack and vStack entities.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Stack';
-//#endif
+//#end
 
 jayus.Stack = jayus.RectEntity.extend({
 
@@ -63,7 +63,7 @@ jayus.Stack = jayus.RectEntity.extend({
 
 	hasFlexibleHeight: false,
 
-	//#endif
+	//#end
 
 	//
 	//  Methods
@@ -74,7 +74,7 @@ jayus.Stack = jayus.RectEntity.extend({
 		this.children = new jayus.List(this);
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
-		//#endif
+		//#end
 		this.addHandler('dirty', function(type){
 			if(type & jayus.DIRTY.SIZE){
 				// this.formContents();
@@ -140,7 +140,7 @@ jayus.Stack = jayus.RectEntity.extend({
 	setReversed: function Stack_setReversed(on){
 		//#ifdef DEBUG
 		jayus.debug.match('Stack.setReversed', on, 'on', jayus.TYPES.BOOLEAN);
-		//#endif
+		//#end
 		if(this.reversed !== on){
 			this.reversed = on;
 			this.formContents();
@@ -161,7 +161,7 @@ jayus.Stack = jayus.RectEntity.extend({
 	setSpacing: function Stack_setSpacing(spacing){
 		//#ifdef DEBUG
 		jayus.debug.match('Stack.setSpacing', spacing, 'spacing', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		if(this.spacing !== spacing){
 			this.spacing = spacing;
 			this.formContents();
@@ -213,7 +213,7 @@ An Entity that organizes child widgets into a horizontal row.
 
 //#ifdef DEBUG
 jayus.debug.className = 'hStack';
-//#endif
+//#end
 
 jayus.hStack = jayus.Stack.extend({
 
@@ -291,7 +291,7 @@ A widget that organizes child widgets into a vertical column.
 
 //#ifdef DEBUG
 jayus.debug.className = 'vStack';
-//#endif
+//#end
 
 jayus.vStack = jayus.Stack.extend({
 
@@ -324,7 +324,7 @@ jayus.vStack = jayus.Stack.extend({
 	setAutomaticWidth: function vStack_setAutomaticWidth(on){
 		//#ifdef DEBUG
 		jayus.debug.match('vStack.setAutomaticWidth', on, 'on', jayus.TYPES.BOOLEAN);
-		//#endif
+		//#end
 		if(this.automaticWidth !== on){
 			this.automaticWidth = on;
 			this.reform();

@@ -78,7 +78,7 @@ jayus.objects = {
 		if(!this.has(filepath)){
 			//#ifdef DEBUG
 			console.warn('jayus.objects.get() - Object "'+filepath+'" not yet loaded');
-			//#endif
+			//#end
 			this.load(filepath);
 		}
 		return this.objects[filepath];
@@ -98,11 +98,11 @@ jayus.objects = {
 		//#ifdef DEBUG
 		jayus.debug.match('jayus.objects.load', filepath, 'filepath', jayus.TYPES.STRING);
 		jayus.debug.matchOptional('jayus.objects.load', handler, 'handler', jayus.TYPES.FUNCTION);
-		//#endif
+		//#end
 		if(!this.has(filepath)){
 			//#ifdef DEBUG
 			// console.log('jayus.objects.load() - Loading object file "'+filepath+'"');
-			//#endif
+			//#end
 			// Create a request to fetch the file
 			var req = new XMLHttpRequest();
 			req.filepath = filepath;

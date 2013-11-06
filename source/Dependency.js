@@ -39,7 +39,7 @@ An abstract class for helper objects that Entities depend on, such as styling an
 
 //#ifdef DEBUG
 jayus.debug.className = 'Dependency';
-//#endif
+//#end
 
 jayus.Dependency = jayus.Animatable.extend({
 
@@ -81,7 +81,7 @@ jayus.Dependency = jayus.Animatable.extend({
 		jayus.debug.match('Dependency.initFromObject', object, 'object', jayus.TYPES.OBJECT);
 		//#end
 		// Apply parent properties
-		jayus.Animatable.prototype.initFromObject.call(this, object);
+		// Animatable isnt state based so ignore it for now
 		// Apply our own properties
 		this.dependents = object.dependents;
 		if (this.dependents !== null) {
@@ -101,8 +101,7 @@ jayus.Dependency = jayus.Animatable.extend({
 
 	//@ From Parsable
 	toObject: function Dependency_toObject() {
-		// Get object from parent
-		// var object = jayus.Animatable.prototype.toObject.call(this);
+		// Use a new object, Animatable isnt state based so ignore it for now
 		var object = {};
 		// Add our own properties
 		object.__type__ = 'Dependency';
@@ -127,7 +126,7 @@ jayus.Dependency = jayus.Animatable.extend({
 	attach: function Dependency_attach(dependent) {
 		//#ifdef DEBUG
 		jayus.debug.match('Dependency.attach', dependent, 'dependent', jayus.TYPES.OBJECT);
-		//#endif
+		//#end
 		// If we have more than one, just append it
 		if (!this.dependentCount) {
 			this.dependents = [];
@@ -171,7 +170,7 @@ jayus.Dependency = jayus.Animatable.extend({
 		for(var i=0;i<this.dependentCount;i++) {
 			//#ifdef DEBUG
 			jayus.debug.verifyMethod(this.dependents[i], 'componentDirtied');
-			//#endif
+			//#end
 			this.dependents[i].componentDirtied(this, type);
 		}
 	},

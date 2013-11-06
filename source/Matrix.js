@@ -33,7 +33,7 @@ A two-dimensional transformation matrix.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Matrix';
-//#endif
+//#end
 
 jayus.Matrix = jayus.createClass({
 
@@ -61,7 +61,7 @@ jayus.Matrix = jayus.createClass({
 		if(arguments.length){
 			//#ifdef DEBUG
 			jayus.debug.matchArgumentsAs('Matrix.init', arguments, jayus.TYPES.NUMBER, 'a', 'b', 'tx', 'c', 'd', 'ty');
-			//#endif
+			//#end
 			this.a = a;
 			this.b = b;
 			this.tx = tx;
@@ -84,7 +84,7 @@ jayus.Matrix = jayus.createClass({
 	translate: function Matrix_translate(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Matrix.translate', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -107,7 +107,7 @@ jayus.Matrix = jayus.createClass({
 	scale: function Matrix_scale(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Matrix.scale', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -128,7 +128,7 @@ jayus.Matrix = jayus.createClass({
 	rotate: function Matrix_rotate(angle){
 		//#ifdef DEBUG
 		jayus.debug.match('Matrix.rotate', angle, 'angle', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		var sin = Math.sin(angle),
 			cos = Math.cos(angle);
 		// Modify ab
@@ -151,7 +151,7 @@ jayus.Matrix = jayus.createClass({
 	multiply: function Matrix_multiply(m1){
 		//#ifdef DEBUG
 		jayus.debug.match('Matrix.multiply', m1, 'm1', jayus.TYPES.MATRIX);
-		//#endif
+		//#end
 		m2 = this;
 		// a, b, tx, c, d, ty
 		return new jayus.Matrix(
@@ -177,7 +177,7 @@ jayus.Matrix = jayus.createClass({
 	transformPoint: function Matrix_transformPoint(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Matrix.transformPoint', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -197,7 +197,7 @@ jayus.Matrix = jayus.createClass({
 	transformPointOnto: function Matrix_transformPointOnto(x, y, ret){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Matrix.transformPointOnto', arguments, 'x', jayus.TYPES.NUMBER, 'y',jayus.TYPES.NUMBER, 'ret', jayus.TYPES.POINT);
-		//#endif
+		//#end
 		ret.x = x*this.a + y*this.b + this.tx;
 		ret.y = x*this.c + y*this.d + this.ty;
 		return ret;
@@ -216,7 +216,7 @@ jayus.Matrix = jayus.createClass({
 	inverseTransformPoint: function Matrix_inverseTransformPoint(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Matrix.inverseTransformPoint', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -242,7 +242,7 @@ jayus.Matrix = jayus.createClass({
 	inverseTransformPointOnto: function Matrix_inverseTransformPointOnto(x, y, ret){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Matrix.inverseTransformPointOnto', arguments, 'x', jayus.TYPES.NUMBER, 'y',jayus.TYPES.NUMBER, 'ret', jayus.TYPES.POINT);
-		//#endif
+		//#end
 		var det = this.getDeterminant();
 		if(det){
 			x -= this.tx;
@@ -291,7 +291,7 @@ jayus.Matrix = jayus.createClass({
 	clone: function Matrix_clone(){
 		//#ifdef DEBUG
 		jayus.chart.tallyInit('Matrix', 'Matrix.clone()');
-		//#endif
+		//#end
 		return this.cloneOnto(new jayus.Matrix());
 	},
 
@@ -304,7 +304,7 @@ jayus.Matrix = jayus.createClass({
 	cloneOnto: function Matrix_cloneOnto(ret){
 		//#ifdef DEBUG
 		jayus.debug.match('Matrix.cloneOnto', ret, 'ret', jayus.TYPES.MATRIX);
-		//#endif
+		//#end
 		ret.init(this.a, this.b, this.tx, this.c, this.d, this.ty);
 		return ret;
 	},
@@ -315,7 +315,7 @@ jayus.Matrix = jayus.createClass({
 				'[ '+this.b+', '+this.d+', '+this.ty+' ]\n'+
 				'[ '+0+', '+0+', '+1+' ]';
 	},
-	//#endif
+	//#end
 
 	/**
 	Compares against another matrix for equality.
@@ -326,7 +326,7 @@ jayus.Matrix = jayus.createClass({
 	equals: function Matrix_equals(mat){
 		//#ifdef DEBUG
 		jayus.debug.match('Matrix.equals', mat, 'mat', jayus.TYPES.MATRIX);
-		//#endif
+		//#end
 		return this.a === mat.a && this.b === mat.b && this.c === mat.c && this.d === mat.d && this.tx === mat.tx && this.ty === mat.ty;
 	},
 
@@ -339,7 +339,7 @@ jayus.Matrix = jayus.createClass({
 	applyToContext: function Matrix_applyToContext(ctx){
 		//#ifdef DEBUG
 		jayus.debug.matchContext('Matrix.applyToContext', ctx);
-		//#endif
+		//#end
 		ctx.transform(this.a, this.c, this.b, this.d, this.tx, this.ty);
 	}
 

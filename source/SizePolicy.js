@@ -34,7 +34,7 @@ Used to describe a Rect entity's minimum and preferred size.
 
 //#ifdef DEBUG
 jayus.debug.className = 'SizePolicy';
-//#endif
+//#end
 
 jayus.SizePolicy = jayus.createClass({
 

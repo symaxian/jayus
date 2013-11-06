@@ -29,7 +29,7 @@ Represents a 32 bit RGBA color.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Color';
-//#endif
+//#end
 
 jayus.Color = jayus.Dependency.extend({
 
@@ -97,10 +97,44 @@ jayus.Color = jayus.Dependency.extend({
 	@param {Number} a Optional
 	*/
 
-	init: function Color_init(){
-		if(arguments.length){
-			this.set.apply(this, arguments);
+	init: function Color_init() {
+		if (arguments.length) {
+			if (arguments.length === 1 && typeof arguments[0] === 'object') {
+				this.initFromObject(arguments[0]);
+			}
+			else {
+				this.set.apply(this, arguments);
+			}
 		}
+	},
+
+	//@ From Parsable
+	initFromObject: function Color_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Color.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		// Apply parent properties
+		jayus.Dependency.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		this.r = object.r;
+		this.g = object.g;
+		this.b = object.b;
+		this.a = object.a;
+		// Set as dirty
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	//@ From Parsable
+	toObject: function Color_toObject() {
+		// Get object from parent
+		var object = jayus.Dependency.prototype.toObject.call(this);
+		// Add our own properties
+		object.__type__ = 'Color';
+		object.r = this.r;
+		object.g = this.g;
+		object.b = this.b;
+		object.a = this.a;
+		return object;
 	},
 
 		//
@@ -121,8 +155,8 @@ jayus.Color = jayus.Dependency.extend({
 	@param {Number} a Optional
 	*/
 
-	set: function Color_set(r, g, b, a){
-		switch(arguments.length){
+	set: function Color_set(r, g, b, a) {
+		switch(arguments.length) {
 
 			case 1:
 				g = 1;
@@ -130,15 +164,15 @@ jayus.Color = jayus.Dependency.extend({
 			case 2:
 				//#ifdef DEBUG
 				jayus.debug.matchArguments('Color.set', arguments, 'name', jayus.TYPES.STRING, 'alpha', jayus.TYPES.NUMBER);
-				//#endif
+				//#end
 				// Get the display name index
 				var index = jayus.colors.displayNames.indexOf(r);
 				// Else get the functional name index
-				if(index < 0){
+				if (index < 0) {
 					index = jayus.colors.cssNames.indexOf(r);
 				}
 				// Set the color if the index is valid
-				if(index+1){
+				if (index+1) {
 					this.set(jayus.colors.redComponents[index], jayus.colors.greenComponents[index], jayus.colors.blueComponents[index], g);
 				}
 				return this;
@@ -149,9 +183,9 @@ jayus.Color = jayus.Dependency.extend({
 			case 4:
 				//#ifdef DEBUG
 				jayus.debug.matchArgumentsAs('Color.set', arguments, jayus.TYPES.NUMBER, 'r', 'g', 'b', 'a');
-				//#endif
+				//#end
 				// Check if animated
-				if(this.actionsToAnimate){
+				if (this.actionsToAnimate) {
 					// Clear the animate flag and return the animator
 					this.actionsToAnimate--;
 					return new jayus.MethodAnimator(this, this.set, [this.r, this.g, this.b, this.a], [r, g, b, a]);
@@ -166,7 +200,7 @@ jayus.Color = jayus.Dependency.extend({
 		}
 		//#ifdef DEBUG
 		throw new Error('Color.set() - Invalid number of arguments sent, 1, 2, 3, or 4 required');
-		//#endif
+		//#end
 	},
 
 	/**
@@ -176,18 +210,18 @@ jayus.Color = jayus.Dependency.extend({
 	@param {Number} value
 	*/
 
-	setRed: function Color_setRed(value){
+	setRed: function Color_setRed(value) {
 		//#ifdef DEBUG
 		jayus.debug.match('Color.setRed', value, 'value', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setRed, this.r, value);
 		}
 		// Set the property
-		if(this.r !== value){
+		if (this.r !== value) {
 			this.r = value;
 			this.dirty(jayus.DIRTY.STYLE);
 		}
@@ -201,18 +235,18 @@ jayus.Color = jayus.Dependency.extend({
 	@param {Number} value
 	*/
 
-	setGreen: function Color_setGreen(value){
+	setGreen: function Color_setGreen(value) {
 		//#ifdef DEBUG
 		jayus.debug.match('Color.setGreen', value, 'value', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setGreen, this.g, value);
 		}
 		// Set the property
-		if(this.g !== value){
+		if (this.g !== value) {
 			this.g = value;
 			this.dirty(jayus.DIRTY.STYLE);
 		}
@@ -226,18 +260,18 @@ jayus.Color = jayus.Dependency.extend({
 	@param {Number} value
 	*/
 
-	setBlue: function Color_setBlue(value){
+	setBlue: function Color_setBlue(value) {
 		//#ifdef DEBUG
 		jayus.debug.match('Color.setBlue', value, 'value', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setBlue, this.b, value);
 		}
 		// Set the property
-		if(this.b !== value){
+		if (this.b !== value) {
 			this.b = value;
 			this.dirty(jayus.DIRTY.STYLE);
 		}
@@ -251,18 +285,18 @@ jayus.Color = jayus.Dependency.extend({
 	@param {Number} value
 	*/
 
-	setAlpha: function Color_setAlpha(value){
+	setAlpha: function Color_setAlpha(value) {
 		//#ifdef DEBUG
 		jayus.debug.match('Color.setAlpha', value, 'value', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setAlpha, this.a, value);
 		}
 		// Set the property
-		if(this.a !== value){
+		if (this.a !== value) {
 			this.a = value;
 			this.dirty(jayus.DIRTY.STYLE);
 		}
@@ -274,10 +308,10 @@ jayus.Color = jayus.Dependency.extend({
 		//________//
 
 	//#ifdef DEBUG
-	toString: function Color_toString(){
+	toString: function Color_toString() {
 		return '(Color:'+this.r+','+this.g+','+this.b+(this.a-1?(','+this.a):'')+')';
 	},
-	//#endif
+	//#end
 
 	/**
 	Returns the hexadecimal representation of the color.
@@ -286,7 +320,7 @@ jayus.Color = jayus.Dependency.extend({
 	@method {String} toHex
 	*/
 
-	toHex: function Color_toHex(){
+	toHex: function Color_toHex() {
 		// Get the hex values
 		var r = this.r.toString(16),
 			g = this.g.toString(16),
@@ -300,9 +334,9 @@ jayus.Color = jayus.Dependency.extend({
 	@method {String} toCSS
 	*/
 
-	toCSS: function Color_toCSS(){
+	toCSS: function Color_toCSS() {
 		this.a = jayus.math.clamp(0, this.a, 1);
-		if(this.a-1){
+		if (this.a-1) {
 			return 'rgba('+this.r+','+this.g+','+this.b+','+this.a+')';
 		}
 		return 'rgb('+this.r+','+this.g+','+this.b+')';
@@ -314,11 +348,11 @@ jayus.Color = jayus.Dependency.extend({
 	@method {String} getName
 	*/
 
-	getName: function Color_getName(){
+	getName: function Color_getName() {
 		var i,
 			table = jayus.colorTable;
-		for(i=0;i<table.count;i++){
-			if(this.r === table.redComponents[i] && this.g === table.greenComponents[i] && this.b === table.blueComponents[i]){
+		for(i=0;i<table.count;i++) {
+			if (this.r === table.redComponents[i] && this.g === table.greenComponents[i] && this.b === table.blueComponents[i]) {
 				return table.displayNames[i];
 			}
 		}

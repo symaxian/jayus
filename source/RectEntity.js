@@ -51,7 +51,7 @@ The base class for an entity that is enclosed in a rectangular frame.
 
 //#ifdef DEBUG
 jayus.debug.className = 'RectEntity';
-//#endif
+//#end
 
 jayus.RectEntity = jayus.Entity.extend({
 
@@ -150,7 +150,7 @@ jayus.RectEntity = jayus.Entity.extend({
 
 	hasFlexibleHeight: true,
 
-	//#endif
+	//#end
 
 	//
 	//  Methods
@@ -286,7 +286,7 @@ jayus.RectEntity = jayus.Entity.extend({
 	getPosAt: function RectEntity_getPosAt(anchorX, anchorY){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('RectEntity.getPosAt', anchorX, anchorY);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			anchorY = anchorX.y;
 			anchorX = anchorX.x;
@@ -316,7 +316,7 @@ jayus.RectEntity = jayus.Entity.extend({
 		}
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('RectEntity.setPosAt', [anchorX, anchorY, x, y], jayus.TYPES.NUMBER, 'anchorX', 'anchorY', 'x', 'y');
-		//#endif
+		//#end
 		// Get the current un-transformed position
 		// Move the entity by the difference
 		return this.translate(x-(this.x+anchorX*this.width), y-(this.y+anchorY*this.height));
@@ -325,7 +325,7 @@ jayus.RectEntity = jayus.Entity.extend({
 	setRelativeAnchor: function Entity_setRelativeAnchor(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('RectEntity.setRelativeAnchor', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -346,7 +346,7 @@ jayus.RectEntity = jayus.Entity.extend({
 	setBody: function RectEntity_setBody(body){
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.setBody', body, 'body', jayus.TYPES.OBJECT);
-		//#endif
+		//#end
 		if(this.body !== null){
 			delete this.body.entity;
 		}
@@ -406,7 +406,7 @@ jayus.RectEntity = jayus.Entity.extend({
 		if(!this.hasFlexibleWidth){
 			throw new Error('RectEntity.setWidth() - Entity width is not flexible');
 		}
-		//#endif
+		//#end
 		if(width !== this.width){
 			this.changeSize(width, this.height);
 		}
@@ -420,7 +420,7 @@ jayus.RectEntity = jayus.Entity.extend({
 		if(!this.hasFlexibleWidth){
 			throw new Error('RectEntity.setRemoteWidth() - Entity width is not flexible');
 		}
-		//#endif
+		//#end
 		this.widthDesc = {
 			source: source,
 			key: key
@@ -456,7 +456,7 @@ jayus.RectEntity = jayus.Entity.extend({
 		if(!this.hasFlexibleHeight){
 			throw new Error('RectEntity.setHeight() - Entity height is not flexible');
 		}
-		//#endif
+		//#end
 		if(height !== this.height){
 			this.changeSize(this.width, height);
 		}
@@ -480,7 +480,7 @@ jayus.RectEntity = jayus.Entity.extend({
 		if(!this.hasFlexibleWidth || !this.hasFlexibleHeight){
 			throw new Error('RectEntity.setSize() - Entity size is not flexible');
 		}
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			height = width.height;
 			width = width.width;
@@ -555,7 +555,7 @@ jayus.RectEntity = jayus.Entity.extend({
 	setBounds: function RectEntity_setBounds(shape){
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.setBounds', shape, 'shape', jayus.TYPES.SHAPE);
-		//#endif
+		//#end
 		// Detach the old bounds
 		if(this.bounds !== null){
 			this.bounds.detach(this);
@@ -603,7 +603,7 @@ jayus.RectEntity = jayus.Entity.extend({
 	setBg: function RectEntity_setBg(brush){
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.setBg', brush, 'brush', jayus.TYPES.OBJECT);
-		//#endif
+		//#end
 		// Detach self from the old bg
 		if(this.hasBg){
 			this.bg.detach(this);
@@ -656,7 +656,7 @@ jayus.RectEntity = jayus.Entity.extend({
 	setBuffering: function RectEntity_setBuffering(on){
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.setBuffering', on, 'on', jayus.TYPES.BOOLEAN);
-		//#endif
+		//#end
 		// Was disabled, must create the buffer to enable it now
 		if(!this.buffered && on){
 			this.canvas = document.createElement('canvas');
@@ -710,7 +710,7 @@ jayus.RectEntity = jayus.Entity.extend({
 			if(this.showDamage){
 				this.paintDamage(this);
 			}
-			//#endif
+			//#end
 		}
 	},
 
@@ -776,7 +776,7 @@ jayus.RectEntity = jayus.Entity.extend({
 	drawOntoContext: function RectEntity_drawOntoContext(ctx){
 		//#ifdef DEBUG
 		jayus.debug.matchContext('RectEntity.drawOntoContext', ctx);
-		//#endif
+		//#end
 		// Save the context
 		ctx.save();
 		// Apply any styling
@@ -838,7 +838,7 @@ jayus.RectEntity = jayus.Entity.extend({
 		if(this.debugRenderer !== null){
 			this.debugRenderer(ctx);
 		}
-		//#endif
+		//#end
 		return this;
 	}
 

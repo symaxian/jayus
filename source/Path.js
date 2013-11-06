@@ -35,7 +35,7 @@ Represents a path.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Path';
-//#endif
+//#end
 
 jayus.Path = jayus.Shape.extend({
 
@@ -114,7 +114,7 @@ jayus.Path = jayus.Shape.extend({
 		if(arguments.length){
 			//#ifdef DEBUG
 			jayus.debug.match('Path.init', pathString, 'pathString', jayus.TYPES.STRING);
-			//#endif
+			//#end
 			this.addSVS(pathString);
 		}
 	},
@@ -127,7 +127,7 @@ jayus.Path = jayus.Shape.extend({
 	translate: function Path_translate(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Path.translate', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -202,7 +202,7 @@ jayus.Path = jayus.Shape.extend({
 	intersectsAt: function Path_intersectsAt(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Path.intersectsAt', x, y);
-		//#endif
+		//#end
 		var ctx = jayus.getContext();
 		ctx.save();
 		this.etchOntoContext(ctx);
@@ -225,7 +225,7 @@ jayus.Path = jayus.Shape.extend({
 	moveTo: function Path_moveTo(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Path.moveTo', arguments, jayus.TYPES.NUMBER, 'x', 'y');
-		//#endif
+		//#end
 		return this.addSegment(['moveTo', x, y]);
 	},
 
@@ -240,7 +240,7 @@ jayus.Path = jayus.Shape.extend({
 	moveBy: function Path_moveBy(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Path.moveBy', arguments, jayus.TYPES.NUMBER, 'x', 'y');
-		//#endif
+		//#end
 		var pos = this.getCurrentPoint();
 		return this.moveTo(pos.x+x, pos.y+y);
 	},
@@ -265,7 +265,7 @@ jayus.Path = jayus.Shape.extend({
 	lineTo: function Path_lineTo(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Path.lineTo', arguments, jayus.TYPES.NUMBER, 'x', 'y');
-		//#endif
+		//#end
 		return this.addSegment(['lineTo', x, y]);
 	},
 
@@ -281,7 +281,7 @@ jayus.Path = jayus.Shape.extend({
 	lineBy: function Path_lineBy(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Path.lineBy', arguments, jayus.TYPES.NUMBER, 'x', 'y');
-		//#endif
+		//#end
 		var pos = this.getCurrentPoint();
 		return this.lineTo(pos.x+x, pos.y+y);
 	},
@@ -299,7 +299,7 @@ jayus.Path = jayus.Shape.extend({
 	quadraticCurveTo: function Path_quadraticCurveTo(cpx, cpy, x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Path.quadraticCurveTo', arguments, jayus.TYPES.NUMBER, 'cpx', 'cpy', 'x', 'y');
-		//#endif
+		//#end
 		return this.addSegment(['quadraticCurveTo', cpx, cpy, x, y]);
 	},
 
@@ -317,7 +317,7 @@ jayus.Path = jayus.Shape.extend({
 	quadraticCurveBy: function Path_quadraticCurveBy(cpx, cpy, x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Path.quadraticCurveBy', arguments, jayus.TYPES.NUMBER, 'cpx', 'cpy', 'x', 'y');
-		//#endif
+		//#end
 		var pos = this.getCurrentPoint();
 		return this.quadraticCurveTo(pos.x+cpx, pos.y+cpy, pos.x+x, pos.y+y);
 	},
@@ -337,7 +337,7 @@ jayus.Path = jayus.Shape.extend({
 	bezierCurveTo: function Path_bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Path.bezierCurveTo', arguments, jayus.TYPES.NUMBER, 'cp1x', 'cp1y', 'cp2x', 'cp2y', 'x', 'y');
-		//#endif
+		//#end
 		return this.addSegment(['bezierCurveTo',cp1x, cp1y, cp2x, cp2y, x, y]);
 	},
 
@@ -357,7 +357,7 @@ jayus.Path = jayus.Shape.extend({
 	bezierCurveBy: function Path_bezierCurveBy(cp1x, cp1y, cp2x, cp2y, x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Path.bezierCurveBy', arguments, jayus.TYPES.NUMBER, 'cp1x', 'cp1y', 'cp2x', 'cp2y', 'x', 'y');
-		//#endif
+		//#end
 		var pos = this.getCurrentPoint();
 		return this.bezierCurveTo(pos.x+cp1x, pos.y+cp1y, pos.x+cp2x, pos.y+cp2y, pos.x+x, pos.y+y);
 	},
@@ -377,7 +377,7 @@ jayus.Path = jayus.Shape.extend({
 	arcTo: function Path_arcTo(x1, y1, x2, y2, radius){
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Path.arcTo', arguments, jayus.TYPES.NUMBER, 'x1', 'y1', 'x2', 'y2', 'radius');
-		//#endif
+		//#end
 		return this.addSegment(['arcTo', x1, y1, x2, y2, radius]);
 	},
 
@@ -398,7 +398,7 @@ jayus.Path = jayus.Shape.extend({
 	arcBy: function Path_arcBy(x1, y1, x2, y2, radius){
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Path.arcBy', arguments, jayus.TYPES.NUMBER, 'x1', 'y1', 'x2', 'y2', 'radius');
-		//#endif
+		//#end
 		var pos = this.getCurrentPoint();
 		return this.arcTo(pos.x+x1, pos.y+y1, pos.x+x2, pos.y+y2, radius);
 	},
@@ -427,7 +427,7 @@ jayus.Path = jayus.Shape.extend({
 			'endAngle', jayus.TYPES.NUMBER,
 			'anticlockwise', jayus.TYPES.BOOLEAN
 		);
-		//#endif
+		//#end
 		return this.addSegment(['arc', x, y, radius, startAngle, endAngle, anticlockwise]);
 	},
 
@@ -446,7 +446,7 @@ jayus.Path = jayus.Shape.extend({
 	rect: function Path_rect(x, y, width, height){
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Path.rect', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'width', 'height');
-		//#endif
+		//#end
 		return this.addSegment(['rect', x, y, width, height]);
 	},
 
@@ -475,7 +475,7 @@ jayus.Path = jayus.Shape.extend({
 			'endAngle', jayus.TYPES.NUMBER,
 			'anticlockwise', jayus.TYPES.BOOLEAN
 		);
-		//#endif
+		//#end
 		return this.addSegment(['ellipse', x, y, radiusX, radiusY, startAngle, endAngle, anticlockwise]);
 	},
 
@@ -489,7 +489,7 @@ jayus.Path = jayus.Shape.extend({
 	horizontalLineTo: function Path_horizontalLineTo(x){
 		//#ifdef DEBUG
 		jayus.debug.match('Path.horizontalLineTo', x, 'x', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.lineTo(x, this.getCurrentPoint().y);
 	},
 
@@ -504,7 +504,7 @@ jayus.Path = jayus.Shape.extend({
 	horizontalLineBy: function Path_horizontalLineBy(x){
 		//#ifdef DEBUG
 		jayus.debug.match('Path.horizontalLineBy', x, 'x', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.lineBy(x, 0);
 	},
 
@@ -518,7 +518,7 @@ jayus.Path = jayus.Shape.extend({
 	verticalLineTo: function Path_verticalLineTo(y){
 		//#ifdef DEBUG
 		jayus.debug.match('Path.verticalLineTo', y, 'y', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.lineTo(this.getCurrentPoint().x, y);
 	},
 
@@ -533,7 +533,7 @@ jayus.Path = jayus.Shape.extend({
 	verticalLineBy: function Path_verticalLineBy(y){
 		//#ifdef DEBUG
 		jayus.debug.match('Path.verticalLineBy', y, 'y', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.lineBy(0, y);
 	},
 
@@ -764,7 +764,7 @@ jayus.Path = jayus.Shape.extend({
 	hasPointIndex: function Path_hasPointIndex(index){
 		//#ifdef DEBUG
 		jayus.debug.match('Path.hasPointIndex', index, 'index', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return 0 <= index && index < this.segments.length;
 	},
 
@@ -797,7 +797,7 @@ jayus.Path = jayus.Shape.extend({
 		// Return the closed string
 		return str+'])';
 	},
-	//#endif
+	//#end
 
 	//@ From Shape
 	clone: function Path_clone(){
@@ -883,7 +883,7 @@ jayus.Path = jayus.Shape.extend({
 		else{
 			jayus.debug.match('Circle.toPolygon', detail, 'detail', jayus.TYPES.NUMBER);
 		}
-		//#endif
+		//#end
 		throw new Error('TODO: Path.toPolygon() - Unimplemented');
 	},
 
@@ -1007,7 +1007,7 @@ jayus.Path.Circle = function Path_Circle(x, y, radius){
 	if(arguments.length === 2){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Path.Circle()', arguments, 'center', jayus.TYPES.POINT, 'radius', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		radius = y;
 		y = x.y;
 		x = x.x;
@@ -1016,7 +1016,7 @@ jayus.Path.Circle = function Path_Circle(x, y, radius){
 	else{
 		jayus.debug.matchArgumentsAs('Path.Circle()', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'radius');
 	}
-	//#endif
+	//#end
 	return new jayus.Path().arc(x, y, radius, 0, Math.PI*2, false);
 };
 
@@ -1038,7 +1038,7 @@ jayus.Path.Rectangle = function Path_Rectangle(x, y, width, height){
 	if(arguments.length === 3){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Path.Rectangle()', arguments, 'origin', jayus.TYPES.POINT, 'width', jayus.TYPES.NUMBER, 'height', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		height = width;
 		width = y;
 		y = x.y;
@@ -1048,7 +1048,7 @@ jayus.Path.Rectangle = function Path_Rectangle(x, y, width, height){
 	else{
 		jayus.debug.matchArgumentsAs('Path.Rectangle()', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'width', 'height');
 	}
-	//#endif
+	//#end
 	return new jayus.Path().rect(x, y, width, height);
 };
 

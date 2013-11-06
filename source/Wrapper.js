@@ -133,7 +133,7 @@ jayus.Wrapper = {
 	setChild: function Wrapper_setChild(child){
 		//#ifdef DEBUG
 		jayus.debug.match('Wrapper.setChild', child, 'child', jayus.TYPES.ENTITY);
-		//#endif
+		//#end
 		// Add the child
 		this.child = child;
 		// Set the parent
@@ -187,7 +187,7 @@ jayus.Wrapper = {
 	onEachChild: function Wrapper_onEachChild(method, args){
 		//#ifdef DEBUG
 		jayus.debug.match('Wrapper.onEachChild', method, 'method', jayus.TYPES.STRING);
-		//#endif
+		//#end
 		return this.child[method].apply(this.child, args);
 	},
 
@@ -202,7 +202,7 @@ jayus.Wrapper = {
 	forEachChild: function Wrapper_forEachChild(func, args){
 		//#ifdef DEBUG
 		jayus.debug.match('Wrapper.forEachChild', func, 'func', jayus.TYPES.FUNCTION);
-		//#endif
+		//#end
 		return func.apply(this.child, args);
 	},
 
@@ -238,7 +238,7 @@ jayus.Wrapper = {
 	fireOnChildren: function Wrapper_fireOnChildren(event, data){
 		//#ifdef DEBUG
 		jayus.debug.match('Wrapper.fireOnChildren', event, 'event', jayus.TYPES.STRING);
-		//#endif
+		//#end
 		// Fire the event on the child, return true if accepted
 		return this.child.fire(event, data);
 	},
@@ -254,7 +254,7 @@ jayus.Wrapper = {
 	fireOnCursor: function Wrapper_fireOnCursor(event,data){
 		//#ifdef DEBUG
 		jayus.debug.match('Wrapper.fireOnCursor', event, 'event', jayus.TYPES.STRING);
-		//#endif
+		//#end
 		// Check if the cursor is tracked and over the child
 		if(this.child.trackCursor && this.child.underCursor){
 			// If the child is a parent, fire on its children

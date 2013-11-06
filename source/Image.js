@@ -36,7 +36,7 @@ An entity that represents a single image.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Image';
-//#endif
+//#end
 
 jayus.Image = jayus.RectEntity.extend({
 
@@ -90,7 +90,7 @@ jayus.Image = jayus.RectEntity.extend({
 
 	hasFlexibleHeight: false,
 
-	//#endif
+	//#end
 
 	//
 	//  Methods
@@ -216,7 +216,7 @@ jayus.Image = jayus.RectEntity.extend({
 		if(arguments.length === 1){
 			//#ifdef DEBUG
 			jayus.debug.match('Image.setSection()', x, 'section', jayus.TYPES.RECTANGLE);
-			//#endif
+			//#end
 			height = x.height;
 			width = x.width;
 			y = x.y;
@@ -225,7 +225,7 @@ jayus.Image = jayus.RectEntity.extend({
 		else if(arguments.length === 3){
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('Image.setSection()', arguments, 'origin', jayus.TYPES.POINT, 'width', jayus.TYPES.NUMBER, 'height', jayus.TYPES.NUMBER);
-			//#endif
+			//#end
 			height = width;
 			width = y;
 			y = x.y;
@@ -235,7 +235,7 @@ jayus.Image = jayus.RectEntity.extend({
 		else{
 			jayus.debug.matchArgumentsAs('Image.setSection()', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'width', 'height');
 		}
-		//#endif
+		//#end
 		this.hasSection = true;
 		if(this.width !== width || this.height !== height){
 			this.sectionY = y;
@@ -274,7 +274,7 @@ jayus.Image = jayus.RectEntity.extend({
 	toString: function Image_toString(){
 		return '(Image:'+this.image+')';
 	},
-	//#endif
+	//#end
 
 	/**
 	Returns a CanvasPattern representing the image.
@@ -293,7 +293,7 @@ jayus.Image = jayus.RectEntity.extend({
 		if(['repeat','repeat-x','repeat-y','no-repeat'].indexOf(repetition) === -1){
 			throw new Error('Image.toPattern() - Invalid repetition'+jayus.debug.toString(repetition)+' sent, "repeat", "repeat-x", "repeat-y", or "no-repeat" required');
 		}
-		//#endif
+		//#end
 		return this.rasterize().toPattern(repetition);
 	},
 
@@ -332,7 +332,7 @@ jayus.Image = jayus.RectEntity.extend({
 			console.warn('Image.paintContents() - Image not yet loaded');
 			return;
 		}
-		//#endif
+		//#end
 		// Get the image
 		var image = this.image;
 		if(image instanceof jayus.Surface){

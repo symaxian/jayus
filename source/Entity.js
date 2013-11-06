@@ -57,7 +57,7 @@ The base class for any drawable object.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Entity';
-//#endif
+//#end
 
 jayus.applyObject(jayus.Dependency.prototype, jayus.Responder.prototype);
 
@@ -308,7 +308,7 @@ jayus.Entity = jayus.Responder.extend({
 		this.dirty(jayus.DIRTY.ALL);
 	},
 
-	//#endif
+	//#end
 
 	/**
 	Applies the given properties to the Entity.
@@ -394,7 +394,7 @@ jayus.Entity = jayus.Responder.extend({
 		// this.addHandler('cursorOut', function(e){
 		// 	this.unexpose();
 		// });
-		//#endif
+		//#end
 		if(this.enableDragEvents){
 			this.handle({
 
@@ -479,7 +479,7 @@ jayus.Entity = jayus.Responder.extend({
 	setId: function Entity_setId(id){
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.setId', id, 'id', jayus.TYPES.DEFINED);
-		//#endif
+		//#end
 		this.id = id;
 		return this;
 	},
@@ -492,7 +492,7 @@ jayus.Entity = jayus.Responder.extend({
 	dirty: function Entity_dirty(type){
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.dirty', type, 'type', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		if(!this.frozen){
 			this.fire('dirty', type);
 			this.dirtied = true;
@@ -524,7 +524,7 @@ jayus.Entity = jayus.Responder.extend({
 		if(parent.exposingAll){
 			this.expose();
 		}
-		//#endif
+		//#end
 		this.hasParent = true;
 		this.parent = parent;
 		this.attach(parent);
@@ -555,7 +555,7 @@ jayus.Entity = jayus.Responder.extend({
 	setVisible: function Entity_setVisible(on){
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.setVisible', on, 'on', jayus.TYPES.BOOLEAN);
-		//#endif
+		//#end
 		if(this.visible !== on){
 			this.visible = on;
 			this.dirty(jayus.DIRTY.VISIBILITY);
@@ -601,7 +601,7 @@ jayus.Entity = jayus.Responder.extend({
 	setAlpha: function Entity_setAlpha(alpha){
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.setAlpha', alpha, 'alpha', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check if animated
 		if(this.actionsToAnimate){
 			// Clear the animate flag and return the animator
@@ -689,7 +689,7 @@ jayus.Entity = jayus.Responder.extend({
 	setDraggable: function Entity_setDraggable(on){
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.setDraggable', on, 'on', jayus.TYPES.BOOLEAN);
-		//#endif
+		//#end
 		if(!this.draggable && on){
 			this.addHandler(this.dragButton+'Press', function(e){
 				// The left mouse button was pressed, start dragging
@@ -843,7 +843,7 @@ jayus.Entity = jayus.Responder.extend({
 	setAngle: function Entity_setAngle(angle){
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.setAngle', angle, 'angle', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check to animate
 		if(this.actionsToAnimate){
 			this.actionsToAnimate--;
@@ -870,7 +870,7 @@ jayus.Entity = jayus.Responder.extend({
 	rotate: function Entity_rotate(angle){
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.rotate', angle, 'angle', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.setAngle(this.angle+angle);
 	},
 
@@ -893,7 +893,7 @@ jayus.Entity = jayus.Responder.extend({
 	setScale: function Entity_setScale(x, y){
 		//#ifdef DEBUG
 		// jayus.debug.matchCoordinate('Entity.setScale', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x;
 		}
@@ -929,14 +929,14 @@ jayus.Entity = jayus.Responder.extend({
 		if(arguments.length === 1){
 			//#ifdef DEBUG
 			jayus.debug.match('Entity.scale', x, 'scale', jayus.TYPES.NUMBER);
-			//#endif
+			//#end
 			y = x;
 		}
 		//#ifdef DEBUG
 		else{
 			jayus.debug.matchArgumentsAs('Entity.scale', arguments, jayus.TYPES.NUMBER, 'x', 'y');
 		}
-		//#endif
+		//#end
 		return this.setScale(this.xScale*x, this.yScale*y);
 	},
 
@@ -953,7 +953,7 @@ jayus.Entity = jayus.Responder.extend({
 	setAnchor: function Entity_setAnchor(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Entity.setAnchor', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -984,7 +984,7 @@ jayus.Entity = jayus.Responder.extend({
 	screenToLocal: function Entity_screenToLocal(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Entity.screenToLocal', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -1009,7 +1009,7 @@ jayus.Entity = jayus.Responder.extend({
 	parentToLocal: function Entity_parentToLocal(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Entity.parentToLocal', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -1044,7 +1044,7 @@ jayus.Entity = jayus.Responder.extend({
 	localToScreen: function Entity_localToScreen(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Entity.localToScreen', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -1058,7 +1058,7 @@ jayus.Entity = jayus.Responder.extend({
 	localToScreenOnto: function Entity_localToScreenOnto(x, y, ret){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Entity.localToScreenOnto', arguments, 'x', jayus.TYPES.NUMBER, 'y', jayus.TYPES.NUMBER, 'ret', jayus.TYPES.POINT);
-		//#endif
+		//#end
 		if(this.hasParent){
 			this.localToParentOnto(x, y, ret);
 			this.parent.localToScreenOnto(ret.x, ret.y, ret);
@@ -1083,7 +1083,7 @@ jayus.Entity = jayus.Responder.extend({
 	localToParent: function Entity_localToParent(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Entity.localToParent', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -1096,7 +1096,7 @@ jayus.Entity = jayus.Responder.extend({
 	localToParentOnto: function Entity_localToParentOnto(x, y, ret){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Entity.localToParentOnto', arguments, 'x', jayus.TYPES.NUMBER, 'y', jayus.TYPES.NUMBER, 'ret', jayus.TYPES.POINT);
-		//#endif
+		//#end
 		// FIXME: Entity.localToParentOnto() - Originally didnt take transforms into account without a parent, hotfixed, might still be broken
 		// if(this.hasParent){
 			if(this.angle !== 0){
@@ -1120,7 +1120,7 @@ jayus.Entity = jayus.Responder.extend({
 	localToParentOntoORIGINAL: function Entity_localToParentOntoORIGINAL(x, y, ret){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Entity.localToParentOntoORIGINAL', arguments, 'x', jayus.TYPES.NUMBER, 'y', jayus.TYPES.NUMBER, 'ret', jayus.TYPES.POINT);
-		//#endif
+		//#end
 		if(this.hasParent){
 			if(this.angle !== 0){
 				var x2 = x,
@@ -1153,7 +1153,7 @@ jayus.Entity = jayus.Responder.extend({
 	setVelocity: function Entity_setVelocity(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Entity.setVelocity', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -1222,7 +1222,7 @@ jayus.Entity = jayus.Responder.extend({
 		if(!entities.length){
 			throw new RangeError('Entity.intersectCount() - Invalid entities'+jayus.debug.toString(entities)+' sent, length of at least 1 required');
 		}
-		//#endif
+		//#end
 		var i, count = 0;
 		// Loop through the entities
 		for(i=0;i<entities.length;i++){
@@ -1251,7 +1251,7 @@ jayus.Entity = jayus.Responder.extend({
 		}
 		//#ifdef DEBUG
 		jayus.debug.matchArray('Entity.intersectsAny', entities, 'entities', jayus.TYPES.ENTITY);
-		//#endif
+		//#end
 		// Loop through the entity
 		for(var i=0;i<entities.length;i++){
 			// Return true if the entity intersects
@@ -1282,7 +1282,7 @@ jayus.Entity = jayus.Responder.extend({
 		if(!entities.length){
 			throw new RangeError('Entity.intersectsAll() - Invalid entities'+jayus.debug.toString(entities)+' sent, length of at least 1 required');
 		}
-		//#endif
+		//#end
 		// Loop through the entities
 		for(var i=0;i<entities.length;i++){
 			// Return false if the entity does not intersect
@@ -1310,7 +1310,7 @@ jayus.Entity = jayus.Responder.extend({
 		}
 		//#ifdef DEBUG
 		jayus.debug.matchArray('Entity.intersectsWhich', entities, 'entities', jayus.TYPES.ENTITY);
-		//#endif
+		//#end
 		var i, ret = [];
 		// Loop through the entities
 		for(i=0;i<entities.length;i++){
@@ -1336,7 +1336,7 @@ jayus.Entity = jayus.Responder.extend({
 	setStyle: function RectEntity_setStyle(style){
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.setStyle', style, 'style', jayus.TYPES.OBJECT);
-		//#endif
+		//#end
 		// Detach self from the old style
 		if(this.hasStyle){
 			this.style.detach(this);

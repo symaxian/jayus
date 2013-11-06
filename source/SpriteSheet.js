@@ -33,7 +33,7 @@ An entity that describes a number of sprites and animations for an image.
 
 //#ifdef DEBUG
 jayus.debug.className = 'SpriteSheet';
-//#endif
+//#end
 
 jayus.SpriteSheet = jayus.Dependency.extend({
 
@@ -103,7 +103,7 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 		if(arguments.length){
 			//#ifdef DEBUG
 			jayus.debug.match('SpriteSheet.init', filepath, 'filepath', jayus.TYPES.STRING);
-			//#endif
+			//#end
 			jayus.images.images[filepath].sheet = this;
 		}
 	},
@@ -121,7 +121,7 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 	setSpriteSize: function SpriteSheet_setSpriteSize(width, height){
 		//#ifdef DEBUG
 		jayus.debug.matchSize('SpriteSheet.setSpriteSize', width, height);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			height = width.height;
 			width = width.width;
@@ -147,7 +147,7 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 	setSpacing: function SpriteSheet_setSpacing(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('SpriteSheet.setSpacing', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -173,7 +173,7 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 	setMargin: function SpriteSheet_setMargin(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('SpriteSheet.setMargin', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -210,11 +210,11 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 			duration = 1000;
 			//#ifdef DEBUG
 			arguments[2] = duration;
-			//#endif
+			//#end
 		}
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('SpriteSheet.addAnimation', arguments, 'name', jayus.TYPES.STRING, 'sprites', jayus.TYPES.ARRAY, 'duration', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		this.animations[name] = {
 			sprites: sprites,
 			duration: duration,
@@ -256,7 +256,7 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 		if(!this.hasAnimation(animation)){
 			throw new Error('SpriteSheet.setAnimationDuration() - Invalid animation'+jayus.debug.toString(animation)+' sent, unknown animation');
 		}
-		//#endif
+		//#end
 		this.animations[animation].duration = duration;
 		return this;
 	},
@@ -275,7 +275,7 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 		if(!this.hasAnimation(animation)){
 			throw new Error('SpriteSheet.setAnimationFlipping() - Invalid animation'+jayus.debug.toString(animation)+' sent, unknown animation');
 		}
-		//#endif
+		//#end
 		this.animations[animation].flipX = flipX;
 		this.animations[animation].flipY = flipY;
 		return this;

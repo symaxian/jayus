@@ -34,7 +34,7 @@ Allows a framed entity to be dragged and resized with the cursor.
 
 //#ifdef DEBUG
 jayus.debug.className = 'EditableFrame';
-//#endif
+//#end
 
 jayus.EditableFrame = jayus.Frame.extend({
 
@@ -139,7 +139,7 @@ jayus.EditableFrame = jayus.Frame.extend({
 	init: function EditableFrame_init(child){
 		//#ifdef DEBUG
 		jayus.debug.match('Frame.init', child, 'child', jayus.TYPES.ENTITY);
-		//#endif
+		//#end
 		jayus.Frame.prototype.init.call(this, child);
 
 		this.addHandler('cursorMove', function(e){
@@ -349,7 +349,7 @@ jayus.EditableFrame = jayus.Frame.extend({
 	setMinimumSize: function EditableFrame_setMinimumSize(width, height){
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('EditableFrame.setMinimumSize', arguments, jayus.TYPES.NUMBER, 'width', 'height');
-		//#endif
+		//#end
 		this.minW = width;
 		this.minH = height;
 		return this;

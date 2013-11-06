@@ -34,7 +34,7 @@ Represents multiple lines of text with word wrapping.
 
 //#ifdef DEBUG
 jayus.debug.className = 'TextBox';
-//#endif
+//#end
 
 jayus.TextBox = jayus.Text.extend({
 
@@ -44,7 +44,7 @@ jayus.TextBox = jayus.Text.extend({
 
 	hasFlexibleHeight: true,
 
-	//#endif
+	//#end
 
 	//
 	//  Methods

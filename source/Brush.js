@@ -54,7 +54,7 @@ Contains styling information to describe how entities will draw their components
 
 //#ifdef DEBUG
 jayus.debug.className = 'Brush';
-//#endif
+//#end
 
 jayus.Brush = jayus.Dependency.extend({
 
@@ -215,7 +215,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(arguments.length){
 			//#ifdef DEBUG
 			jayus.debug.match('Brush.init', styling, 'styling', jayus.TYPES.OBJECT);
-			//#endif
+			//#end
 			this.apply(styling);
 		}
 	},
@@ -233,7 +233,7 @@ jayus.Brush = jayus.Dependency.extend({
 	apply: function Brush_apply(styling){
 		//#ifdef DEBUG
 		jayus.debug.match('Brush.apply', styling, 'styling', jayus.TYPES.OBJECT);
-		//#endif
+		//#end
 		this.frozen++;
 		for(var key in styling){
 			if(styling.hasOwnProperty(key)){
@@ -246,7 +246,7 @@ jayus.Brush = jayus.Dependency.extend({
 					console.warn(msg);
 					continue;
 				}
-				//#endif
+				//#end
 				this['set'+key[0].toUpperCase()+key.slice(1)](styling[key]);
 			}
 		}
@@ -280,7 +280,7 @@ jayus.Brush = jayus.Dependency.extend({
 		}
 		//#ifdef DEBUG
 		throw new Error('Style.findStyleType() - Invalid fill/stroke style: '+jayus.debug.toString(style));
-		//#endif
+		//#end
 	},
 
 	// A helper function
@@ -302,7 +302,7 @@ jayus.Brush = jayus.Dependency.extend({
 		}
 		//#ifdef DEBUG
 		throw new Error('Style.applyTo() - Invalid fill/stroke type identifier: '+jayus.debug.toString(type));
-		//#endif
+		//#end
 	},
 
 	/**
@@ -363,7 +363,7 @@ jayus.Brush = jayus.Dependency.extend({
 			else{
 				throw new Error('Style.applyTo() - Invalid shadow type identifier: '+jayus.debug.toString(this.shadowType));
 			}
-			//#endif
+			//#end
 			// Shadow properties
 			if(this.shadowOffsetX !== null){
 				ctx.shadowOffsetX = this.shadowOffsetX;
@@ -451,7 +451,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(alpha !== null){
 			jayus.debug.match('Brush.setAlpha', alpha, 'alpha', jayus.TYPES.NUMBER);
 		}
-		//#endif
+		//#end
 		if(alpha === null){
 			alpha = 1;
 		}
@@ -474,7 +474,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(style !== null){
 			jayus.debug.match('Brush.setFill', style, 'style', jayus.TYPES.DEFINED);
 		}
-		//#endif
+		//#end
 		// If the old style was a Dependency, detach self
 		if(this.fillType >= 4){
 			this.fill.detach(this);
@@ -503,7 +503,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(style !== null){
 			jayus.debug.match('Brush.setStroke', style, 'style', jayus.TYPES.DEFINED);
 		}
-		//#endif
+		//#end
 		// If the old style was a Dependency, detach self
 		if(this.strokeType >= 4){
 			this.stroke.detach(this);
@@ -532,7 +532,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(lineWidth !== null){
 			jayus.debug.match('Brush.setLineWidth', lineWidth, 'lineWidth', jayus.TYPES.NUMBER);
 		}
-		//#endif
+		//#end
 		if(this.lineWidth !== lineWidth){
 			this.lineWidth = lineWidth;
 			this.dirty(jayus.DIRTY.STYLE);
@@ -552,7 +552,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(lineCap !== null){
 			jayus.debug.match('Brush.setLineCap', lineCap, 'lineCap');
 		}
-		//#endif
+		//#end
 		if(this.lineCap !== lineCap){
 			this.lineCap = lineCap;
 			this.dirty(jayus.DIRTY.STYLE);
@@ -572,7 +572,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(lineJoin !== null){
 			jayus.debug.match('Brush.setLineJoin', lineJoin, 'lineJoin', jayus.TYPES.STRING);
 		}
-		//#endif
+		//#end
 		if(this.lineJoin !== lineJoin){
 			this.lineJoin = lineJoin;
 			this.dirty(jayus.DIRTY.STYLE);
@@ -592,7 +592,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(miterLimit !== null){
 			jayus.debug.match('Brush.setMiterLimit', miterLimit, 'miterLimit', jayus.TYPES.STRING);
 		}
-		//#endif
+		//#end
 		if(this.miterLimit !== miterLimit){
 			this.miterLimit = miterLimit;
 			this.dirty(jayus.DIRTY.STYLE);
@@ -612,7 +612,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(lineDash !== null){
 			jayus.debug.matchArray('Style.setLineDash', lineDash, 'lineDash', jayus.TYPES.NUMBER);
 		}
-		//#endif
+		//#end
 		this.lineDash = lineDash;
 		this.dirty(jayus.DIRTY.STYLE);
 		return this;
@@ -630,7 +630,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(lineDashOffset !== null){
 			jayus.debug.match('Brush.setLineDashOffset', lineDashOffset, 'lineDashOffset', jayus.TYPES.NUMBER);
 		}
-		//#endif
+		//#end
 		if(this.lineDashOffset !== lineDashOffset){
 			this.lineDashOffset = lineDashOffset;
 			this.dirty(jayus.DIRTY.STYLE);
@@ -650,7 +650,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(shadow !== null){
 			jayus.debug.match('Brush.setShadow', shadow, 'shadow', jayus.TYPES.DEFINED);
 		}
-		//#endif
+		//#end
 		// If the old shadow was a Dependency, detach self
 		if(this.shadowType === 2){
 			this.shadow.detach(this);
@@ -671,7 +671,7 @@ jayus.Brush = jayus.Dependency.extend({
 		else{
 			throw new Error('Style.setShadow() - Invalid shadow style: '+jayus.debug.toString(shadow));
 		}
-		//#endif
+		//#end
 		this.dirty(jayus.DIRTY.STYLE);
 		return this;
 	},
@@ -688,7 +688,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(shadowOffsetX !== null){
 			jayus.debug.match('Brush.setShadowOffsetX', shadowOffsetX, 'shadowOffsetX', jayus.TYPES.NUMBER);
 		}
-		//#endif
+		//#end
 		if(this.shadowOffsetX !== shadowOffsetX){
 			this.shadowOffsetX = shadowOffsetX;
 			this.dirty(jayus.DIRTY.STYLE);
@@ -708,7 +708,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(shadowOffsetY !== null){
 			jayus.debug.match('Brush.setShadowOffsetY', shadowOffsetY, 'shadowOffsetY', jayus.TYPES.NUMBER);
 		}
-		//#endif
+		//#end
 		if(this.shadowOffsetY !== shadowOffsetY){
 			this.shadowOffsetY = shadowOffsetY;
 			this.dirty(jayus.DIRTY.STYLE);
@@ -728,7 +728,7 @@ jayus.Brush = jayus.Dependency.extend({
 		if(shadowBlur !== null){
 			jayus.debug.match('Brush.setShadowBlur', shadowBlur, 'shadowBlur', jayus.TYPES.NUMBER);
 		}
-		//#endif
+		//#end
 		if(this.shadowBlur !== shadowBlur){
 			this.shadowBlur = shadowBlur;
 			this.dirty(jayus.DIRTY.STYLE);

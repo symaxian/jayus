@@ -87,7 +87,7 @@ jayus.keyboard = {
 			if(jayus.debug.pauseOnEscape && e.keyCode === 27){
 				jayus.debug.pause();
 			}
-			//#endif
+			//#end
 			// Check if focused
 			if(jayus.keyboard.requireFocus && jayus.hasFocus){
 				// Get the key id
@@ -164,7 +164,7 @@ jayus.keyboard = {
 		if(!this.isKey(id)){
 			throw new RangeError('jayus.keyboard.isPressed() - Invalid id'+jayus.debug.toString(id)+' sent, unknown id');
 		}
-		//#endif
+		//#end
 		return !!this.pressed[id];
 	},
 
@@ -177,7 +177,7 @@ jayus.keyboard = {
 	isKey: function jayus_keyboard_isKey(id){
 		//#ifdef DEBUG
 		jayus.debug.match('jayus.keyboard.isKey', id, 'id', jayus.TYPES.STRING);
-		//#endif
+		//#end
 		return this.keys.indexOf(id) >= 0;
 	}
 

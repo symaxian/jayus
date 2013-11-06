@@ -56,7 +56,7 @@ An abstract class for an animator, an object that performs an animation.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Animator';
-//#endif
+//#end
 
 jayus.Animator = jayus.Responder.extend({
 
@@ -132,7 +132,7 @@ jayus.Animator = jayus.Responder.extend({
 	init: function Animator_init(updater){
 		//#ifdef DEBUG
 		jayus.debug.match('Animator.init', updater, 'updater', jayus.TYPES.FUNCTION);
-		//#endif
+		//#end
 		this.update = updater;
 	},
 
@@ -159,7 +159,7 @@ jayus.Animator = jayus.Responder.extend({
 		else{
 			console.warn('Animator.start() - Started when already running');
 		}
-		//#endif
+		//#end
 		return this;
 	},
 
@@ -181,7 +181,7 @@ jayus.Animator = jayus.Responder.extend({
 		else{
 			console.warn('Animator.stop() - Stopped when not running');
 		}
-		//#endif
+		//#end
 		return this;
 	},
 
@@ -205,7 +205,7 @@ jayus.Animator = jayus.Responder.extend({
 		else{
 			console.warn('Animator.finish() - Finished when not running');
 		}
-		//#endif
+		//#end
 		return this;
 	},
 
@@ -218,7 +218,7 @@ jayus.Animator = jayus.Responder.extend({
 	setDuration: function Animator_setDuration(duration){
 		//#ifdef DEBUG
 		jayus.debug.match('Animator.setDuration', duration, 'duration', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		this.duration = duration;
 		return this;
 	},
@@ -238,14 +238,14 @@ jayus.Animator = jayus.Responder.extend({
 		if(typeof easing === 'string'){
 			//#ifdef DEBUG
 			jayus.debug.match('Animator.setEasing', easing, 'easing', jayus.TYPES.STRING);
-			//#endif
+			//#end
 			easing = jayus.easing[easing];
 		}
 		//#ifdef DEBUG
 		else{
 			jayus.debug.match('Animator.setEasing', easing, 'easing', jayus.TYPES.FUNCTION);
 		}
-		//#endif
+		//#end
 		this.easing = easing;
 		return this;
 	},
@@ -310,7 +310,7 @@ jayus.Animator = jayus.Responder.extend({
 	setLooped: function Animator_setLooped(on){
 		//#ifdef DEBUG
 		jayus.debug.match('Animator.setLooped', on, 'on', jayus.TYPES.BOOLEAN);
-		//#endif
+		//#end
 		this.looped = on;
 		return this;
 	},
@@ -324,7 +324,7 @@ jayus.Animator = jayus.Responder.extend({
 	setOscillate: function Animator_setOscillate(on){
 		//#ifdef DEBUG
 		jayus.debug.match('Animator.setOscillate', on, 'on', jayus.TYPES.BOOLEAN);
-		//#endif
+		//#end
 		this.oscillate = on;
 		return this;
 	}
@@ -342,7 +342,7 @@ An abstract class for objects that can be animated.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Animatable';
-//#endif
+//#end
 
 jayus.Animatable = jayus.createClass({
 
@@ -380,7 +380,7 @@ An animator that continually calls a method on an object with numeric properties
 
 //#ifdef DEBUG
 jayus.debug.className = 'MethodAnimator';
-//#endif
+//#end
 
 jayus.MethodAnimator = jayus.Animator.extend({
 
@@ -438,7 +438,7 @@ jayus.MethodAnimator = jayus.Animator.extend({
 			'initialValue', jayus.TYPES.DEFINED,
 			'finalValue', jayus.TYPES.DEFINED
 		);
-		//#endif
+		//#end
 		// Set the properties
 		this.target = target;
 		this.method = method;
@@ -482,7 +482,7 @@ A small extension to the Animator class that sends a discrete value(an integer) 
 
 //#ifdef DEBUG
 jayus.debug.className = 'DiscreteAnimator';
-//#endif
+//#end
 
 jayus.Animator.Discrete = jayus.Animator.extend({
 
@@ -513,7 +513,7 @@ jayus.Animator.Discrete = jayus.Animator.extend({
 	init: function DiscreteAnimator_init(count, updater){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('DiscreteAnimator.init', arguments, 'count', jayus.TYPES.NUMBER, 'updater', jayus.TYPES.FUNCTION);
-		//#endif
+		//#end
 		this.count = count;
 		this.updater = updater;
 	},
@@ -544,7 +544,7 @@ Keeps a list of animators and can run them in sequence.
 
 //#ifdef DEBUG
 jayus.debug.className = 'AnimatorSequence';
-//#endif
+//#end
 
 jayus.Animator.Sequence = jayus.Animator.extend({
 
@@ -567,7 +567,7 @@ jayus.Animator.Sequence = jayus.Animator.extend({
 		this.animators = new jayus.List();
 		//#ifdef DEBUG
 		this.animators.typeId = jayus.TYPES.ANIMATOR;
-		//#endif
+		//#end
 	},
 
 		//

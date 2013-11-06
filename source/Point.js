@@ -34,7 +34,7 @@ Represents a point in two dimensional space.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Point';
-//#endif
+//#end
 
 jayus.Point = jayus.Dependency.extend({
 
@@ -71,14 +71,42 @@ jayus.Point = jayus.Dependency.extend({
 	@param {Number} y Optional, default is 0
 	*/
 
-	init: function Point_init(x, y){
-		if(arguments.length){
+	init: function Point_init(x, y) {
+		if (arguments.length === 1) {
+			this.initFromObject(x);
+		}
+		else if (arguments.length) {
 			//#ifdef DEBUG
 			jayus.debug.matchArgumentsAs('Point.init', arguments, jayus.TYPES.NUMBER, 'x', 'y');
-			//#endif
+			//#end
 			this.x = x;
 			this.y = y;
 		}
+	},
+
+	//@ From Parsable
+	initFromObject: function Point_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Point.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		// Apply parent properties
+		jayus.Dependency.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		this.x = object.x;
+		this.y = object.y;
+		// Set as dirty
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	//@ From Parsable
+	toObject: function Point_toObject() {
+		// Get object from parent
+		var object = jayus.Dependency.prototype.toObject.call(this);
+		// Add our own properties
+		object.__type__ = 'Point';
+		object.x = this.x;
+		object.y = this.y;
+		return object;
 	},
 
 		//
@@ -92,17 +120,17 @@ jayus.Point = jayus.Dependency.extend({
 	@param {Number} x
 	*/
 
-	setX: function Point_setX(x){
+	setX: function Point_setX(x) {
 		//#ifdef DEBUG
 		jayus.debug.match('Point.setX', x, 'x', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setX, this.x, x);
 		}
-		if(this.x !== x){
+		if (this.x !== x) {
 			this.x = x;
 			this.dirty(jayus.DIRTY.POSITION);
 		}
@@ -116,17 +144,17 @@ jayus.Point = jayus.Dependency.extend({
 	@param {Number} y
 	*/
 
-	setY: function Point_setY(y){
+	setY: function Point_setY(y) {
 		//#ifdef DEBUG
 		jayus.debug.match('Point.setY', y, 'y', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setY, this.y, y);
 		}
-		if(this.y !== y){
+		if (this.y !== y) {
 			this.y = y;
 			this.dirty(jayus.DIRTY.POSITION);
 		}
@@ -141,18 +169,18 @@ jayus.Point = jayus.Dependency.extend({
 	@param {Number} y
 	*/
 
-	set: function Point_set(x, y){
+	set: function Point_set(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Point.set', arguments, jayus.TYPES.NUMBER, 'x', 'y');
-		//#endif
+		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.set, [this.x, this.y], [x, y]);
 		}
 		// Check if different
-		if(this.x !== x || this.y !== y){
+		if (this.x !== x || this.y !== y) {
 			this.x = x;
 			this.y = y;
 			this.dirty(jayus.DIRTY.POSITION);
@@ -171,11 +199,11 @@ jayus.Point = jayus.Dependency.extend({
 	@param {Number} y
 	*/
 
-	translate: function Point_translate(x, y){
+	translate: function Point_translate(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Point.translate', x, y);
-		//#endif
-		if(arguments.length === 1){
+		//#end
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
@@ -187,17 +215,17 @@ jayus.Point = jayus.Dependency.extend({
 		//_____________//
 
 	//#ifdef DEBUG
-	toString: function Point_toString(){
+	toString: function Point_toString() {
 		return '(Point:'+this.x+','+this.y+')';
 	},
-	//#endif
+	//#end
 
 	/**
 	Returns a clone of this point.
 	@method {Point} clone
 	*/
 
-	clone: function Point_clone(){
+	clone: function Point_clone() {
 		return new jayus.Point(this.x, this.y);
 	},
 
@@ -208,7 +236,7 @@ jayus.Point = jayus.Dependency.extend({
 	@param {Point} ret
 	*/
 
-	cloneOnto: function Point_cloneOnto(ret){
+	cloneOnto: function Point_cloneOnto(ret) {
 		ret.x = this.x;
 		ret.y = this.y;
 		return ret;
@@ -224,11 +252,11 @@ jayus.Point = jayus.Dependency.extend({
 	@param {Number} y
 	*/
 
-	equals: function Point_equals(x, y){
+	equals: function Point_equals(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Point.equals', x, y);
-		//#endif
-		if(arguments.length === 1){
+		//#end
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}

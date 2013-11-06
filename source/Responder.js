@@ -33,7 +33,7 @@ The base class for an object that uses the jayus event system.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Responder';
-//#endif
+//#end
 
 // TODO: jayus.Responder() - A few tweaks could improve memory usage, dont create arrays for a single handler, and dont create an options object for the default options
 
@@ -87,7 +87,7 @@ jayus.Responder = jayus.createClass({
 	handle: function Responder_handle(handlers){
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.handle', handlers, 'handlers', jayus.TYPES.OBJECT);
-		//#endif
+		//#end
 		for(var event in handlers){
 			if(handlers.hasOwnProperty(event)){
 				this.addHandler(event, handlers[event]);
@@ -111,7 +111,7 @@ jayus.Responder = jayus.createClass({
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Responder.addHandler', arguments, 'event', jayus.TYPES.STRING, 'handler', jayus.TYPES.FUNCTION);
 		jayus.debug.matchOptional('Responder.addHandler', options, 'options', jayus.TYPES.OBJECT);
-		//#endif
+		//#end
 		// Initialize the objects if needed
 		if(!this.hasHandlers){
 			this.hasHandlers = true;
@@ -155,7 +155,7 @@ jayus.Responder = jayus.createClass({
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Responder.addHandler', arguments, 'event', jayus.TYPES.STRING, 'handler', jayus.TYPES.FUNCTION);
 		jayus.debug.matchOptional('Responder.addHandler', options, 'options', jayus.TYPES.OBJECT);
-		//#endif
+		//#end
 		if(arguments.length === 2){
 			options = {};
 		}
@@ -181,7 +181,7 @@ jayus.Responder = jayus.createClass({
 		if(!jayus.debug.is(jayus.TYPES.FUNCTION, handler) && !jayus.debug.is(jayus.TYPES.STRING, handler)){
 			throw new TypeError('Responder.removeHandler() - Invalid handler'+jayus.debug.toString(handler)+' sent, Function or String required.');
 		}
-		//#endif
+		//#end
 		if(this.isHandler[event]){
 			// Check for a function, else assume its the id(string)
 			if(handler instanceof Function){
@@ -215,7 +215,7 @@ jayus.Responder = jayus.createClass({
 	removeHandlers: function Entity_removeHandlers(event){
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.removeHandlers', event, 'event', jayus.TYPES.STRING);
-		//#endif
+		//#end
 		// Remove the handler
 		if(this.isHandler[event]){
 			this.handlers[event] = [];
@@ -254,7 +254,7 @@ jayus.Responder = jayus.createClass({
 		//#ifdef DEBUG
 		jayus.debug.match('Responder.fire', event, 'event', jayus.TYPES.STRING);
 		jayus.debug.matchOptional('Responder.fire', data, 'data', jayus.TYPES.DEFINED);
-		//#endif
+		//#end
 		var i, opts, result;
 		if(this.hasHandlers && this.isHandler[event]){
 			// Loop through the responders for the event

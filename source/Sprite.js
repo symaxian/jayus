@@ -36,7 +36,7 @@ An enhanced version of the Image entity that can be easily animated.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Sprite';
-//#endif
+//#end
 
 jayus.Sprite = jayus.Image.extend({
 
@@ -106,7 +106,7 @@ jayus.Sprite = jayus.Image.extend({
 	setSprite: function Sprite_setSprite(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Sprite.setSprite', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -128,7 +128,7 @@ jayus.Sprite = jayus.Image.extend({
 		else{
 			console.warn('Sprite.setSprite() - Image does not contain attached spritesheet');
 		}
-		//#endif
+		//#end
 		return this;
 	},
 
@@ -144,7 +144,7 @@ jayus.Sprite = jayus.Image.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('Sprite.playAnimation', name, 'name', jayus.TYPES.STRING);
 		jayus.debug.matchOptional('Sprite.playAnimation', func, 'func', jayus.TYPES.FUNCTION);
-		//#endif
+		//#end
 		this.setAnimation(name, false);
 		if(arguments.length > 1){
 			this.animator.addHandler('finished', func);
@@ -162,7 +162,7 @@ jayus.Sprite = jayus.Image.extend({
 	loopAnimation: function Sprite_loopAnimation(name){
 		//#ifdef DEBUG
 		jayus.debug.match('Sprite.loopAnimation', name, 'name', jayus.TYPES.STRING);
-		//#endif
+		//#end
 		return this.setAnimation(name, true);
 	},
 
@@ -183,7 +183,7 @@ jayus.Sprite = jayus.Image.extend({
 	setAnimation: function Sprite_setAnimation(name, looped){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Sprite.setAnimation', arguments, 'name', jayus.TYPES.STRING, 'looped', jayus.TYPES.BOOLEAN);
-		//#endif
+		//#end
 		if(this.sheet !== null || typeof this.image.sheet === 'object'){
 			var sheet = this.sheet || this.image.sheet;
 			if(sheet.hasAnimation(name)){
@@ -230,13 +230,13 @@ jayus.Sprite = jayus.Image.extend({
 			else{
 				throw new Error('Sprite.setAnimation() - Spritesheet does not contain sprite/animation: '+name);
 			}
-			//#endif
+			//#end
 		}
 		//#ifdef DEBUG
 		else{
 			throw new Error('Sprite.setAnimation() - Image does not contain attached spritesheet');
 		}
-		//#endif
+		//#end
 		return this;
 	},
 

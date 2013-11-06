@@ -40,7 +40,7 @@ A Scene that can be placed onto the page.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Display';
-//#endif
+//#end
 
 jayus.Display = jayus.Scene.extend({
 
@@ -135,7 +135,7 @@ jayus.Display = jayus.Scene.extend({
 				throw new TypeError('Display.init() - Invalid number of arguments sent, 0, 1, or 2 required');
 			}
 		}
-		//#endif
+		//#end
 		// Check the argument count
 		if(arguments.length === 1){
 			// Use the sent canvas element
@@ -548,7 +548,7 @@ jayus.Display = jayus.Scene.extend({
 				}
 			}
 		});
-		//#endif
+		//#end
 	},
 
 	startCursorUpdate: function Display_startCursorUpdate(){
@@ -649,7 +649,7 @@ jayus.Display = jayus.Scene.extend({
 	setVisible: function Display_setVisible(on){
 		//#ifdef DEBUG
 		jayus.debug.match('Display.setVisible', on, 'on', jayus.TYPES.BOOLEAN);
-		//#endif
+		//#end
 		this.visible = on;
 		if(on){
 			this.canvas.style.visibility = '';
@@ -664,7 +664,7 @@ jayus.Display = jayus.Scene.extend({
 	setAlpha: function Display_setAlpha(alpha){
 		//#ifdef DEBUG
 		jayus.debug.match('Display.setAlpha', alpha, 'alpha', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check if animated
 		if(this.actionsToAnimate){
 			// Clear the animate flag and return the animator
@@ -800,7 +800,7 @@ jayus.Display = jayus.Scene.extend({
 		if(typeof cursor === 'string'){
 			//#ifdef DEBUG
 			jayus.debug.match('Display.setCursor', cursor, 'cursor', jayus.TYPES.STRING);
-			//#endif
+			//#end
 			// Set the cursor
 			this.getTopCanvas().style.cursor = cursor;
 			this.hasCustomCursor = false;
@@ -808,7 +808,7 @@ jayus.Display = jayus.Scene.extend({
 		else{
 			//#ifdef DEBUG
 			jayus.debug.match('Display.setCursor', cursor, 'cursor', jayus.TYPES.ENTITY);
-			//#endif
+			//#end
 			// Remove the cursor icon
 			this.getTopCanvas().style.cursor = 'none';
 			// Set the custom icon flag and cursor

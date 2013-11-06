@@ -35,7 +35,7 @@ A entity for manipulating and rendering child entities within a fixed area.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Layer';
-//#endif
+//#end
 
 jayus.Layer = jayus.Entity.extend({
 
@@ -115,11 +115,11 @@ jayus.Layer = jayus.Entity.extend({
 		this.scope = new jayus.Rectangle();
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
-		//#endif
+		//#end
 		if(arguments.length === 2){
 			//#ifdef DEBUG
 			jayus.debug.matchArgumentsAs('Layer.init', arguments, jayus.TYPES.NUMBER, 'width', 'height');
-			//#endif
+			//#end
 			this.width = width;
 			this.height = height;
 		}

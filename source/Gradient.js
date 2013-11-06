@@ -28,7 +28,7 @@ An abstract class representing a linear or radial gradient.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Gradient';
-//#endif
+//#end
 
 jayus.Gradient = jayus.Dependency.extend({
 
@@ -93,7 +93,7 @@ jayus.Gradient = jayus.Dependency.extend({
 	translate: function Gradient_translate(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Gradient.translate', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -114,7 +114,7 @@ jayus.Gradient = jayus.Dependency.extend({
 	addColorStop: function Gradient_addColorStop(position, color){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Gradient.addColorStop', arguments, 'position', jayus.TYPES.NUMBER, 'color', jayus.TYPES.DEFINED);
-		//#endif
+		//#end
 		this.stopPositions.push(position);
 		this.stopColors.push(color);
 		return this;
@@ -148,7 +148,7 @@ Represents a standard linear gradient, for use as a brush style.
 
 //#ifdef DEBUG
 jayus.debug.className = 'LinearGradient';
-//#endif
+//#end
 
 jayus.LinearGradient = jayus.Gradient.extend({
 
@@ -192,7 +192,7 @@ jayus.LinearGradient = jayus.Gradient.extend({
 		2: function LinearGradient_init(start, end){
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('LinearGradient.init', arguments, 'start', jayus.TYPES.POINT, 'end', jayus.TYPES.POINT);
-			//#endif
+			//#end
 			this.stopPositions = [];
 			this.stopColors = [];
 			this.start = start;
@@ -204,7 +204,7 @@ jayus.LinearGradient = jayus.Gradient.extend({
 		4: function LinearGradient_init(x1, y1, x2, y2){
 			//#ifdef DEBUG
 			jayus.debug.matchArgumentsAs('LinearGradient.init', arguments, jayus.TYPES.NUMBER, 'x1', 'y1', 'x2', 'y2');
-			//#endif
+			//#end
 			this.init(new jayus.Point(x1, y1), new jayus.Point(x2, y2));
 		}
 
@@ -238,7 +238,7 @@ Represents a radial gradient, for use as a brush style.
 
 //#ifdef DEBUG
 jayus.debug.className = 'RadialGradient';
-//#endif
+//#end
 
 jayus.RadialGradient = jayus.Gradient.extend({
 
@@ -289,7 +289,7 @@ jayus.RadialGradient = jayus.Gradient.extend({
 		2: function RadialGradient_init(start, end){
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('RadialGradient.init', arguments, 'start', jayus.TYPES.CIRCLE, 'end', jayus.TYPES.CIRCLE);
-			//#endif
+			//#end
 			this.stopPositions = [];
 			this.stopColors = [];
 			this.start = start;
@@ -301,14 +301,14 @@ jayus.RadialGradient = jayus.Gradient.extend({
 		4: function RadialGradient_init(start, r1, end, r2){
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('RadialGradient.init', arguments, 'start', jayus.TYPES.POINT, 'r1', jayus.TYPES.NUMBER, 'end', jayus.TYPES.POINT, 'r2', jayus.TYPES.NUMBER);
-			//#endif
+			//#end
 			this.init(new jayus.Circle(start, r1), new jayus.Circle(end, r2));
 		},
 
 		6: function RadialGradient_init(cx1, cy1, r1, cx2, cy2, r2){
 			//#ifdef DEBUG
 			jayus.debug.matchArgumentsAs('RadialGradient.init', arguments, jayus.TYPES.NUMBER, 'cx1', 'cy1', 'r1', 'cx2', 'cy2', 'r2');
-			//#endif
+			//#end
 			this.init(new jayus.Circle(cx1, cy1, r1), new jayus.Circle(cx2, cy2, r2));
 		}
 

@@ -43,7 +43,7 @@ Base class for the hBox and vBox entities.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Box';
-//#endif
+//#end
 
 jayus.Box = jayus.RectEntity.extend({
 
@@ -90,7 +90,7 @@ jayus.Box = jayus.RectEntity.extend({
 		this.children = new jayus.List(this);
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
-		//#endif
+		//#end
 		this.addHandler('dirty', function Box_dirtyHandler(type){
 			if(type & jayus.DIRTY.SIZE){
 				this.formContents();
@@ -145,7 +145,7 @@ jayus.Box = jayus.RectEntity.extend({
 	setReversed: function Box_setReversed(on){
 		//#ifdef DEBUG
 		jayus.debug.match('Box.setReversed', on, 'on', jayus.TYPES.BOOLEAN);
-		//#endif
+		//#end
 		if(this.reversed !== on){
 			this.reversed = on;
 			this.formContents();
@@ -167,7 +167,7 @@ jayus.Box = jayus.RectEntity.extend({
 	setSpacing: function Box_setSpacing(spacing){
 		//#ifdef DEBUG
 		jayus.debug.match('Box.setSpacing', spacing, 'spacing', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		if(this.spacing !== spacing){
 			this.spacing = spacing;
 			this.formContents();
@@ -215,7 +215,7 @@ An Entity that organizes its children into a horizontal row.
 
 //#ifdef DEBUG
 jayus.debug.className = 'hBox';
-//#endif
+//#end
 
 jayus.hBox = jayus.Box.extend({
 
@@ -306,7 +306,7 @@ A widget that organizes its children into a vertical column.
 
 //#ifdef DEBUG
 jayus.debug.className = 'vBox';
-//#endif
+//#end
 
 jayus.vBox = jayus.Box.extend({
 

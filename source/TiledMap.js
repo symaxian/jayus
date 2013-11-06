@@ -34,7 +34,7 @@ A class that loads and displays a Tiled map editor map.
 
 //#ifdef DEBUG
 jayus.debug.className = 'TiledMap';
-//#endif
+//#end
 
 jayus.TiledMap = jayus.RectEntity.extend({
 
@@ -117,7 +117,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 			throw new Error('TiledMap.checkLoaded() - Error, map not yet loaded');
 		}
 	},
-	//#endif
+	//#end
 
 	setMap: overloadArgumentType({
 
@@ -169,7 +169,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	getTileAt: function TiledMap_getTileAt(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('TiledMap.getTileAt', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -193,7 +193,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('TiledMap.getSlotFrame', x, y);
 		this.checkLoaded();
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -216,7 +216,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('TiledMap.isLayerVisible', index, 'index', jayus.TYPES.NUMBER);
 		this.checkLoaded();
-		//#endif
+		//#end
 		return this.layerVisibility[index];
 	},
 
@@ -232,7 +232,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('TiledMap.setLayerVisibility', arguments, 'index', jayus.TYPES.NUMBER, 'visible', jayus.TYPES.BOOLEAN);
 		this.checkLoaded();
-		//#endif
+		//#end
 		if(this.layerVisibility[index] !== visible){
 			this.layerVisibility[index] = visible;
 			this.dirty();
@@ -250,7 +250,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('TiledMap.showLayer', index, 'index', jayus.TYPES.NUMBER);
 		this.checkLoaded();
-		//#endif
+		//#end
 		return this.setLayerVisibility(index, true);
 	},
 
@@ -264,7 +264,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('TiledMap.hideLayer', index, 'index', jayus.TYPES.NUMBER);
 		this.checkLoaded();
-		//#endif
+		//#end
 		return this.setLayerVisibility(index, false);
 	},
 
@@ -278,7 +278,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.matchContext('TiledMap.paintContents', ctx);
 		this.checkLoaded();
-		//#endif
+		//#end
 
 		var i,
 			image,

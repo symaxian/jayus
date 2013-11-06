@@ -36,7 +36,7 @@ Represents a list of some objects.
 
 //#ifdef DEBUG
 jayus.debug.className = 'List';
-//#endif
+//#end
 
 jayus.List = jayus.createClass({
 
@@ -52,7 +52,7 @@ jayus.List = jayus.createClass({
 
 	//#ifdef DEBUG
 	typeId: jayus.TYPES.DEFINED,
-	//#endif
+	//#end
 
 	//
 	//  Methods
@@ -67,7 +67,7 @@ jayus.List = jayus.createClass({
 		if(arguments.length === 1){
 			//#ifdef DEBUG
 			jayus.debug.match('List.init', parent, 'parent', jayus.TYPES.OBJECT);
-			//#endif
+			//#end
 			this.parent = parent;
 		}
 		this.items = [];
@@ -107,7 +107,7 @@ jayus.List = jayus.createClass({
 		if(typeof item === 'string'){
 			//#ifdef DEBUG
 			jayus.debug.match('List.indexOf', item, 'item', jayus.TYPES.DEFINED);
-			//#endif
+			//#end
 			for(i=0;i<this.items.length;i++){
 				if(this.items[i].id === item){
 					return i;
@@ -117,7 +117,7 @@ jayus.List = jayus.createClass({
 		}
 		//#ifdef DEBUG
 		jayus.debug.match('List.indexOf', item, 'item', this.typeId);
-		//#endif
+		//#end
 		return this.items.indexOf(item);
 	},
 
@@ -130,7 +130,7 @@ jayus.List = jayus.createClass({
 	has: function List_has(item){
 		//#ifdef DEBUG
 		jayus.debug.match('List.has', item, 'item', this.typeId);
-		//#endif
+		//#end
 		return this.items.indexOf(item) >= 0;
 	},
 
@@ -157,7 +157,7 @@ jayus.List = jayus.createClass({
 	at: function List_at(index){
 		//#ifdef DEBUG
 		jayus.debug.match('List.at', index, 'index', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		if(0 <= index && index < this.items.length){
 			return this.items[index];
 		}
@@ -173,7 +173,7 @@ jayus.List = jayus.createClass({
 	get: function List_get(id){
 		//#ifdef DEBUG
 		jayus.debug.match('List.get', id, 'id', jayus.TYPES.DEFINED);
-		//#endif
+		//#end
 		var i, item;
 		for(i=0;i<this.items.length;i++){
 			item = this.items[i];
@@ -195,14 +195,14 @@ jayus.List = jayus.createClass({
 		if(arguments.length === 1){
 			//#ifdef DEBUG
 			jayus.debug.match('List.add', item, 'item', this.typeId);
-			//#endif
+			//#end
 			this.items.push(item);
 			this.added(item);
 		}
 		else{
 			//#ifdef DEBUG
 			// jayus.debug.matchArray('List.add', items, 'items', this.typeId);
-			//#endif
+			//#end
 			// Loop through the arguments
 			for(var i=0;i<arguments.length;i++){
 				this.items.push(arguments[i]);
@@ -221,7 +221,7 @@ jayus.List = jayus.createClass({
 	append: function List_append(items){
 		//#ifdef DEBUG
 		jayus.debug.matchArray('List.append', items, 'items', this.typeId);
-		//#endif
+		//#end
 		for(var i=0;i<items.length;i++){
 			this.items.push(items[i]);
 		}
@@ -239,7 +239,7 @@ jayus.List = jayus.createClass({
 	insert: function List_insert(item, index){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('List.insert', arguments, 'item', this.typeId, 'index', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		this.items.splice(index, 0, item);
 		this.added(item);
 		return this;
@@ -255,7 +255,7 @@ jayus.List = jayus.createClass({
 	insertBefore: function List_insertBefore(item, pivot){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('List.insertBefore', arguments, 'item', this.typeId, 'pivot', this.typeId);
-		//#endif
+		//#end
 		var index = this.items.indexOf(pivot);
 		if(index > 0){
 			this.items.splice(index-1, 0, item);
@@ -274,7 +274,7 @@ jayus.List = jayus.createClass({
 	insertAfter: function List_insertAfter(item, pivot){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('List.insertAfter', arguments, 'item', this.typeId, 'pivot', this.typeId);
-		//#endif
+		//#end
 		var index = this.items.indexOf(pivot);
 		if(index !== -1){
 			this.items.splice(index, 0, item);
@@ -300,7 +300,7 @@ jayus.List = jayus.createClass({
 	remove: function List_remove(item){
 		//#ifdef DEBUG
 		jayus.debug.match('List.remove', item, 'item', this.typeId);
-		//#endif
+		//#end
 		var i, index;
 		if(arguments.length === 1){
 			// Get the index
@@ -337,7 +337,7 @@ jayus.List = jayus.createClass({
 	removeAt: function List_removeAt(index){
 		//#ifdef DEBUG
 		jayus.debug.match('List.removeAt', index, 'index', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check the index
 		if(0 <= index && index < this.items.length){
 			var item = this.items[index];
@@ -366,7 +366,7 @@ jayus.List = jayus.createClass({
 		else{
 			jayus.debug.matchArguments('List.replace', arguments, 'oldItem', this.typeId, 'newItem', this.typeId);
 		}
-		//#endif
+		//#end
 		return this.replaceAt(this.indexOf(oldItem), newItem);
 	},
 
@@ -389,7 +389,7 @@ jayus.List = jayus.createClass({
 		else{
 			jayus.debug.matchArguments('List.update', arguments, 'oldItem', this.typeId, 'newItem', this.typeId);
 		}
-		//#endif
+		//#end
 		var index = this.indexOf(oldItem);
 		if(index === -1){
 			this.add(newItem);
@@ -410,7 +410,7 @@ jayus.List = jayus.createClass({
 	replaceAt: function List_replaceAt(index, newItem){
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('List.replaceAt', arguments, 'index', jayus.TYPES.NUMBER, 'newItem', this.typeId);
-		//#endif
+		//#end
 		// Get the index
 		if(index >= 0){
 			this.removed(this.items[index]);
@@ -448,7 +448,7 @@ jayus.List = jayus.createClass({
 		//#ifdef DEBUG
 		jayus.debug.match('List.onEach', method, 'method', jayus.TYPES.STRING);
 		jayus.debug.matchOptional('List.onEach', args, 'args', jayus.TYPES.ARRAY);
-		//#endif
+		//#end
 		for(var i=0;i<this.items.length;i++){
 			this.items[i][method].apply(this.items[i], args);
 		}
@@ -467,7 +467,7 @@ jayus.List = jayus.createClass({
 		//#ifdef DEBUG
 		jayus.debug.match('List.forEach', func, 'func', jayus.TYPES.FUNCTION);
 		jayus.debug.matchOptional('List.forEach', args, 'args', jayus.TYPES.ARRAY);
-		//#endif
+		//#end
 		var i, ret;
 		for(i=0;i<this.items.length;i++){
 			ret = func.apply(this.items[i], args);
@@ -481,7 +481,7 @@ jayus.List = jayus.createClass({
 	sort: function List_sort(comparator){
 		//#ifdef DEBUG
 		jayus.debug.match('List.sort', comparator, 'comparator', jayus.TYPES.FUNCTION);
-		//#endif
+		//#end
 		this.items.sort(comparator);
 		this.parent.listItemsMoved();
 		return this;

@@ -84,7 +84,7 @@ jayus.Group = {
 	findChild: function Group_findChild(id){
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.setId', id, 'id', jayus.TYPES.DEFINED);
-		//#endif
+		//#end
 		var i, item;
 		for(i=0;i<this.children.items.length;i++){
 			item = this.children.items[i];
@@ -146,7 +146,7 @@ jayus.Group = {
 	getChildrenAt: function Group_getChildrenAt(x, y){
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Group.getChildrenAt', x, y);
-		//#endif
+		//#end
 		if(arguments.length === 1){
 			y = x.y;
 			x = x.x;
@@ -163,7 +163,7 @@ jayus.Group = {
 	runOnCursor: function Group_runOnCursor(func, args){
 		//#ifdef DEBUG
 		jayus.debug.match('Group.runOnCursor', func, 'func', jayus.TYPES.FUNCTION);
-		//#endif
+		//#end
 		var i, item;
 		// Loop through the children
 		for(i=this.children.items.length-1;i>=0;i--){
@@ -194,7 +194,7 @@ jayus.Group = {
 	forEachChild: function Scene_forEachChild(func,args){
 		//#ifdef DEBUG
 		jayus.debug.match('Scene.forEachChild', func, 'func', jayus.TYPES.FUNCTION);
-		//#endif
+		//#end
 		return this.children.forEach(func, args);
 	},
 
@@ -213,7 +213,7 @@ jayus.Group = {
 	fireOnChildren: function Group_fireOnChildren(event, data){
 		//#ifdef DEBUG
 		jayus.debug.match('Group.fireOnChildren', event, 'event', jayus.TYPES.STRING);
-		//#endif
+		//#end
 		// Loop through the children
 		var i, item;
 		// for(var item,i=this.children.items.length-1;i>=0;i--){
@@ -242,7 +242,7 @@ jayus.Group = {
 	fireOnCursor: function Group_fireOnCursor(event, data){
 		//#ifdef DEBUG
 		jayus.debug.match('Group.fireOnCursor', event, 'event', jayus.TYPES.STRING);
-		//#endif
+		//#end
 		// Loop through the children
 		var i, item;
 		for(i=this.children.items.length-1;i>=0;i--){
