@@ -525,12 +525,6 @@ jayus = {
 	//  Methods
 	//___________//
 
-	/**
-	Tests for the intersection of two Entities or Shape objects.
-	<br> Each object must have a shapeType property corresponding to one found in jayus.SHAPES.
-	@method {Boolean} intersectTest
-	*/
-
 	/*
 	TODO: Hit testing
 		More advanced, allow for options to be specified
@@ -541,6 +535,12 @@ jayus = {
 			Have intersection points returned
 		Return a hitInfo object or place results into options?
 		Should we keep two classes of hit-testing for performance in situations with no options?
+	*/
+
+	/**
+	Tests for the intersection of two Entities or Shape objects.
+	<br> Each object must have a shapeType property corresponding to one found in jayus.SHAPES.
+	@method {Boolean} intersectTest
 	*/
 
 	intersectTest: function jayus_intersectTest(a, b){
@@ -615,13 +615,13 @@ jayus = {
 
 			// Circle - Rectangle
 			case jayus.SHAPES.CIRCLE + jayus.SHAPES.RECTANGLE:
-				var x = Math.abs(a.x - (b.x+b.width/2)),
-					y = Math.abs(a.y - (b.y+b.height/2));
-				if(x > (b.width/2 + a.radius) || y > (b.height/2 + a.radius)){
+				// Multiplying x and y by 2 isnt really correct procedure, but is used to simplify the calculations below
+				var x = 2*Math.abs(a.x - (b.x+b.width/2)),
+					y = 2*Math.abs(a.y - (b.y+b.height/2));
+				// if(x > (b.width/2 + a.radius) || y > (b.height/2 + a.radius)){
+				if(x > (b.width + 2*a.radius) || y > (b.height + 2*a.radius)){
 					return false;
 				}
-				x *= 2;
-				y *= 2;
 				// if(x <= (b.width/2) || y <= (b.height/2)){
 				if(x <= b.width || y <= b.height){
 					return true;

@@ -34,7 +34,7 @@ Represents an axis-aligned rectangle.
 
 //#ifdef DEBUG
 jayus.debug.className = 'Rectangle';
-//#endif
+//#end
 
 jayus.Rectangle = jayus.Shape.extend({
 
@@ -98,33 +98,37 @@ jayus.Rectangle = jayus.Shape.extend({
 
 	/**
 	Initiates the rectangle.
-	<br> Note that while the rectangle can be initiated directly from an origin and size, the rectangle will copy rather than rely on the given instances.
 	@constructor init
 	@paramset 1
 	@paramset 2
+	@param {Object} properties
+	@paramset 3
 	@param {Point} origin
 	@param {Number} width
 	@param {Number} height
-	@paramset 3
+	@paramset 4
 	@param {Number} x
 	@param {Number} y
 	@param {Number} width
 	@param {Number} height
 	*/
 
-	init: function Rectangle_init(x, y, width, height){
-		if(arguments.length){
+	init: function Rectangle_init(x, y, width, height) {
+		if (arguments.length === 1) {
+			this.initFromObject(x);
+		}
+		else if (arguments.length) {
 			//#ifdef DEBUG
 			jayus.debug.matchRectangle('Rectangle.init', x, y, width, height);
-			//#endif
+			//#end
 			// Expand the arguments
-			if(arguments.length === 2){
+			if (arguments.length === 2) {
 				height = y.height;
 				width = y.width;
 				y = x.y;
 				x = x.x;
 			}
-			else if(arguments.length === 3){
+			else if (arguments.length === 3) {
 				height = width;
 				width = height;
 				y = x.y;
@@ -138,6 +142,37 @@ jayus.Rectangle = jayus.Shape.extend({
 		}
 	},
 
+	//@ From Parsable
+	initFromObject: function Rectangle_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Rectangle.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		// Apply parent properties
+		jayus.Dependency.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		this.x = object.x;
+		this.y = object.y;
+		this.width = object.width;
+		this.height = object.height;
+		this.keepAligned = object.keepAligned;
+		// Set as dirty
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	//@ From Parsable
+	toObject: function Rectangle_toObject() {
+		// Get object from parent
+		var object = jayus.Dependency.prototype.toObject.call(this);
+		// Add our own properties
+		object.__type__ = 'Rectangle';
+		object.x = this.x;
+		object.y = this.y;
+		object.width = this.width;
+		object.height = this.height;
+		object.keepAligned = this.keepAligned;
+		return object;
+	},
+
 		//
 		//  Origin
 		//__________//
@@ -147,11 +182,11 @@ jayus.Rectangle = jayus.Shape.extend({
 	@method {Point} getOrigin
 	*/
 
-	getOrigin: function Rectangle_getOrigin(){
+	getOrigin: function Rectangle_getOrigin() {
 		return new jayus.Point(this.x, this.y);
 	},
 
-	getOriginOnto: function Rectangle_getOriginOnto(ret){
+	getOriginOnto: function Rectangle_getOriginOnto(ret) {
 		ret.x = this.x;
 		ret.y = this.y;
 		return ret;
@@ -186,22 +221,22 @@ jayus.Rectangle = jayus.Shape.extend({
 	@param {Number} y
 	*/
 
-	setOrigin: function Rectangle_setOrigin(x, y){
+	setOrigin: function Rectangle_setOrigin(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Rectangle.set', x, y);
-		//#endif
-		if(arguments.length === 1){
+		//#end
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setOrigin, [this.x, this.y], [x, y]);
 		}
 		// Check if different
-		if(this.x !== x || this.y !== y){
+		if (this.x !== x || this.y !== y) {
 			this.x = x;
 			this.y = y;
 			this.dirty(jayus.DIRTY.POSITION);
@@ -210,11 +245,11 @@ jayus.Rectangle = jayus.Shape.extend({
 	},
 
 	//@ From Shape
-	translate: function Rectangle_translate(x, y){
+	translate: function Rectangle_translate(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Rectangle.translate', x, y);
-		//#endif
-		if(arguments.length === 1){
+		//#end
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
@@ -232,17 +267,17 @@ jayus.Rectangle = jayus.Shape.extend({
 	@param {Number} width
 	*/
 
-	setWidth: function Rectangle_setWidth(width){
+	setWidth: function Rectangle_setWidth(width) {
 		//#ifdef DEBUG
 		jayus.debug.match('Rectangle.setWidth', width, 'width', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setWidth, this.width, width);
 		}
-		if(this.width !== width){
+		if (this.width !== width) {
 			this.width = width;
 			this.dirty(jayus.DIRTY.SIZE);
 		}
@@ -256,17 +291,17 @@ jayus.Rectangle = jayus.Shape.extend({
 	@param {Number} height
 	*/
 
-	setHeight: function Rectangle_setHeight(height){
+	setHeight: function Rectangle_setHeight(height) {
 		//#ifdef DEBUG
 		jayus.debug.match('Rectangle.setHeight', height, 'height', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setHeight, this.height, height);
 		}
-		if(this.height !== height){
+		if (this.height !== height) {
 			this.height = height;
 			this.dirty(jayus.DIRTY.SIZE);
 		}
@@ -284,21 +319,21 @@ jayus.Rectangle = jayus.Shape.extend({
 	@param {Number} height
 	*/
 
-	setSize: function Rectangle_setSize(width, height){
+	setSize: function Rectangle_setSize(width, height) {
 		//#ifdef DEBUG
 		jayus.debug.matchSize('Rectangle.setSize', width, height);
-		//#endif
-		if(arguments.length === 1){
+		//#end
+		if (arguments.length === 1) {
 			height = width.height;
 			width = width.width;
 		}
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setSize, [this.width, this.height], [width, height]);
 		}
-		if(this.width !== width || this.height !== height){
+		if (this.width !== width || this.height !== height) {
 			this.width = width;
 			this.height = height;
 			this.dirty(jayus.DIRTY.SIZE);
@@ -314,10 +349,10 @@ jayus.Rectangle = jayus.Shape.extend({
 	@param {Number} height
 	*/
 
-	expand: function Rectangle_expand(width, height){
+	expand: function Rectangle_expand(width, height) {
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Rectangle.expand', arguments, jayus.TYPES.NUMBER, 'width', 'height');
-		//#endif
+		//#end
 		return this.setSize(this.width+width, this.height+height);
 	},
 
@@ -330,7 +365,7 @@ jayus.Rectangle = jayus.Shape.extend({
 	@method {Number} getLeft
 	*/
 
-	getLeft: function Rectangle_getLeft(){
+	getLeft: function Rectangle_getLeft() {
 		return this.x;
 	},
 
@@ -339,7 +374,7 @@ jayus.Rectangle = jayus.Shape.extend({
 	@method {Number} getRight
 	*/
 
-	getRight: function Rectangle_getRight(){
+	getRight: function Rectangle_getRight() {
 		return this.x+this.width;
 	},
 
@@ -348,7 +383,7 @@ jayus.Rectangle = jayus.Shape.extend({
 	@method {Number} getTop
 	*/
 
-	getTop: function Rectangle_getTop(){
+	getTop: function Rectangle_getTop() {
 		return this.y;
 	},
 
@@ -357,7 +392,7 @@ jayus.Rectangle = jayus.Shape.extend({
 	@method {Number} getBottom
 	*/
 
-	getBottom: function Rectangle_getBottom(){
+	getBottom: function Rectangle_getBottom() {
 		return this.y+this.height;
 	},
 
@@ -368,10 +403,10 @@ jayus.Rectangle = jayus.Shape.extend({
 	@param {Number} left
 	*/
 
-	setLeft: function Rectangle_setLeft(left){
+	setLeft: function Rectangle_setLeft(left) {
 		//#ifdef DEBUG
 		jayus.debug.match('Rectangle.setLeft', left, 'left', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.setFrame(left, this.y, this.x+this.width-left, this.height);
 	},
 
@@ -382,10 +417,10 @@ jayus.Rectangle = jayus.Shape.extend({
 	@param {Number} right
 	*/
 
-	setRight: function Rectangle_setRight(right){
+	setRight: function Rectangle_setRight(right) {
 		//#ifdef DEBUG
 		jayus.debug.match('Rectangle.setRight', right, 'right', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.setWidth(this.width+right-this.x);
 	},
 
@@ -396,10 +431,10 @@ jayus.Rectangle = jayus.Shape.extend({
 	@param {Number} top
 	*/
 
-	setTop: function Rectangle_setTop(top){
+	setTop: function Rectangle_setTop(top) {
 		//#ifdef DEBUG
 		jayus.debug.match('Rectangle.setTop', top, 'top', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.setFrame(this.x, top, this.width, this.y+this.height-top);
 	},
 
@@ -410,10 +445,10 @@ jayus.Rectangle = jayus.Shape.extend({
 	@param {Number} bottom
 	*/
 
-	setBottom: function Rectangle_setBottom(bottom){
+	setBottom: function Rectangle_setBottom(bottom) {
 		//#ifdef DEBUG
 		jayus.debug.match('Rectangle.setBottom', bottom, 'bottom', jayus.TYPES.NUMBER);
-		//#endif
+		//#end
 		return this.setHeight(this.height+bottom-this.y);
 	},
 
@@ -433,24 +468,24 @@ jayus.Rectangle = jayus.Shape.extend({
 	*/
 
 
-	setFrame: function Rectangle_setFrame(x, y, width, height){
+	setFrame: function Rectangle_setFrame(x, y, width, height) {
 		// Expand the arguments
-		if(arguments.length === 3){
+		if (arguments.length === 3) {
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('Rectangle.setFrame', arguments, 'origin', jayus.TYPES.POINT, 'width', jayus.TYPES.NUMBER, 'height', jayus.TYPES.NUMBER);
-			//#endif
+			//#end
 			height = width;
 			width = y;
 			y = x.y;
 			x = x.x;
 		}
 		//#ifdef DEBUG
-		else{
+		else {
 			jayus.debug.matchArgumentsAs('Rectangle.setFrame', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'width', 'height');
 		}
-		//#endif
+		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setFrame, [this.x, this.y, this.width, this.height], [x, y, width, height]);
@@ -474,12 +509,12 @@ jayus.Rectangle = jayus.Shape.extend({
 	@param {Number} y
 	*/
 
-	includePoint: function Rectangle_includePoint(x, y){
+	includePoint: function Rectangle_includePoint(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Rectangle.includePoint', x, y);
-		//#endif
+		//#end
 		// Expand the arguments
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
@@ -497,30 +532,30 @@ jayus.Rectangle = jayus.Shape.extend({
 	@param {Rectangle} rect
 	*/
 
-	includeRectangle: function Rectangle_includeRectangle(x, y, width, height){
-		if(arguments.length === 1){
+	includeRectangle: function Rectangle_includeRectangle(x, y, width, height) {
+		if (arguments.length === 1) {
 			//#ifdef DEBUG
 			jayus.debug.match('Rectangle.includeRectangle()', x, 'section', jayus.TYPES.RECTANGLE);
-			//#endif
+			//#end
 			height = x.height;
 			width = x.width;
 			y = x.y;
 			x = x.x;
 		}
-		else if(arguments.length === 3){
+		else if (arguments.length === 3) {
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('Rectangle.includeRectangle()', arguments, 'origin', jayus.TYPES.POINT, 'width', jayus.TYPES.NUMBER, 'height', jayus.TYPES.NUMBER);
-			//#endif
+			//#end
 			height = width;
 			width = y;
 			y = x.y;
 			x = x.x;
 		}
 		//#ifdef DEBUG
-		else{
+		else {
 			jayus.debug.matchArgumentsAs('Rectangle.includeRectangle()', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'width', 'height');
 		}
-		//#endif
+		//#end
 		var x1 = Math.min(this.x, x),
 			y1 = Math.min(this.y, y),
 			x2 = Math.max(this.x+this.width, x+width),
@@ -529,7 +564,7 @@ jayus.Rectangle = jayus.Shape.extend({
 	},
 
 	//@ From Shape
-	alignToCanvas: function Rectangle_alignToCanvas(){
+	alignToCanvas: function Rectangle_alignToCanvas() {
 		return this.setFrame(
 			Math.floor(this.x)+0.5,
 			Math.floor(this.y)+0.5,
@@ -543,10 +578,10 @@ jayus.Rectangle = jayus.Shape.extend({
 		//________________//
 
 	//@ From Shape
-	intersectsAt: function Rectangle_intersectsAt(x, y){
+	intersectsAt: function Rectangle_intersectsAt(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Rectangle.intersectsAt', arguments, jayus.TYPES.NUMBER, 'x', 'y');
-		//#endif
+		//#end
 		return this.x <= x && x <= this.x+this.width && this.y <= y && y <= this.y+this.height;
 	},
 
@@ -555,35 +590,35 @@ jayus.Rectangle = jayus.Shape.extend({
 		//_____________//
 
 	//#ifdef DEBUG
-	toString: function Rectangle_toString(){
+	toString: function Rectangle_toString() {
 		return '( Rectangle: '+this.x+', '+this.y+', '+this.width+', '+this.height+' )';
 	},
-	//#endif
+	//#end
 
 	//@ From Shape
-	getScope: function Rectangle_getScope(){
+	getScope: function Rectangle_getScope() {
 		return this.clone();
 	},
 
 	//@ From Shape
-	getTransformed: function Rectangle_getTransformed(matrix){
+	getTransformed: function Rectangle_getTransformed(matrix) {
 		//#ifdef DEBUG
 		jayus.debug.match('Rectangle.getTransformed', matrix, 'matrix', jayus.TYPES.MATRIX);
-		//#endif
+		//#end
 		return this.toPolygon().getTransformed(matrix);
 	},
 
 	//@ From Shape
-	clone: function Rectangle_clone(){
+	clone: function Rectangle_clone() {
 		return this.cloneOnto(new jayus.Rectangle());
 		// return new jayus.Rectangle(this.x, this.y, this.width, this.height);
 	},
 
 	//@ From Shape
-	cloneOnto: function Rectangle_cloneOnto(ret){
+	cloneOnto: function Rectangle_cloneOnto(ret) {
 		//#ifdef DEBUG
 		jayus.debug.match('Rectangle.cloneOnto', ret, 'ret', jayus.TYPES.RECTANGLE);
-		//#endif
+		//#end
 		ret.x = this.x;
 		ret.y = this.y;
 		ret.width = this.width;
@@ -592,18 +627,18 @@ jayus.Rectangle = jayus.Shape.extend({
 	},
 
 	//@ From Shape
-	toPolygon: function Rectangle_toPolygon(){
+	toPolygon: function Rectangle_toPolygon() {
 		return new jayus.Polygon.Rectangle(this.x, this.y, this.width, this.height);
 	},
 
 	//@ From Shape
-	etchOntoContext: function Rectangle_etchOntoContext(ctx){
+	etchOntoContext: function Rectangle_etchOntoContext(ctx) {
 		//#ifdef DEBUG
 		jayus.debug.matchContext('Rectangle.etchOntoContext', ctx);
-		//#endif
+		//#end
 		// Start a new path and draw the rect
 		ctx.beginPath();
-		if(this.keepAligned){
+		if (this.keepAligned) {
 			// Draw aligned
 			ctx.rect(
 				Math.round(this.x)+0.5,
@@ -612,7 +647,7 @@ jayus.Rectangle = jayus.Shape.extend({
 				Math.round(this.height)
 			);
 		}
-		else{
+		else {
 			// Draw exact
 			ctx.rect(this.x, this.y, this.width, this.height);
 		}

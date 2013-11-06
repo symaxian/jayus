@@ -75,28 +75,64 @@ jayus.Dependency = jayus.Animatable.extend({
 	//  Methods
 	//___________//
 
+	//@ From Parsable
+	initFromObject: function Dependency_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Dependency.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		// Apply parent properties
+		jayus.Animatable.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		this.dependents = object.dependents;
+		if (this.dependents !== null) {
+			// If there are any dependents, transform them from their id to the object
+			// FIXME: When this dependency is created, all of its dependent objects might not yet be. So we might need to reperform this step once the entire JSON has been parsed
+			this.dependentCount = object.dependents.length;
+			for (var i=0;i<this.dependentCount;i++) {
+				this.dependents[i] = jayus.getObject(this.dependents[i]);
+			}
+		}
+		else {
+			this.dependentCount = 0;
+		}
+		// Set as dirty
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	//@ From Parsable
+	toObject: function Dependency_toObject() {
+		// Get object from parent
+		// var object = jayus.Animatable.prototype.toObject.call(this);
+		var object = {};
+		// Add our own properties
+		object.__type__ = 'Dependency';
+		if (this.dependentCount) {
+			object.dependents = [];
+			for (var i=0;i<this.dependentCount;i++){
+				object.dependents.push(this.dependents[i].id);
+			}
+		}
+		else {
+			object.dependents = null;
+		}
+		return object;
+	},
+
 	/**
 	Attaches a dependent.
 	@method attach
 	@param {Object} dependent
 	*/
 
-	attach: function Dependency_attach(dependent){
+	attach: function Dependency_attach(dependent) {
 		//#ifdef DEBUG
 		jayus.debug.match('Dependency.attach', dependent, 'dependent', jayus.TYPES.OBJECT);
 		//#endif
-		// If we have a single one, place them both into an array
-		if(this.dependentCount === 1){
-			this.dependents = [this.dependents, dependent];
-		}
 		// If we have more than one, just append it
-		else if(this.dependentCount){
-			this.dependents.push(dependent);
+		if (!this.dependentCount) {
+			this.dependents = [];
 		}
-		// Else just set the dependent
-		else{
-			this.dependents = dependent;
-		}
+		this.dependents.push(dependent);
 		this.dependentCount++;
 	},
 
@@ -106,17 +142,10 @@ jayus.Dependency = jayus.Animatable.extend({
 	@param {Object} dependent
 	*/
 
-	detach: function Dependency_detach(dependent){
-		if(this.dependentCount){
-			if(this.dependentCount === 1){
-				this.dependents = null;
-			}
-			else if(this.dependenCount === 2){
-				this.depdendents = this.dependents[1];
-			}
-			else{
-				this.dependents.splice(this.dependents.indexOf(dependent), 1);
-			}
+	detach: function Dependency_detach(dependent) {
+		// TODO: Check to see if dependent is actually attached
+		if (this.dependentCount) {
+			this.dependents.splice(this.dependents.indexOf(dependent), 1);
 			this.dependentCount--;
 		}
 	},
@@ -127,8 +156,8 @@ jayus.Dependency = jayus.Animatable.extend({
 	@param {Number} type
 	*/
 
-	dirty: function Dependency_dirty(type){
-		if(!this.frozen){
+	dirty: function Dependency_dirty(type) {
+		if (!this.frozen) {
 			this.informDependents(type);
 		}
 	},
@@ -138,31 +167,18 @@ jayus.Dependency = jayus.Animatable.extend({
 	@method informDependents
 	*/
 
-	informDependents: function Dependency_informDependents(type){
-		if(this.dependentCount === 1){
+	informDependents: function Dependency_informDependents(type) {
+		for(var i=0;i<this.dependentCount;i++) {
 			//#ifdef DEBUG
-			jayus.debug.verifyMethod(this.dependents, 'componentDirtied');
+			jayus.debug.verifyMethod(this.dependents[i], 'componentDirtied');
 			//#endif
-			this.dependents.componentDirtied(this, type);
-		}
-		else{
-			for(var i=0;i<this.dependentCount;i++){
-				//#ifdef DEBUG
-				jayus.debug.verifyMethod(this.dependents[i], 'componentDirtied');
-				//#endif
-				this.dependents[i].componentDirtied(this, type);
-			}
+			this.dependents[i].componentDirtied(this, type);
 		}
 	},
 
-	forEachDependent: function Dependency_forEachDependent(func, args){
-		if(this.dependentCount === 1){
-			func.apply(this.dependents, args);
-		}
-		else{
-			for(var i=0;i<this.dependentCount;i++){
-				func.apply(this.dependents[i], args);
-			}
+	forEachDependent: function Dependency_forEachDependent(func, args) {
+		for(var i=0;i<this.dependentCount;i++) {
+			func.apply(this.dependents[i], args);
 		}
 	}
 
