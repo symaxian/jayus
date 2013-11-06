@@ -100,6 +100,9 @@ jayus.objects = {
 		jayus.debug.matchOptional('jayus.objects.load', handler, 'handler', jayus.TYPES.FUNCTION);
 		//#endif
 		if(!this.has(filepath)){
+			//#ifdef DEBUG
+			// console.log('jayus.objects.load() - Loading object file "'+filepath+'"');
+			//#endif
 			// Create a request to fetch the file
 			var req = new XMLHttpRequest();
 			req.filepath = filepath;

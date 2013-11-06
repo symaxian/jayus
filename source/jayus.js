@@ -83,14 +83,6 @@ TODO:
 			Finsh Polygon
 			Finish Path
 
-		Fix hit testing:
-			More advanced, more options
-			Options:
-				See paper.js, they seem to have good hit-testing options
-				Check stroke width
-				Include tolerance
-			Return a hitInfo object
-
 		Fix misleading terminology of a Group being outside and inside of the scene, fix it on the site too
 			Mainly found in the scene structure contracts article
 			Group is referred to as having children that it renders, the Group class doesn't do that
@@ -539,6 +531,18 @@ jayus = {
 	@method {Boolean} intersectTest
 	*/
 
+	/*
+	TODO: Hit testing
+		More advanced, allow for options to be specified
+		Options:
+			Include stroke width?
+			Include tolerance
+			Have status returned
+			Have intersection points returned
+		Return a hitInfo object or place results into options?
+		Should we keep two classes of hit-testing for performance in situations with no options?
+	*/
+
 	intersectTest: function jayus_intersectTest(a, b){
 		var i, temp, ctx, ret,
 			at = a.shapeType,
@@ -590,88 +594,195 @@ jayus = {
 		// Sum and check the shape types
 		switch(a.shapeType+b.shapeType){
 
+			// Point - Point
 			case jayus.SHAPES.POINT + jayus.SHAPES.POINT:
-				// Point-Point
 				return a.x === b.x && a.y === b.y;
 
+			// Point - Circle
 			case jayus.SHAPES.POINT + jayus.SHAPES.CIRCLE:
-				// Point-Circle
 				return b.intersectsAt(a.x, a.y);
 				// return ((a.x-b.x)*(a.x-b.x)) + ((a.y-b.y)*(a.y-b.y)) <= b.radius*b.radius;
 
+			// Circle - Circle
 			case jayus.SHAPES.CIRCLE + jayus.SHAPES.CIRCLE:
-				// Circle-Circle
 				// Compare the distances from the centers to the radii
 				return ((a.x-b.x)*(a.x-b.x)) + ((a.y-b.y)*(a.y-b.y)) <= (a.radius+b.radius)*(a.radius+b.radius);
 
+			// Point - Rectangle
 			case jayus.SHAPES.POINT + jayus.SHAPES.RECTANGLE:
-				// Point-Rectangle
 				return b.intersectsAt(a.x, a.y);
-				// return (b.x <= a.x && a.x <= b.x+b.width) && (b.y <= a.y && a.y <= b.y+b.height);
+				// return b.x <= a.x && a.x <= b.x+b.width && b.y <= a.y && a.y <= b.y+b.height;
 
+			// Circle - Rectangle
 			case jayus.SHAPES.CIRCLE + jayus.SHAPES.RECTANGLE:
-				// Circle-Rectangle
 				var x = Math.abs(a.x - (b.x+b.width/2)),
 					y = Math.abs(a.y - (b.y+b.height/2));
-				if(x > (b.width/2 + a.radius)){
+				if(x > (b.width/2 + a.radius) || y > (b.height/2 + a.radius)){
 					return false;
 				}
-				if(y > (b.height/2 + a.radius)){
-					return false;
-				}
-				if(x <= (b.width/2)){
+				x *= 2;
+				y *= 2;
+				// if(x <= (b.width/2) || y <= (b.height/2)){
+				if(x <= b.width || y <= b.height){
 					return true;
 				}
-				if(y <= (b.height/2)){
-					return true;
-				}
-				return (x-b.width/2)*(x-b.width/2) + (y-b.height/2)*(y-b.height/2) <= (a.radius*a.radius);
+				// return (x-b.width/2)*(x-b.width/2) + (y-b.height/2)*(y-b.height/2) <= (a.radius*a.radius);
+				return (x-b.width)*(x-b.width) + (y-b.height)*(y-b.height) <= 4*a.radius*a.radius;
 
+			// Rectangle - Rectangle
 			case jayus.SHAPES.RECTANGLE + jayus.SHAPES.RECTANGLE:
-				// Rectangle-Rectangle
 				return !((a.x+a.width) < b.x || (a.y+a.height) < b.y || a.x > (b.x+b.width) || a.y > (b.y+b.height));
 
+			// Point - Polygon
 			case jayus.SHAPES.POINT + jayus.SHAPES.POLYGON:
-				// Point-Polygon
 				return b.intersectsAt(a.x, a.y);
 
+			// Circle - Polygon
 			case jayus.SHAPES.CIRCLE + jayus.SHAPES.POLYGON:
-				// Circle-Polygon
-				throw new Error('TODO: Circle intersects Polygon');
+				return this.intersectsPolygonPolygon(a.toPolygon(), b);
 
+			// Rectangle - Polygon
 			case jayus.SHAPES.RECTANGLE + jayus.SHAPES.POLYGON:
-				// Rectangle-Polygon
-				throw new Error('TODO: Rectangle intersects Polygon');
+				// PERF: Check without creating a new Polygon, requires new routine
+				return this.intersectPolygonPolygon(a.toPolygon(), b);
 
-			case jayus.SHAPES.POINT + jayus.SHAPES.POLYGON:
-				// Polygon-Polygon
-				throw new Error('TODO: Polygon intersects Polygon');
+			// Polygon - Polygon
+			case jayus.SHAPES.POLYGON + jayus.SHAPES.POLYGON:
+				return this.intersectsPolygonPolygon(a, b);
 
+			// Point - Path
 			case jayus.SHAPES.POINT + jayus.SHAPES.PATH:
-				// Point-Path
 				return b.intersectsAt(a.x, a.y);
 
+			// Circle - Path
 			case jayus.SHAPES.CIRCLE + jayus.SHAPES.PATH:
-				// Circle-Path
-				throw new Error('TODO: Circle intersects Path');
+				return this.intersectsPolygonPolygon(a.toPolygon(), b.toPolygon());
 
+			// Rectangle - Path
 			case jayus.SHAPES.RECTANGLE + jayus.SHAPES.PATH:
-				// Rectangle-Path
-				throw new Error('TODO: Rectangle intersects Path');
+				return this.intersectsPolygonPolygon(a.toPolygon(), b.toPolygon());
 
+			// Polygon - Path
 			case jayus.SHAPES.POLYGON + jayus.SHAPES.PATH:
-				// Polygon-Path
-				throw new Error('TODO: Polygon intersects Path');
+				return this.intersectsPolygonPolygon(a, b.toPolygon());
 
+			// Path - Path
 			case jayus.SHAPES.PATH + jayus.SHAPES.PATH:
-				// Path-Path
-				throw new Error('TODO: Circle intersects Path');
+				return this.intersectsPolygonPolygon(a.toPolygon(), b.toPolygon());
 
 		}
 	},
 
+	intersectLineLine: function jayus_intersectLineLine(a1, a2, b1, b2){
+		//#ifdef DEBUG
+		jayus.debug.matchArgumentsAs('jayus.intersectLineLine', arguments, jayus.TYPES.NUMBER, 'a1', 'a2', 'b1', 'b2');
+		//#end
+		var ua_t = (b2.x - b1.x) * (a1.y - b1.y) - (b2.y - b1.y) * (a1.x - b1.x),
+			ub_t = (a2.x - a1.x) * (a1.y - b1.y) - (a2.y - a1.y) * (a1.x - b1.x),
+			u_b = (b2.y - b1.y) * (a2.x - a1.x) - (b2.x - b1.x) * (a2.y - a1.y);
+		if(u_b !== 0){
+			var ua = ua_t / u_b,
+				ub = ub_t / u_b;
+			return 0 <= ua && ua <= 1 && 0 <= ub && ub <= 1;
+		}
+		return ua_t === 0 || ub_t === 0;
+	},
+
+	// collisionLineLine: function jayus_collisionLineLine(a1, a2, b1, b2){
+	// 	var result = {
+	// 			point: null
+	// 		},
+	// 		ua_t = (b2.x - b1.x) * (a1.y - b1.y) - (b2.y - b1.y) * (a1.x - b1.x),
+	// 		ub_t = (a2.x - a1.x) * (a1.y - b1.y) - (a2.y - a1.y) * (a1.x - b1.x),
+	// 		u_b = (b2.y - b1.y) * (a2.x - a1.x) - (b2.x - b1.x) * (a2.y - a1.y);
+	// 	if(u_b !== 0) {
+	// 		var ua = ua_t / u_b,
+	// 			ub = ub_t / u_b;
+	// 		if(0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
+	// 			result.status = "intersection";
+	// 			result.intersects = true;
+	// 			result.point = new jayus.Point(a1.x + ua * (a2.x - a1.x), a1.y + ua * (a2.y - a1.y));
+	// 		}
+	// 		else {
+	// 			result.status = "no intersection";
+	// 			result.intersects = false;
+	// 		}
+	// 	}
+	// 	else {
+	// 		if(ua_t === 0 || ub_t === 0) {
+	// 			result.status = "coincident";
+	// 			result.intersects = true;
+	// 		}
+	// 		else {
+	// 			result.status = "parallel";
+	// 			result.intersects = false;
+	// 		}
+	// 	}
+	// 	return result;
+	// },
+
+	intersectLinePolygon: function jayus_intersectLinePolygon(a1, a2, poly){
+		//#ifdef DEBUG
+		jayus.debug.matchArguments('jayus.intersectLinePolygon', arguments, 'a1', jayus.TYPES.POINT, 'a2', jayus.TYPES.POINT, 'poly', jayus.TYPES.POLYGON);
+		//#end
+		var length = poly.xPoints.length;
+		for(var i=0;i<length;i++){
+			if(this.intersectLineLine(a1, a2, poly.xPoints[i], poly.yPoints[i])){
+				return true;
+			}
+		}
+		return false;
+	},
+
+	// collisionLinePolygon: function(a1, a2, points){
+	// 	var result = new Intersection("No Intersection"),
+	// 		length = points.length;
+
+	// 	for (var i = 0; i < length; i++) {
+	// 		var b1 = points[i],
+	// 			b2 = points[(i+1) % length],
+	// 			inter = Intersection.intersectLineLine(a1, a2, b1, b2);
+
+	// 		result.appendPoints(inter.points);
+	// 	}
+	// 	if(result.points.length > 0) {
+	// 		result.status = "Intersection";
+	// 	}
+	// 	return result;
+	// },
+
+	intersectPolygonPolygon: function jayus_intersectPolygonPolygon(poly1, poly2){
+		//#ifdef DEBUG
+		jayus.debug.matchArgumentsAs('jayus.intersectPolygonPolygon', arguments, jayus.TYPES.POLYGON, 'poly1', 'poly2');
+		//#end
+		var length = poly1.xPoints.length;
+		for(var i=0;i<length;i++){
+			if(this.intersectLinePolygon(poly1.xPoints[i], poly1.yPoints[i], poly2)){
+				return true;
+			}
+		}
+		return false;
+	},
+
+	// collisionPolygonPolygon: function (points1, points2){
+	// 	var result = new Intersection("No Intersection"),
+	// 		length = points1.length;
+
+	// 	for (var i = 0; i < length; i++) {
+	// 		var a1 = points1[i],
+	// 			a2 = points1[(i+1) % length],
+	// 			inter = Intersection.intersectLinePolygon(a1, a2, points2);
+
+	// 		result.appendPoints(inter.points);
+	// 	}
+	// 	if(result.points.length > 0) {
+	// 		result.status = "Intersection";
+	// 	}
+	// 	return result;
+	// },
+
 	/**
-	Returns the distance between the points a and b.
+	Returns the distance between two points.
 	@method {Number} distance
 	@param {Point} a
 	@param {Point} b
@@ -679,7 +790,7 @@ jayus = {
 
 	distance: function Point_distance(a, b){
 		//#ifdef DEBUG
-		this.debug.matchArguments('jayus.distance', arguments, 'a', jayus.TYPES.POINT, 'b', jayus.TYPES.POINT);
+		this.debug.matchArgumentsAs('jayus.distance', arguments, jayus.TYPES.POINT, 'a', 'b');
 		//#end
 		var x = a.x-b.x,
 			y = a.y-b.y;

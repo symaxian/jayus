@@ -84,6 +84,16 @@ jayus.TiledMap = jayus.RectEntity.extend({
 
 	tileHeight: 0,
 
+	/**
+	The visibility of each layer.
+	<br> Null until map is loaded.
+	<br> Defaults to the initial visiblity of the layer.
+	<br> Do not modify.
+	@property {Array} layerVisibility
+	*/
+
+	layerVisibility: null,
+
 	//
 	//  Methods
 	//___________//
@@ -118,11 +128,12 @@ jayus.TiledMap = jayus.RectEntity.extend({
 		},
 
 		string: function TiledMap_setMap(filepath){
+			// FIXME: Expects the map object to have already been loaded
 			this.map = jayus.objects.get(filepath);
 			for(var i=0;i<this.map.tilesets.length;i++){
 				var data = this.map.tilesets[i];
-				console.log(data.image);
-				data.image = '../'+data.image;
+				// console.log(data.image);
+				// data.image = '../'+data.image;
 				jayus.images.load(data.image);
 				var sheet = new jayus.SpriteSheet();
 				// console.log(data);
@@ -131,22 +142,12 @@ jayus.TiledMap = jayus.RectEntity.extend({
 				this.tileWidth = data.tilewidth;
 				this.tileHeight = data.tileheight;
 			}
+			this.layerVisibility = [];
+			for(i=0;i<this.map.layers.length;i++){
+				this.layerVisibility.push(this.map.layers[i].visible);
+			}
 			this.loaded = true;
 			this.setSize(this.map.width*this.map.tilewidth, this.map.height*this.map.tileheight);
-
-			// var req = new XMLHttpRequest();
-			// var that = this;
-			// req.onload = function(){
-			// 	that.loaded = true;
-			// 	that.map = JSON.parse(req.responseText);
-			// 	for(var i=0;i<that.map.tilesets.length;i++){
-			// 		var data = that.map.tilesets[i];
-			// 		jayus.images.loadSheet(data.image,data.tilewidth,data.tileheight);
-			// 	}
-			// };
-			// req.open('get',filename,true);
-			// req.send();
-			// this.setBuffering(true);
 		}
 
 	}),
@@ -206,6 +207,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 
 	/**
 	Returns whether the specified layer is visible.
+	<br> The returned visibility is specific to this Entity, not the actual map object.
 	@method {Boolean} isLayerVisible
 	@param {Number} index
 	*/
@@ -215,11 +217,12 @@ jayus.TiledMap = jayus.RectEntity.extend({
 		jayus.debug.match('TiledMap.isLayerVisible', index, 'index', jayus.TYPES.NUMBER);
 		this.checkLoaded();
 		//#endif
-		return this.map.layers[index].visible;
+		return this.layerVisibility[index];
 	},
 
 	/**
 	Returns whether the specified layer is visible.
+	<br> The modified visibility is specific to this Entity, not the actual map object.
 	@method {Self} setLayerVisibility
 	@param {Number} index
 	@param {Boolean} visible
@@ -230,9 +233,8 @@ jayus.TiledMap = jayus.RectEntity.extend({
 		jayus.debug.matchArguments('TiledMap.setLayerVisibility', arguments, 'index', jayus.TYPES.NUMBER, 'visible', jayus.TYPES.BOOLEAN);
 		this.checkLoaded();
 		//#endif
-		var layer = this.map.layers[index];
-		if(layer.visible !== visible){
-			layer.visible = visible;
+		if(this.layerVisibility[index] !== visible){
+			this.layerVisibility[index] = visible;
 			this.dirty();
 		}
 		return this;
@@ -275,10 +277,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	paintContents: function TiledMap_paintContents(ctx){
 		//#ifdef DEBUG
 		jayus.debug.matchContext('TiledMap.paintContents', ctx);
-		// Check if loaded
-		if(!this.loaded){
-			console.warn('TiledMap.paintContents() - Map data not loaded!');
-		}
+		this.checkLoaded();
 		//#endif
 
 		var i,
@@ -306,7 +305,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 		for(i=0;i<this.map.layers.length;i++){
 			layer = this.map.layers[i];
 			// Check if it's a tile layer and visible
-			if(layer.type === 'tilelayer' && layer.visible){
+			if(layer.type === 'tilelayer' && this.layerVisibility[i]){
 				for(tileY=0;tileY<layer.height;tileY++){
 					for(tileX=0;tileX<layer.width;tileX++){
 						// Get the tile number, tiled indexes start from 1 not 0, so subtract it

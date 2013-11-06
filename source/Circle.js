@@ -71,6 +71,16 @@ jayus.Circle = jayus.Shape.extend({
 
 	radius: 1,
 
+	/**
+	How closely the toPolygon method approximates the circle.
+	<br>
+	The detail is number of faces on the resulting polygon from the toPolygon() method.
+	<br> Default is 10.
+	@property {Number} toPolygonDetail
+	*/
+
+	toPolygonDetail: 10,
+
 	//
 	//  Methods
 	//___________//
@@ -251,6 +261,19 @@ jayus.Circle = jayus.Shape.extend({
 		ret.y = this.y;
 		ret.radius = this.radius;
 		return ret;
+	},
+
+	//@ From Shape
+	toPolygon: function Circle_toPolygon(detail){
+		if(!arguments.length){
+			detail = this.toPolygonDetail;
+		}
+		//#ifdef DEBUG
+		else{
+			jayus.debug.match('Circle.toPolygon', detail, 'detail', jayus.TYPES.NUMBER);
+		}
+		//#endif
+		return new jayus.Polygon.Regular(detail, this.radius);
 	},
 
 		//

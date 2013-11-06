@@ -591,11 +591,7 @@ jayus.Rectangle = jayus.Shape.extend({
 		return ret;
 	},
 
-	/**
-	Returns a polygon representing the rectangle.
-	@method {Polygon} toPolygon
-	*/
-
+	//@ From Shape
 	toPolygon: function Rectangle_toPolygon(){
 		return new jayus.Polygon.Rectangle(this.x, this.y, this.width, this.height);
 	},

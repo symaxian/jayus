@@ -90,6 +90,14 @@ jayus.Path = jayus.Shape.extend({
 
 	frameDirty: true,
 
+	/**
+	How closely the toPolygon method approximates curves on the path.
+	<br> Default is 10.
+	@property {Number} toPolygonDetail
+	*/
+
+	toPolygonDetail: 10,
+
 	//
 	//  Methods
 	//___________//
@@ -860,10 +868,23 @@ jayus.Path = jayus.Shape.extend({
 				case 'arc':
 				case 'rect':
 				case 'ellipse':
-					throw new Error('Path.getTransformed() - Unimplemented for command '+segment[0]);
+					throw new Error('TODO: Path.getTransformed() - Unimplemented for command '+segment[0]);
 
 			}
 		}
+	},
+
+	//@ From Shape
+	toPolygon: function Path_toPolygon(detail){
+		if(!arguments.length){
+			detail = this.toPolygonDetail;
+		}
+		//#ifdef DEBUG
+		else{
+			jayus.debug.match('Circle.toPolygon', detail, 'detail', jayus.TYPES.NUMBER);
+		}
+		//#endif
+		throw new Error('TODO: Path.toPolygon() - Unimplemented');
 	},
 
 		//

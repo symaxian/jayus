@@ -66,6 +66,17 @@ jayus.images = {
 	//  Methods
 	//___________//
 
+	//#ifdef DEBUG
+
+	checkFilepath: function jayus_images_checkFilepath(filepath){
+		jayus.debug.match('jayus.images.checkFilepath', filepath, 'filepath', jayus.TYPES.STRING);
+		if(filepath.indexOf('../') !== -1){
+			console.warn('jayus.images.checkFilepath() - Filepath "'+filepath+'" contains "./" or "../", avoid using these');
+		}
+	},
+
+	//#endif
+
 	/**
 	Returns whether the specified image has been requested.
 	<br> Note that this does not mean that the image is loaded, only that the image object is available and that is has been requested.
@@ -74,6 +85,10 @@ jayus.images = {
 	*/
 
 	has: function jayus_images_has(filepath){
+		//#ifdef DEBUG
+		jayus.debug.match('jayus.images.has', filepath, 'filepath', jayus.TYPES.STRING);
+		this.checkFilepath(filepath);
+		//#endif
 		return typeof this.images[filepath] === 'object';
 	},
 
@@ -84,6 +99,10 @@ jayus.images = {
 	*/
 
 	isLoaded: function jayus_images_isLoaded(filepath){
+		//#ifdef DEBUG
+		jayus.debug.match('jayus.images.isLoaded', filepath, 'filepath', jayus.TYPES.STRING);
+		this.checkFilepath(filepath);
+		//#endif
 		return typeof this.images[filepath] === 'object' && (this.images[filepath].loaded || this.images[filepath].tagName === 'CANVAS');
 	},
 
@@ -95,6 +114,10 @@ jayus.images = {
 	*/
 
 	get: function jayus_images_get(filepath){
+		//#ifdef DEBUG
+		jayus.debug.match('jayus.images.get', filepath, 'filepath', jayus.TYPES.STRING);
+		this.checkFilepath(filepath);
+		//#endif
 		if(!this.has(filepath)){
 			//#ifdef DEBUG
 			console.warn('jayus.images.get() - Image "'+filepath+'" not yet loaded');
@@ -135,12 +158,17 @@ jayus.images = {
 	*/
 
 	load: function jayus_images_load(filepath, handler){
+		//#ifdef DEBUG
+		jayus.debug.match('jayus.images.load', filepath, 'filepath', jayus.TYPES.STRING);
+		this.checkFilepath(filepath);
+		//#endif
 		// Check if not loaded
 		if(!this.has(filepath)){
 			//#ifdef DEBUG
 			if(!jayus.debug.is(jayus.TYPES.STRING, filepath)){
 				throw new TypeError('jayus.images.load() - Invalid filepath'+jayus.debug.toString(filepath)+' sent as argument '+i+', String required');
 			}
+			// console.log('jayus.images.load() - Loading image file "'+filepath+'"');
 			//#endif
 			// Create and save a new image
 			var image = new Image();

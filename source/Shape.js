@@ -77,6 +77,13 @@ jayus.Shape = jayus.Dependency.extend({
 	*/
 
 	/**
+	Returns a polygon representing the shape.
+	<br> The circle and path versions of this method also accept a detail function.
+	@method {Polygon} toPolygon
+	@param {Number} detail
+	*/
+
+	/**
 	Returns a new PaintedShape entity that styles this shape with the given brush.
 	<br> Shorthand for: new jayus.PaintedShape(shape, brush);
 	@method {PaintedShape} paintedWith
