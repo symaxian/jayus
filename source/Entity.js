@@ -98,14 +98,6 @@ jayus.Entity = jayus.Responder.extend({
 	isParent: false,
 
 	/**
-	The entity's id.
-	<br> Default is ''.
-	@property {String} id
-	*/
-
-	id: '',
-
-	/**
 	Whether or not the entity is visible.
 	<br> Technically this is more like whether or not the entity will be drawn by its parent.
 	<br> Default is true.
@@ -267,6 +259,46 @@ jayus.Entity = jayus.Responder.extend({
 
 	exposingAll: false,
 
+	properties: {
+		names: [
+			'visible',
+			'alpha',
+			// 'dirtied',
+			// 'frozen',
+			// 'hasParent',
+			'parent',
+			'angle',
+			'xScale',
+			'yScale',
+			'xAnchor',
+			'yAnchor',
+			'trackCursor',
+			'canAcceptCursor',
+			'canReleaseCursor',
+			// 'underCursor',
+			// 'hasCursor',
+			'draggable',
+			'dragButton',
+			// 'dragging',
+			'enableDragEvents',
+			// 'leftDragging',
+			// 'middleDragging',
+			// 'rightDragging',
+			// 'debugRenderer',
+			// 'exposingAll',
+			'isTransformed',
+			// 'actionsToAnimate',
+			// 'matrix',
+			// 'matrixDirty',
+			'xVelocity',
+			'yVelocity'
+		],
+		objects: [
+			'parent',
+			'matrix'
+		]
+	},
+
 	expose: function Entity_expose(){
 		this.debugRenderer = jayus.debug.defaultDebugRenderer;
 		this.dirty(jayus.DIRTY.ALL);
@@ -310,6 +342,59 @@ jayus.Entity = jayus.Responder.extend({
 
 	//#end
 
+	// getProp: function Entity_getProp(key) {
+	// 	if (typeof this[key] === 'object') {
+	// 		return this[key].toObject();
+	// 	}
+	// 	return this[key];
+	// },
+
+	//@ From Parsable
+	initFromObject: function Entity_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Entity.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		// Apply parent properties
+		jayus.Dependency.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		this.frozen++;
+		var i, key, val, valType;
+		for (i=0;i<this.properties.names.length;i++) {
+			key = this.properties.names[i];
+			val = object[key];
+			valType = typeof val;
+			if (valType === 'object') {
+				val = jayus.parse(val);
+			}
+			this['set'+key[0].toUpperCase()+key.slice(1)](val);
+		}
+		this.frozen--;
+		// Set as dirty
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	//@ From Parsable
+	toObject: function Entity_toObject() {
+		// Get object from parent
+		var object = jayus.Dependency.prototype.toObject.call(this);
+		// Add our own properties
+		object.__type__ = 'Entity';
+		var i, key, val, valType;
+		for (i=0;i<this.properties.names.length;i++) {
+			key = this.properties.names[i];
+			val = this[key];
+			valType = typeof val;
+			if (valType === 'object' && val !== null) {
+				// console.log(val);
+				val = val.toObject();
+			}
+			if (val !== jayus.Entity.prototype[key]) {
+				object[key] = val;
+			}
+		}
+		return object;
+	},
+
 	/**
 	Applies the given properties to the Entity.
 	<br> See the Property Application article for detiled information.
@@ -338,7 +423,6 @@ jayus.Entity = jayus.Responder.extend({
 		return this;
 	},
 
-
 		//
 		//  Transforms
 		//______________//
@@ -349,8 +433,6 @@ jayus.Entity = jayus.Responder.extend({
 	*/
 
 	isTransformed: false,
-
-	transforms: null,
 
 	//
 	//  Methods
@@ -463,25 +545,6 @@ jayus.Entity = jayus.Responder.extend({
 
 			});
 		}
-	},
-
-		//
-		//  Id
-		//______//
-
-	/**
-	Sets the entity's id.
-	<br> Using strings(or numbers) for id's is recommended.
-	@method {Self} setId
-	@param {*} id
-	*/
-
-	setId: function Entity_setId(id){
-		//#ifdef DEBUG
-		jayus.debug.match('Entity.setId', id, 'id', jayus.TYPES.DEFINED);
-		//#end
-		this.id = id;
-		return this;
 	},
 
 		//

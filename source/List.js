@@ -73,6 +73,23 @@ jayus.List = jayus.createClass({
 		this.items = [];
 	},
 
+	//@ From Parsable
+	toObject: function List_toObject() {
+		var object = {};
+		// Add our own properties
+		object.__type__ = 'List';
+		if (this.parent !== null) {
+			object.parent = this.parent.id;
+		}
+		if (this.items !== null) {
+			object.items = [];
+			for (var i=0;i<this.items.length;i++) {
+				object.items.push(this.items[i].id);
+			}
+		}
+		return object;
+	},
+
 	// Signals
 
 	added: function List_added(item){

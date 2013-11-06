@@ -143,6 +143,31 @@ jayus.Scene = jayus.RectEntity.extend({
 		}
 	},
 
+	//@ From Parsable
+	initFromObject: function Scene_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Scene.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		// Apply parent properties
+		jayus.RectEntity.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		this.frozen++;
+		// TODO: Set children
+		this.frozen--;
+		// Set as dirty
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	//@ From Parsable
+	toObject: function Scene_toObject() {
+		// Get object from parent
+		var object = jayus.RectEntity.prototype.toObject.call(this);
+		// Add our own properties
+		object.__type__ = 'Scene';
+		object.children = this.children.toObject();
+		return object;
+	},
+
 		//
 		//  Rendering
 		//_____________//

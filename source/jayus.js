@@ -836,6 +836,10 @@ jayus = {
 		return dest;
 	},
 
+	getNewId: function jayus_getNewId() {
+		return parseInt(Math.random()*1000000, 10);
+	},
+
 	/**
 	Creates a constructor function, which in JavaScript is essentially a class.
 	<br> The returned constructor function calls the init method with any arguments passed to it.
@@ -847,6 +851,7 @@ jayus = {
 	createClass: function jayus_createClass(props){
 		// Create the constructor function, which just calls the init method
 		var constructor = function(){
+			this.id = jayus.getNewId();
 			this.init.apply(this, arguments);
 		};
 		//#ifdef DEBUG
@@ -873,6 +878,7 @@ jayus = {
 	extendMethod: function jayus_extendMethod(props){
 		// Create the constructor function, which just calls the init method
 		var constructor = function(){
+			this.id = jayus.getNewId();
 			this.init.apply(this, arguments);
 		};
 		//#ifdef DEBUG
@@ -1229,7 +1235,7 @@ jayus = {
 	},
 
 	parse: function jayus_parse(obj){
-		var type = obj.type;
+		var type = obj.__type__;
 		if(typeof jayus[type] === 'function'){
 			for(var key in obj){
 				var value = obj[key];

@@ -71,6 +71,40 @@ jayus.Matrix = jayus.createClass({
 		}
 	},
 
+	//@ From Parsable
+	initFromObject: function Matrix_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Matrix.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		// Apply parent properties
+		// jayus.Dependency.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		this.a = object.a;
+		this.b = object.b;
+		this.tx = object.tx;
+		this.c = object.c;
+		this.d = object.d;
+		this.ty = object.ty;
+		// Set as dirty
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	//@ From Parsable
+	toObject: function Matrix_toObject() {
+		// Get object from parent
+		// var object = jayus.Dependency.prototype.toObject.call(this);
+		var object = {};
+		// Add our own properties
+		object.__type__ = 'Matrix';
+		object.a = this.a;
+		object.b = this.b;
+		object.tx = this.tx;
+		object.c = this.c;
+		object.d = this.d;
+		object.ty = this.ty;
+		return object;
+	},
+
 	/**
 	Translates the matrix.
 	@method {Self} translate

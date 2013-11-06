@@ -206,6 +206,30 @@ jayus.Brush = jayus.Dependency.extend({
 
 	shadowBlur: null,
 
+	properties: {
+		names: [
+			'alpha',
+			'strokeFirst',
+			'fill',
+			'stroke',
+			'lineWidth',
+			'lineCap',
+			'lineJoin',
+			'miterLimit',
+			'lineDash',
+			'lineDashOffset',
+			'shadow',
+			'shadowOffsetY',
+			'shadowOffsetY',
+			'shadowBlur'
+		],
+		objects: [
+			'fill',
+			'stroke',
+			'shadow'
+		]
+	},
+
 	//
 	//  Methods
 	//___________//
@@ -222,6 +246,66 @@ jayus.Brush = jayus.Dependency.extend({
 
 	componentDirtied: function Brush_componentDirtied(component, type){
 		this.dirty(jayus.DIRTY.STYLE);
+	},
+
+	//@ From Parsable
+	initFromObject: function Brush_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Brush.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		// Apply parent properties
+		jayus.Dependency.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		this.frozen++;
+		var i, key, val, valType;
+		for (i=0;i<this.properties.names.length;i++) {
+			key = this.properties.names[i];
+			val = object[key];
+			valType = typeof val;
+			if (valType !== 'undefined') {
+				if (valType === 'object') {
+					val = jayus.parse(val);
+				}
+				if (key === 'fill') {
+					this.setFill(val);
+				}
+				else if(key === 'stroke') {
+					this.setStroke(val);
+				}
+				else if(key === 'shadow') {
+					this.setShadow(val);
+				}
+				else {
+					this[key] = val;
+				}
+			}
+		}
+		this.frozen--;
+		// Set as dirty
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	//@ From Parsable
+	toObject: function Brush_toObject() {
+		// Get object from parent
+		var object = jayus.Dependency.prototype.toObject.call(this);
+		// Add our own properties
+		object.__type__ = 'Brush';
+		var i, key, val, valType;
+		for (i=0;i<this.properties.names.length;i++) {
+			key = this.properties.names[i];
+			val = this[key];
+			if (val !== null) {
+				valType = typeof val;
+				if (valType === 'object' && !(valType instanceof Array)) {
+					val = val.toObject();
+				}
+				if (val !== jayus.Brush.prototype[key]) {
+					object[key] = val;
+				}
+			}
+		}
+		return object;
 	},
 
 	/**

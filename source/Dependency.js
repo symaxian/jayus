@@ -48,6 +48,14 @@ jayus.Dependency = jayus.Animatable.extend({
 	//______________//
 
 	/**
+	The object's id.
+	<br> Default is 0.
+	@property {Number|String} id
+	*/
+
+	id: 0,
+
+	/**
 	The dependent object[s].
 	<br> Do not modify.
 	@property {Object|Array} dependents
@@ -75,6 +83,20 @@ jayus.Dependency = jayus.Animatable.extend({
 	//  Methods
 	//___________//
 
+	/**
+	Sets the entity's id.
+	@method {Self} setId
+	@param {Number|String} id
+	*/
+
+	setId: function Dependency_setId(id) {
+		//#ifdef DEBUG
+		jayus.debug.match('Dependency.setId', id, 'id', jayus.TYPES.DEFINED);
+		//#end
+		this.id = id;
+		return this;
+	},
+
 	//@ From Parsable
 	initFromObject: function Dependency_initFromObject(object) {
 		//#ifdef DEBUG
@@ -83,6 +105,7 @@ jayus.Dependency = jayus.Animatable.extend({
 		// Apply parent properties
 		// Animatable isnt state based so ignore it for now
 		// Apply our own properties
+		this.id = id;
 		this.dependents = object.dependents;
 		if (this.dependents !== null) {
 			// If there are any dependents, transform them from their id to the object
@@ -105,9 +128,11 @@ jayus.Dependency = jayus.Animatable.extend({
 		var object = {};
 		// Add our own properties
 		object.__type__ = 'Dependency';
+		object.id = this.id;
 		if (this.dependentCount) {
 			object.dependents = [];
-			for (var i=0;i<this.dependentCount;i++){
+			for (var i=0;i<this.dependentCount;i++) {
+				// jayus.addObjectToResult(object, this.dependents[i]);
 				object.dependents.push(this.dependents[i].id);
 			}
 		}
