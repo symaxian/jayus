@@ -374,19 +374,23 @@ jayus.Entity = jayus.Responder.extend({
 	},
 
 	//@ From Parsable
-	toObject: function Entity_toObject() {
+	addToResult: function Entity_addToResult(result) {
+		if (jayus.isObjectInResult(result, this)) {
+			return;
+		}
 		// Get object from parent
-		var object = jayus.Dependency.prototype.toObject.call(this);
+		var object = jayus.Dependency.prototype.addToResult.call(this, result);
 		// Add our own properties
 		object.__type__ = 'Entity';
+		// result.objects.push(object);
 		var i, key, val, valType;
-		for (i=0;i<this.properties.names.length;i++) {
-			key = this.properties.names[i];
+		for (i=0;i<jayus.Entity.prototype.properties.names.length;i++) {
+			key = jayus.Entity.prototype.properties.names[i];
 			val = this[key];
 			valType = typeof val;
 			if (valType === 'object' && val !== null) {
-				// console.log(val);
-				val = val.toObject();
+				val.addToResult(result);
+				val = val.id;
 			}
 			if (val !== jayus.Entity.prototype[key]) {
 				object[key] = val;

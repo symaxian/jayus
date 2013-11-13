@@ -99,9 +99,12 @@ jayus.Point = jayus.Dependency.extend({
 	},
 
 	//@ From Parsable
-	toObject: function Point_toObject() {
+	addToResult: function Point_addToResult(result) {
+		if (jayus.isObjectInResult(result, this)) {
+			return;
+		}
 		// Get object from parent
-		var object = jayus.Dependency.prototype.toObject.call(this);
+		var object = jayus.Dependency.prototype.addToResult.call(this);
 		// Add our own properties
 		object.__type__ = 'Point';
 		object.x = this.x;

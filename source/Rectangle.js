@@ -160,9 +160,12 @@ jayus.Rectangle = jayus.Shape.extend({
 	},
 
 	//@ From Parsable
-	toObject: function Rectangle_toObject() {
+	addToResult: function Rectangle_addToResult(result) {
+		if (jayus.isObjectInResult(result, this)) {
+			return;
+		}
 		// Get object from parent
-		var object = jayus.Dependency.prototype.toObject.call(this);
+		var object = jayus.Dependency.prototype.addToResult.call(this);
 		// Add our own properties
 		object.__type__ = 'Rectangle';
 		object.x = this.x;

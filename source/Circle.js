@@ -146,9 +146,12 @@ jayus.Circle = jayus.Shape.extend({
 	},
 
 	//@ From Parsable
-	toObject: function Circle_toObject() {
+	addToResult: function Circle_addToResult(result) {
+		if (jayus.isObjectInResult(result, this)) {
+			return;
+		}
 		// Get object from parent
-		var object = jayus.Dependency.prototype.toObject.call(this);
+		var object = jayus.Dependency.prototype.addToResult.call(this, result);
 		// Add our own properties
 		object.__type__ = 'Circle';
 		object.x = this.x;

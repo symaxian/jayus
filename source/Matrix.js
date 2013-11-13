@@ -90,19 +90,22 @@ jayus.Matrix = jayus.createClass({
 	},
 
 	//@ From Parsable
-	toObject: function Matrix_toObject() {
-		// Get object from parent
-		// var object = jayus.Dependency.prototype.toObject.call(this);
+	addToObject: function Matrix_addToObject(result) {
+		if (jayus.isObjectInResult(result, this)) {
+			return;
+		}
+		// Create object
 		var object = {};
 		// Add our own properties
 		object.__type__ = 'Matrix';
+		object.id = this.id;
 		object.a = this.a;
 		object.b = this.b;
 		object.tx = this.tx;
 		object.c = this.c;
 		object.d = this.d;
 		object.ty = this.ty;
-		return object;
+		result.objects.push(object);
 	},
 
 	/**

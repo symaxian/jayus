@@ -193,20 +193,28 @@ jayus.RectEntity = jayus.Entity.extend({
 	},
 
 	//@ From Parsable
-	toObject: function RectEntity_toObject() {
+	addToResult: function RectEntity_addToResult(result) {
+		if (jayus.isObjectInResult(result, this)) {
+			return;
+		}
 		// Get object from parent
-		var object = jayus.Entity.prototype.toObject.call(this);
+		var object = jayus.Entity.prototype.addToResult.call(this, result);
 		// Add our own properties
 		object.__type__ = 'RectEntity';
 		var i, key, val, valType;
-		for (i=0;i<this.properties.names.length;i++) {
-			key = this.properties.names[i];
+		for (i=0;i<jayus.RectEntity.prototype.properties.names.length;i++) {
+			key = jayus.RectEntity.prototype.properties.names[i];
 			val = this[key];
 			valType = typeof val;
 			if (valType === 'object' && val !== null) {
-				val = val.toObject();
+				val.addToResult(result);
+				val = val.id;
 			}
-			if (val !== jayus.Entity.prototype[key]) {
+			// TODO: Normalize number properties in results
+			// if (key === 'x' || key === 'y' && result.roundNumbers) {
+			// 	val = jayus.normalizeNumber(val);
+			// }
+			if (val !== jayus.RectEntity.prototype[key]) {
 				object[key] = val;
 			}
 		}

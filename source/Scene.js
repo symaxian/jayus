@@ -159,12 +159,16 @@ jayus.Scene = jayus.RectEntity.extend({
 	},
 
 	//@ From Parsable
-	toObject: function Scene_toObject() {
+	addToResult: function Scene_addToResult(result) {
+		if (jayus.isObjectInResult(result, this)) {
+			return;
+		}
 		// Get object from parent
-		var object = jayus.RectEntity.prototype.toObject.call(this);
+		var object = jayus.RectEntity.prototype.addToResult.call(this, result);
 		// Add our own properties
 		object.__type__ = 'Scene';
-		object.children = this.children.toObject();
+		object.children = this.children.id;
+		this.children.addToResult(result);
 		return object;
 	},
 

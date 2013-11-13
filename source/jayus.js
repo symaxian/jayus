@@ -836,9 +836,56 @@ jayus = {
 		return dest;
 	},
 
+	/**
+	Returns a new random number for use as an id.
+	@method {Number} applyObject
+	*/
+
 	getNewId: function jayus_getNewId() {
 		return parseInt(Math.random()*1000000, 10);
 	},
+
+	toJSON: function jayus_toJSON(entity) {
+		var result = {
+			objects: [],
+			id: entity.id
+		};
+		entity.addToResult(result);
+		return result;
+	},
+
+	fromJSON: function jayus_toJSON(result) {
+
+	},
+
+	isObjectInResult: function jayus_isObjectInResult(result, object) {
+		var id = object.id;
+		for (var i=0;i<result.objects.length;i++) {
+			if (result.objects[i].id === id) {
+				return true;
+			}
+		}
+		return false;
+	},
+
+	getObjectFromResult: function jayus_getObjectFromResult(result, id) {
+		for (var i=0;i<result.objects.length;i++) {
+			var object = result.objects[i];
+			if (object.id === id) {
+				return new jayus[object.__type__].fromResult(result, object);
+			}
+		}
+		return null;
+	},
+
+	/*
+		TODO: Keep array of every entity or not?
+			+ Allows easy retrieval?
+			- Must use entity.dealloc() to delete references
+			~ If we use pooling later, dealloc will be needed for that anyway
+	*/
+
+	entities: [],
 
 	/**
 	Creates a constructor function, which in JavaScript is essentially a class.
@@ -852,11 +899,12 @@ jayus = {
 		// Create the constructor function, which just calls the init method
 		var constructor = function(){
 			this.id = jayus.getNewId();
+			jayus.entities.push(this);
 			this.init.apply(this, arguments);
 		};
 		//#ifdef DEBUG
 		if(typeof jayus.debug.className === 'string'){
-			constructor = eval('(function '+jayus.debug.className+'(){this.init.apply(this,arguments);})');
+			constructor = eval('(function '+jayus.debug.className+'(){this.id=jayus.getNewId();jayus.entities.push(this);this.init.apply(this,arguments);})');
 		}
 		jayus.debug.className = null;
 		//#end
@@ -879,11 +927,12 @@ jayus = {
 		// Create the constructor function, which just calls the init method
 		var constructor = function(){
 			this.id = jayus.getNewId();
+			jayus.entities.push(this);
 			this.init.apply(this, arguments);
 		};
 		//#ifdef DEBUG
 		if(typeof jayus.debug.className === 'string'){
-			constructor = eval('(function '+jayus.debug.className+'(){this.init.apply(this,arguments);})');
+			constructor = eval('(function '+jayus.debug.className+'(){this.id=jayus.getNewId();jayus.entities.push(this);this.init.apply(this,arguments);})');
 		}
 		jayus.debug.className = null;
 		//#end

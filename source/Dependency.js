@@ -122,18 +122,22 @@ jayus.Dependency = jayus.Animatable.extend({
 		this.dirty(jayus.DIRTY.ALL);
 	},
 
-	//@ From Parsable
-	toObject: function Dependency_toObject() {
-		// Use a new object, Animatable isnt state based so ignore it for now
+	addToResult: function Dependency_addToResult(result) {
+		if (jayus.isObjectInResult(result, this)) {
+			return;
+		}
+		// Get object from parent
 		var object = {};
 		// Add our own properties
 		object.__type__ = 'Dependency';
 		object.id = this.id;
+		result.objects.push(object);
 		if (this.dependentCount) {
 			object.dependents = [];
 			for (var i=0;i<this.dependentCount;i++) {
-				// jayus.addObjectToResult(object, this.dependents[i]);
-				object.dependents.push(this.dependents[i].id);
+				var val = this.dependents[i];
+				val.addToResult(result);
+				object.dependents.push(val.id);
 			}
 		}
 		else {

@@ -125,9 +125,12 @@ jayus.Color = jayus.Dependency.extend({
 	},
 
 	//@ From Parsable
-	toObject: function Color_toObject() {
+	addToResult: function Color_addToResult() {
+		if (jayus.isObjectInResult(result, this)) {
+			return;
+		}
 		// Get object from parent
-		var object = jayus.Dependency.prototype.toObject.call(this);
+		var object = jayus.Dependency.prototype.addToResult.call(this);
 		// Add our own properties
 		object.__type__ = 'Color';
 		object.r = this.r;
