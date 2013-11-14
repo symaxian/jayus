@@ -91,6 +91,7 @@ jayus.Rectangle = jayus.Shape.extend({
 	*/
 
 	keepAligned: true,
+	//#replace jayus.Rectangle.prototype.keepAligned true
 
 	//
 	//  Methods
@@ -143,37 +144,40 @@ jayus.Rectangle = jayus.Shape.extend({
 	},
 
 	//@ From Parsable
+	toObject: function Rectangle_toObject() {
+		// Get object from parent
+		var object = {
+			__type__: 'Rectangle',
+			x: this.x,
+			y: this.y,
+			width: this.width,
+			height: this.height
+		};
+		if (this.keepAligned !== jayus.Rectangle.prototype.keepAligned) {
+			object.keepAligned = this.keepAligned;
+		}
+		if (this.id !== jayus.Dependency.prototype.id) {
+			object.id = this.id;
+		}
+		return object;
+	},
+
+	//@ From Parsable
 	initFromObject: function Rectangle_initFromObject(object) {
 		//#ifdef DEBUG
 		jayus.debug.match('Rectangle.initFromObject', object, 'object', jayus.TYPES.OBJECT);
 		//#end
-		// Apply parent properties
 		jayus.Dependency.prototype.initFromObject.call(this, object);
 		// Apply our own properties
 		this.x = object.x;
 		this.y = object.y;
 		this.width = object.width;
 		this.height = object.height;
-		this.keepAligned = object.keepAligned;
-		// Set as dirty
-		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	//@ From Parsable
-	addToResult: function Rectangle_addToResult(result) {
-		if (jayus.isObjectInResult(result, this)) {
-			return;
+		if (typeof object.keepAligned === 'number') {
+			this.keepAligned = object.keepAligned;
 		}
-		// Get object from parent
-		var object = jayus.Dependency.prototype.addToResult.call(this);
-		// Add our own properties
-		object.__type__ = 'Rectangle';
-		object.x = this.x;
-		object.y = this.y;
-		object.width = this.width;
-		object.height = this.height;
-		object.keepAligned = this.keepAligned;
-		return object;
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 		//

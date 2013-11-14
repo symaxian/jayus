@@ -248,6 +248,24 @@ jayus.Brush = jayus.Dependency.extend({
 		this.dirty(jayus.DIRTY.STYLE);
 	},
 
+	toObject: function Brush_toObject() {
+		var object = {};
+		object.__type__ = 'Brush';
+		var i, key, val, valType;
+		for (i=0;i<jayus.Brush.prototype.properties.names.length;i++) {
+			key = jayus.Brush.prototype.properties.names[i];
+			val = object[key];
+			valType = typeof val;
+			if (val !== jayus.Brush.prototype[key]) {
+				if (valType === 'object') {
+					val = val.toObject();
+				}
+				object[key] = val;
+			}
+		}
+		return object;
+	},
+
 	//@ From Parsable
 	initFromObject: function Brush_initFromObject(object) {
 		//#ifdef DEBUG
@@ -283,33 +301,6 @@ jayus.Brush = jayus.Dependency.extend({
 		this.frozen--;
 		// Set as dirty
 		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	addToResult: function Brush_addToResult(result) {
-		if (jayus.isObjectInResult(result, this)) {
-			return;
-		}
-		// Get object from parent
-		var object = jayus.Dependency.prototype.addToResult.call(this, result);
-		// Add our own properties
-		object.__type__ = 'Brush';
-		result.objects.push(object);
-		var i, key, val, valType;
-		for (i=0;i<jayus.Brush.prototype.properties.names.length;i++) {
-			key = jayus.Brush.prototype.properties.names[i];
-			val = this[key];
-			if (val !== null) {
-				valType = typeof val;
-				if (valType === 'object' && !(valType instanceof Array)) {
-					val.addToResult(result);
-					val = val.id;
-				}
-				if (val !== jayus.Brush.prototype[key]) {
-					object[key] = val;
-				}
-			}
-		}
-		return object;
 	},
 
 	/**

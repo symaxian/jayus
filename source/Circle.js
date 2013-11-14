@@ -80,6 +80,7 @@ jayus.Circle = jayus.Shape.extend({
 	*/
 
 	toPolygonDetail: 10,
+	//#replace jayus.Circle.prototype.toPolygonDetail 10
 
 	//
 	//  Methods
@@ -130,35 +131,38 @@ jayus.Circle = jayus.Shape.extend({
 	pointChanged: function Circle_pointChanged() {},
 
 	//@ From Parsable
+	toObject: function Circle_toObject() {
+		// Get object from parent
+		var object = {
+			__type__: 'Circle',
+			x: this.x,
+			y: this.y,
+			radius: this.radius
+		};
+		if (this.toPolygonDetail !== jayus.Circle.prototype.toPolygonDetail) {
+			object.toPolygonDetail = this.toPolygonDetail;
+		}
+		if (this.id !== jayus.Dependency.prototype.id) {
+			object.id = this.id;
+		}
+		return object;
+	},
+
+	//@ From Parsable
 	initFromObject: function Circle_initFromObject(object) {
 		//#ifdef DEBUG
 		jayus.debug.match('Circle.initFromObject', object, 'object', jayus.TYPES.OBJECT);
 		//#end
-		// Apply parent properties
 		jayus.Dependency.prototype.initFromObject.call(this, object);
 		// Apply our own properties
 		this.x = object.x;
 		this.y = object.y;
 		this.radius = object.radius;
-		this.toPolygonDetail = object.toPolygonDetail;
-		// Set as dirty
-		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	//@ From Parsable
-	addToResult: function Circle_addToResult(result) {
-		if (jayus.isObjectInResult(result, this)) {
-			return;
+		if (typeof object.toPolygonDetail === 'number') {
+			this.toPolygonDetail = object.toPolygonDetail;
 		}
-		// Get object from parent
-		var object = jayus.Dependency.prototype.addToResult.call(this, result);
-		// Add our own properties
-		object.__type__ = 'Circle';
-		object.x = this.x;
-		object.y = this.y;
-		object.radius = this.radius;
-		object.toPolygonDetail = this.toPolygonDetail;
-		return object;
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 		//

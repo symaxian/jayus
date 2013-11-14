@@ -52,8 +52,16 @@ jayus.Stack = jayus.RectEntity.extend({
 	*/
 
 	spacing: 8,
+	//#replace jayus.Stack.prototype.spacing 8
+
+	/**
+	Whether to reverse the order of the children or not.
+	<br> Default is false
+	@property {Boolean} reversed
+	*/
 
 	reversed: false,
+	//#replace jayus.Stack.prototype.reversed 8
 
 	isParent: true,
 
@@ -80,6 +88,41 @@ jayus.Stack = jayus.RectEntity.extend({
 				// this.formContents();
 			}
 		});
+	},
+
+	toObject: function Stack_toObject() {
+		var object = jayus.RectEntity.prototype.toObject.apply(this);
+		jayus.groupToObject.call(this, object);
+		// Add our own properties
+		object.__type__ = 'Stack';
+		if (this.spacing !== jayus.Stack.prototype.spacing) {
+			object.spacing = this.spacing;
+		}
+		if (this.reversed !== jayus.Stack.prototype.reversed) {
+			object.reversed = this.reversed;
+		}
+		return object;
+	},
+
+	//@ From Parsable
+	initFromObject: function Stack_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Stack.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		this.frozen++;
+		// Apply parent properties
+		jayus.RectEntity.prototype.initFromObject.call(this, object);
+		jayus.groupFromObject.call(this, object);
+		// Apply our own properties
+		if (typeof object.spacing === 'number') {
+			this.spacing = object.spacing;
+		}
+		if (typeof object.reversed === 'boolean') {
+			this.reversed = object.reversed;
+		}
+		this.frozen--;
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 	componentDirtied: function Stack_componentDirtied(component, type){
@@ -227,10 +270,21 @@ jayus.hStack = jayus.Stack.extend({
 	*/
 
 	automaticHeight: true,
+	//#replace jayus.hStack.prototype.automaticHeight true
 
 	//
 	//  Methods
 	//___________//
+
+	toObject: function hStack_toObject() {
+		var object = jayus.Stack.prototype.toObject.apply(this);
+		// Add our own properties
+		object.__type__ = 'hStack';
+		if (this.automaticHeight !== jayus.hStack.prototype.automaticHeight) {
+			object.automaticHeight = this.automaticHeight.toObject();
+		}
+		return object;
+	},
 
 	formContents: function hStack_formContents(){
 
@@ -305,6 +359,7 @@ jayus.vStack = jayus.Stack.extend({
 	*/
 
 	automaticWidth: true,
+	//#replace jayus.hStack.prototype.automaticWidth true
 
 	/**
 	Gets the automaticWidth flag on the stack.
@@ -335,6 +390,16 @@ jayus.vStack = jayus.Stack.extend({
 	//
 	//  Methods
 	//___________//
+
+	toObject: function vStack_toObject() {
+		var object = jayus.Stack.prototype.toObject.apply(this);
+		// Add our own properties
+		object.__type__ = 'vStack';
+		if (this.automaticWidth !== jayus.hStack.prototype.automaticWidth) {
+			object.automaticWidth = this.automaticWidth.toObject();
+		}
+		return object;
+	},
 
 	formContents: function vStack_formContents(){
 

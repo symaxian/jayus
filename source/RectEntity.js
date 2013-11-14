@@ -111,6 +111,7 @@ jayus.RectEntity = jayus.Entity.extend({
 	*/
 
 	bg: null,
+	//#replace jayus.RectEntity.prototype.bg null
 
 	/**
 	Whether a background brush as been set.
@@ -131,6 +132,7 @@ jayus.RectEntity = jayus.Entity.extend({
 	*/
 
 	bounds: null,
+	//#replace jayus.RectEntity.prototype.bounds null
 
 	boundsClone: null,
 
@@ -152,21 +154,44 @@ jayus.RectEntity = jayus.Entity.extend({
 
 	//#end
 
-	properties: {
-		names: [
-			'x',
-			'y',
-			'width',
-			'height',
-			'bounds',
-			'bg',
-			'alignBg',
-		]
-	},
+	properties: [
+		'x',
+		'y',
+		'width',
+		'height',
+		// 'bounds',
+		// 'bg',
+		'alignBg'
+	],
 
 	//
 	//  Methods
 	//___________//
+
+	toObject: function RectEntity_toObject() {
+		var object = jayus.Entity.prototype.toObject.apply(this);
+		// Add our own properties
+		object.__type__ = 'RectEntity';
+		var i, key, val, valType;
+		for (i=0;i<jayus.RectEntity.prototype.properties.length;i++) {
+			key = jayus.RectEntity.prototype.properties[i];
+			val = this[key];
+			valType = typeof val;
+			if (val !== jayus.RectEntity.prototype[key]) {
+				if (valType === 'object') {
+					val = val.toObject();
+				}
+				object[key] = val;
+			}
+		}
+		if (this.bg !== jayus.RectEntity.prototype.bg) {
+			object.bg = this.bg.toObject();
+		}
+		if (this.bounds !== jayus.RectEntity.prototype.bounds) {
+			object.bounds = this.bounds.toObject();
+		}
+		return object;
+	},
 
 	//@ From Parsable
 	initFromObject: function RectEntity_initFromObject(object) {
@@ -178,47 +203,19 @@ jayus.RectEntity = jayus.Entity.extend({
 		// Apply our own properties
 		this.frozen++;
 		var i, key, val, valType;
-		for (i=0;i<this.properties.names.length;i++) {
-			key = this.properties.names[i];
-			val = object[key];
-			valType = typeof val;
-			if (valType === 'object') {
-				val = jayus.parse(val);
-			}
-			this['set'+key[0].toUpperCase()+key.slice(1)](val);
+		for (i=0;i<this.properties.length;i++) {
+			key = this.properties[i];
+			this[key] = object[key];
+		}
+		if (typeof object.bounds === 'object') {
+			this.bounds = jayus.fromObject(object.bounds);
+		}
+		if (typeof object.bg === 'object') {
+			this.bg = jayus.fromObject(object.bg);
 		}
 		this.frozen--;
 		// Set as dirty
-		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	//@ From Parsable
-	addToResult: function RectEntity_addToResult(result) {
-		if (jayus.isObjectInResult(result, this)) {
-			return;
-		}
-		// Get object from parent
-		var object = jayus.Entity.prototype.addToResult.call(this, result);
-		// Add our own properties
-		object.__type__ = 'RectEntity';
-		var i, key, val, valType;
-		for (i=0;i<jayus.RectEntity.prototype.properties.names.length;i++) {
-			key = jayus.RectEntity.prototype.properties.names[i];
-			val = this[key];
-			valType = typeof val;
-			if (valType === 'object' && val !== null) {
-				val.addToResult(result);
-				val = val.id;
-			}
-			// TODO: Normalize number properties in results
-			// if (key === 'x' || key === 'y' && result.roundNumbers) {
-			// 	val = jayus.normalizeNumber(val);
-			// }
-			if (val !== jayus.RectEntity.prototype[key]) {
-				object[key] = val;
-			}
-		}
-		return object;
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 		//

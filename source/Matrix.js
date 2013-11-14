@@ -72,12 +72,29 @@ jayus.Matrix = jayus.createClass({
 	},
 
 	//@ From Parsable
+	toObject: function Matrix_toObject() {
+		var object = {
+			__type__: 'Matrix',
+			a: this.a,
+			b: this.b,
+			tx: this.tx,
+			c: this.c,
+			d: this.d,
+			ty: this.ty
+		};
+		if (this.id !== jayus.Dependency.prototype.id) {
+			object.id = this.id;
+		}
+		return object;
+	},
+
+	//@ From Parsable
 	initFromObject: function Matrix_initFromObject(object) {
 		//#ifdef DEBUG
 		jayus.debug.match('Matrix.initFromObject', object, 'object', jayus.TYPES.OBJECT);
 		//#end
 		// Apply parent properties
-		// jayus.Dependency.prototype.initFromObject.call(this, object);
+		jayus.Dependency.prototype.initFromObject.call(this, object);
 		// Apply our own properties
 		this.a = object.a;
 		this.b = object.b;
@@ -87,25 +104,6 @@ jayus.Matrix = jayus.createClass({
 		this.ty = object.ty;
 		// Set as dirty
 		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	//@ From Parsable
-	addToObject: function Matrix_addToObject(result) {
-		if (jayus.isObjectInResult(result, this)) {
-			return;
-		}
-		// Create object
-		var object = {};
-		// Add our own properties
-		object.__type__ = 'Matrix';
-		object.id = this.id;
-		object.a = this.a;
-		object.b = this.b;
-		object.tx = this.tx;
-		object.c = this.c;
-		object.d = this.d;
-		object.ty = this.ty;
-		result.objects.push(object);
 	},
 
 	/**

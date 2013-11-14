@@ -143,33 +143,45 @@ jayus.Scene = jayus.RectEntity.extend({
 		}
 	},
 
+	toObject: function Scene_toObject() {
+		var object = jayus.RectEntity.prototype.toObject.apply(this);
+		jayus.groupToObject.call(this, object);
+		// Add our own properties
+		object.__type__ = 'Scene';
+		if (this.optimizeBuffering !== jayus.Scene.prototype.optimizeBuffering) {
+			object.optimizeBuffering = this.optimizeBuffering;
+		}
+		if (this.groupDamagedRegions !== jayus.Scene.prototype.groupDamagedRegions) {
+			object.groupDamagedRegions = this.groupDamagedRegions;
+		}
+		if (this.damagedRegionPadding !== jayus.Scene.prototype.damagedRegionPadding) {
+			object.damagedRegionPadding = this.damagedRegionPadding;
+		}
+		return object;
+	},
+
 	//@ From Parsable
 	initFromObject: function Scene_initFromObject(object) {
 		//#ifdef DEBUG
 		jayus.debug.match('Scene.initFromObject', object, 'object', jayus.TYPES.OBJECT);
 		//#end
+		this.frozen++;
 		// Apply parent properties
 		jayus.RectEntity.prototype.initFromObject.call(this, object);
+		jayus.groupFromObject.call(this, object);
 		// Apply our own properties
-		this.frozen++;
-		// TODO: Set children
+		if (typeof object.optimizeBuffering === 'boolean') {
+			this.optimizeBuffering = object.optimizeBuffering;
+		}
+		if (typeof object.groupDamagedRegions === 'boolean') {
+			this.groupDamagedRegions = object.groupDamagedRegions;
+		}
+		if (typeof object.damagedRegionPadding === 'number') {
+			this.damagedRegionPadding = object.damagedRegionPadding;
+		}
 		this.frozen--;
 		// Set as dirty
 		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	//@ From Parsable
-	addToResult: function Scene_addToResult(result) {
-		if (jayus.isObjectInResult(result, this)) {
-			return;
-		}
-		// Get object from parent
-		var object = jayus.RectEntity.prototype.addToResult.call(this, result);
-		// Add our own properties
-		object.__type__ = 'Scene';
-		object.children = this.children.id;
-		this.children.addToResult(result);
-		return object;
 	},
 
 		//

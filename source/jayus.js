@@ -845,39 +845,6 @@ jayus = {
 		return parseInt(Math.random()*1000000, 10);
 	},
 
-	toJSON: function jayus_toJSON(entity) {
-		var result = {
-			objects: [],
-			id: entity.id
-		};
-		entity.addToResult(result);
-		return result;
-	},
-
-	fromJSON: function jayus_toJSON(result) {
-
-	},
-
-	isObjectInResult: function jayus_isObjectInResult(result, object) {
-		var id = object.id;
-		for (var i=0;i<result.objects.length;i++) {
-			if (result.objects[i].id === id) {
-				return true;
-			}
-		}
-		return false;
-	},
-
-	getObjectFromResult: function jayus_getObjectFromResult(result, id) {
-		for (var i=0;i<result.objects.length;i++) {
-			var object = result.objects[i];
-			if (object.id === id) {
-				return new jayus[object.__type__].fromResult(result, object);
-			}
-		}
-		return null;
-	},
-
 	/*
 		TODO: Keep array of every entity or not?
 			+ Allows easy retrieval?
@@ -950,6 +917,65 @@ jayus = {
 		constructor.extend = jayus.extendMethod;
 		// Return the constructor function
 		return constructor;
+	},
+
+	fromObject: function jayus_fromObject(obj){
+		var type = obj.__type__;
+		if(typeof jayus[type] === 'function'){
+			for(var key in obj){
+				var value = obj[key];
+				if(value instanceof Array){
+					for(var i=0;i<value.length;i++){
+						if(typeof value[i] === 'object' && typeof value[i].type === 'string'){
+							value[i] = this.fromObject(value[i]);
+						}
+					}
+				}
+				else if(typeof value === 'object' && typeof value.type === 'string'){
+					obj[key] = this.fromObject(value);
+				}
+			}
+			var ret = new jayus[type]();
+			ret.apply(obj);
+			// ret.reform();
+			// ret.reformMatrix();
+			return ret;
+		}
+	},
+
+	groupToObject: function Group_toObject(object) {
+		// Group property propagateCursor
+		if (this.propagateCursor !== jayus.Group.propagateCursor) {
+			object.propagateCursor = this.propagateCursor;
+		}
+		// Children
+		if (this.children !== jayus.Group.children) {
+			object.children = [];
+			for (var i=0;i<this.children.items.length;i++) {
+				object.children.push(this.children.items[i].toObject());
+			}
+		}
+	},
+
+	groupInitFromObject: function Group_initFromObject(object) {
+		// Apply our own properties
+		if (typeof object.propagateCursor === 'boolean') {
+			this.propagateCursor = object.propagateCursor;
+		}
+		// Children
+		if (typeof object.children === 'object') {
+			this.children = new jayus.List(this);
+			for (var i=0;i<object.children.length;i++) {
+				this.children.items.push(jayus.fromObject(object.children[i]));
+			}
+		}
+	},
+
+	identifiedObjects: [],
+
+	addIdentifiedObject: function jayus_addIdentifiedObject(object) {
+		// TODO: Check if already present?
+		this.identifiedObjects.push(object);
 	},
 
 	/**
@@ -1280,30 +1306,6 @@ jayus = {
 		}
 		else{
 			jayus.frameIntervalRunning = false;
-		}
-	},
-
-	parse: function jayus_parse(obj){
-		var type = obj.__type__;
-		if(typeof jayus[type] === 'function'){
-			for(var key in obj){
-				var value = obj[key];
-				if(value instanceof Array){
-					for(var i=0;i<value.length;i++){
-						if(typeof value[i] === 'object' && typeof value[i].type === 'string'){
-							value[i] = this.parse(value[i]);
-						}
-					}
-				}
-				else if(typeof value === 'object' && typeof value.type === 'string'){
-					obj[key] = this.parse(value);
-				}
-			}
-			var ret = new jayus[type]();
-			ret.apply(obj);
-			// ret.reform();
-			// ret.reformMatrix();
-			return ret;
 		}
 	},
 

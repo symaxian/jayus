@@ -54,6 +54,7 @@ jayus.Dependency = jayus.Animatable.extend({
 	*/
 
 	id: 0,
+	//#replace jayus.Dependency.prototype.id 0
 
 	/**
 	The dependent object[s].
@@ -94,57 +95,42 @@ jayus.Dependency = jayus.Animatable.extend({
 		jayus.debug.match('Dependency.setId', id, 'id', jayus.TYPES.DEFINED);
 		//#end
 		this.id = id;
+		jayus.addIdentifiedObject(this);
+		return this;
+	},
+
+	initFromObject: function Dependency_initFromObject(object) {
+		if (typeof object.id !== 'undefined') {
+			this.id = id;
+			jayus.addIdentifiedObject(this);
+		}
 		return this;
 	},
 
 	//@ From Parsable
-	initFromObject: function Dependency_initFromObject(object) {
-		//#ifdef DEBUG
-		jayus.debug.match('Dependency.initFromObject', object, 'object', jayus.TYPES.OBJECT);
-		//#end
-		// Apply parent properties
-		// Animatable isnt state based so ignore it for now
-		// Apply our own properties
-		this.id = id;
-		this.dependents = object.dependents;
-		if (this.dependents !== null) {
-			// If there are any dependents, transform them from their id to the object
-			// FIXME: When this dependency is created, all of its dependent objects might not yet be. So we might need to reperform this step once the entire JSON has been parsed
-			this.dependentCount = object.dependents.length;
-			for (var i=0;i<this.dependentCount;i++) {
-				this.dependents[i] = jayus.getObject(this.dependents[i]);
-			}
-		}
-		else {
-			this.dependentCount = 0;
-		}
-		// Set as dirty
-		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	addToResult: function Dependency_addToResult(result) {
-		if (jayus.isObjectInResult(result, this)) {
-			return;
-		}
-		// Get object from parent
-		var object = {};
-		// Add our own properties
-		object.__type__ = 'Dependency';
-		object.id = this.id;
-		result.objects.push(object);
-		if (this.dependentCount) {
-			object.dependents = [];
-			for (var i=0;i<this.dependentCount;i++) {
-				var val = this.dependents[i];
-				val.addToResult(result);
-				object.dependents.push(val.id);
-			}
-		}
-		else {
-			object.dependents = null;
-		}
-		return object;
-	},
+	// initFromObject: function Dependency_initFromObject(object) {
+	// 	//#ifdef DEBUG
+	// 	jayus.debug.match('Dependency.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+	// 	//#end
+	// 	// Apply parent properties
+	// 	// Animatable isnt state based so ignore it for now
+	// 	// Apply our own properties
+	// 	this.id = id;
+	// 	this.dependents = object.dependents;
+	// 	if (this.dependents !== null) {
+	// 		// If there are any dependents, transform them from their id to the object
+	// 		// FIXME: When this dependency is created, all of its dependent objects might not yet be. So we might need to reperform this step once the entire JSON has been parsed
+	// 		this.dependentCount = object.dependents.length;
+	// 		for (var i=0;i<this.dependentCount;i++) {
+	// 			this.dependents[i] = jayus.getObject(this.dependents[i]);
+	// 		}
+	// 	}
+	// 	else {
+	// 		this.dependentCount = 0;
+	// 	}
+	// 	// Set as dirty
+	// 	this.dirty(jayus.DIRTY.ALL);
+	// },
 
 	/**
 	Attaches a dependent.

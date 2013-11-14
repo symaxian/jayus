@@ -55,6 +55,9 @@ jayus.Group = {
 	//  Properties
 	//______________//
 
+	children: null,
+	// Hidden?
+
 	//@ From Entity
 	isParent: true,
 
@@ -65,6 +68,7 @@ jayus.Group = {
 	*/
 
 	propagateCursor: true,
+	//#replace jayus.Group.propagateCursor true
 
 	//
 	//  Methods

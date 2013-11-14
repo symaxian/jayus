@@ -67,6 +67,7 @@ jayus.Sprite = jayus.Image.extend({
 	*/
 
 	spriteIndexX: null,
+	//#replace jayus.Sprite.prototype.spriteIndexX null
 
 	/**
 	The current sprite index.
@@ -75,10 +76,36 @@ jayus.Sprite = jayus.Image.extend({
 	*/
 
 	spriteIndexY: null,
+	//#replace jayus.Sprite.prototype.spriteIndexY null
 
 	//
 	//  Methods
 	//___________//
+
+	toObject: function Sprite_toObject() {
+		var object = jayus.Image.prototype.toObject.apply(this);
+		// Add our own properties
+		object.__type__ = 'Sprite';
+		if (this.spriteIndexX !== jayus.Sprite.prototype.spriteIndexX) {
+			object.spriteIndexX = this.spriteIndexX;
+		}
+		if (this.spriteIndexY !== jayus.Sprite.prototype.spriteIndexY) {
+			object.spriteIndexY = this.spriteIndexY;
+		}
+		return object;
+	},
+
+	initFromObject: function Sprite_initFromObject(object) {
+		jayus.Image.prototype.initFromObject.apply(this);
+		// Add our own properties
+		if (typeof object.spriteIndexX === 'number') {
+			this.spriteIndexX = object.spriteIndexX;
+		}
+		if (typeof object.spriteIndexY === 'number') {
+			this.spriteIndexY = object.spriteIndexY;
+		}
+		return this.dirty(jayus.DIRTY.ALL);
+	},
 
 	/**
 	Sets the spritesheet for this sprite.

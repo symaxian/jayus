@@ -259,45 +259,39 @@ jayus.Entity = jayus.Responder.extend({
 
 	exposingAll: false,
 
-	properties: {
-		names: [
-			'visible',
-			'alpha',
-			// 'dirtied',
-			// 'frozen',
-			// 'hasParent',
-			'parent',
-			'angle',
-			'xScale',
-			'yScale',
-			'xAnchor',
-			'yAnchor',
-			'trackCursor',
-			'canAcceptCursor',
-			'canReleaseCursor',
-			// 'underCursor',
-			// 'hasCursor',
-			'draggable',
-			'dragButton',
-			// 'dragging',
-			'enableDragEvents',
-			// 'leftDragging',
-			// 'middleDragging',
-			// 'rightDragging',
-			// 'debugRenderer',
-			// 'exposingAll',
-			'isTransformed',
-			// 'actionsToAnimate',
-			// 'matrix',
-			// 'matrixDirty',
-			'xVelocity',
-			'yVelocity'
-		],
-		objects: [
-			'parent',
-			'matrix'
-		]
-	},
+	properties: [
+		'visible',
+		'alpha',
+		// 'dirtied',
+		// 'frozen',
+		// 'hasParent',
+		// 'parent',
+		'angle',
+		'xScale',
+		'yScale',
+		'xAnchor',
+		'yAnchor',
+		'trackCursor',
+		'canAcceptCursor',
+		'canReleaseCursor',
+		// 'underCursor',
+		// 'hasCursor',
+		'draggable',
+		'dragButton',
+		// 'dragging',
+		'enableDragEvents',
+		// 'leftDragging',
+		// 'middleDragging',
+		// 'rightDragging',
+		// 'debugRenderer',
+		// 'exposingAll',
+		// 'isTransformed',
+		// 'actionsToAnimate',
+		// 'matrix',
+		// 'matrixDirty',
+		'xVelocity',
+		'yVelocity'
+	],
 
 	expose: function Entity_expose(){
 		this.debugRenderer = jayus.debug.defaultDebugRenderer;
@@ -342,12 +336,28 @@ jayus.Entity = jayus.Responder.extend({
 
 	//#end
 
-	// getProp: function Entity_getProp(key) {
-	// 	if (typeof this[key] === 'object') {
-	// 		return this[key].toObject();
-	// 	}
-	// 	return this[key];
-	// },
+	toObject: function Entity_toObject() {
+		var object = {
+			__type__: 'Entity'
+		};
+		if (this.id !== jayus.Dependency.prototype.id) {
+			object.id = this.id;
+		}
+		// Add our own properties
+		var i, key, val, valType;
+		for (i=0;i<jayus.Entity.prototype.properties.length;i++) {
+			key = jayus.Entity.prototype.properties[i];
+			val = this[key];
+			valType = typeof val;
+			if (val !== jayus.Entity.prototype[key]) {
+				if (valType === 'object') {
+					val = val.toObject();
+				}
+				object[key] = val;
+			}
+		}
+		return object;
+	},
 
 	//@ From Parsable
 	initFromObject: function Entity_initFromObject(object) {
@@ -359,44 +369,21 @@ jayus.Entity = jayus.Responder.extend({
 		// Apply our own properties
 		this.frozen++;
 		var i, key, val, valType;
-		for (i=0;i<this.properties.names.length;i++) {
-			key = this.properties.names[i];
+		for (i=0;i<this.properties.length;i++) {
+			key = this.properties[i];
 			val = object[key];
 			valType = typeof val;
 			if (valType === 'object') {
-				val = jayus.parse(val);
+				val = jayus.fromObject(val);
 			}
 			this['set'+key[0].toUpperCase()+key.slice(1)](val);
 		}
+		if (typeof object.id !== 'undefined') {
+			this.id = object.id;
+		}
 		this.frozen--;
 		// Set as dirty
-		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	//@ From Parsable
-	addToResult: function Entity_addToResult(result) {
-		if (jayus.isObjectInResult(result, this)) {
-			return;
-		}
-		// Get object from parent
-		var object = jayus.Dependency.prototype.addToResult.call(this, result);
-		// Add our own properties
-		object.__type__ = 'Entity';
-		// result.objects.push(object);
-		var i, key, val, valType;
-		for (i=0;i<jayus.Entity.prototype.properties.names.length;i++) {
-			key = jayus.Entity.prototype.properties.names[i];
-			val = this[key];
-			valType = typeof val;
-			if (valType === 'object' && val !== null) {
-				val.addToResult(result);
-				val = val.id;
-			}
-			if (val !== jayus.Entity.prototype[key]) {
-				object[key] = val;
-			}
-		}
-		return object;
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 	/**

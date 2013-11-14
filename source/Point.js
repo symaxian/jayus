@@ -85,31 +85,29 @@ jayus.Point = jayus.Dependency.extend({
 	},
 
 	//@ From Parsable
+	toObject: function Point_toObject() {
+		var object = {
+			__type___: 'Point',
+			x: this.x,
+			y: this.y
+		};
+		if (this.id !== jayus.Dependency.prototype.id) {
+			object.id = this.id;
+		}
+		return object;
+	},
+
+	//@ From Parsable
 	initFromObject: function Point_initFromObject(object) {
 		//#ifdef DEBUG
 		jayus.debug.match('Point.initFromObject', object, 'object', jayus.TYPES.OBJECT);
 		//#end
-		// Apply parent properties
 		jayus.Dependency.prototype.initFromObject.call(this, object);
 		// Apply our own properties
 		this.x = object.x;
 		this.y = object.y;
 		// Set as dirty
-		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	//@ From Parsable
-	addToResult: function Point_addToResult(result) {
-		if (jayus.isObjectInResult(result, this)) {
-			return;
-		}
-		// Get object from parent
-		var object = jayus.Dependency.prototype.addToResult.call(this);
-		// Add our own properties
-		object.__type__ = 'Point';
-		object.x = this.x;
-		object.y = this.y;
-		return object;
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 		//

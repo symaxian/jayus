@@ -109,35 +109,28 @@ jayus.Color = jayus.Dependency.extend({
 	},
 
 	//@ From Parsable
+	toObject: function Color_toObject() {
+		return {
+			__type__: 'Color',
+			r: this.r,
+			g: this.g,
+			b: this.b,
+			a: this.a
+		};
+	},
+
+	//@ From Parsable
 	initFromObject: function Color_initFromObject(object) {
 		//#ifdef DEBUG
 		jayus.debug.match('Color.initFromObject', object, 'object', jayus.TYPES.OBJECT);
 		//#end
-		// Apply parent properties
-		jayus.Dependency.prototype.initFromObject.call(this, object);
 		// Apply our own properties
 		this.r = object.r;
 		this.g = object.g;
 		this.b = object.b;
 		this.a = object.a;
 		// Set as dirty
-		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	//@ From Parsable
-	addToResult: function Color_addToResult() {
-		if (jayus.isObjectInResult(result, this)) {
-			return;
-		}
-		// Get object from parent
-		var object = jayus.Dependency.prototype.addToResult.call(this);
-		// Add our own properties
-		object.__type__ = 'Color';
-		object.r = this.r;
-		object.g = this.g;
-		object.b = this.b;
-		object.a = this.a;
-		return object;
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 		//

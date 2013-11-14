@@ -52,6 +52,8 @@ jayus.Image = jayus.RectEntity.extend({
 
 	image: null,
 
+	imageSource: null,
+
 	/**
 	Denotes that this image represents a sub-section of the source image.
 	<br> Do not modify.
@@ -76,6 +78,7 @@ jayus.Image = jayus.RectEntity.extend({
 	*/
 
 	keepAligned: false,
+	//#replace jayus.Image.prototype.keepAligned false
 
 	/**
 	Whether the image is loaded or not.
@@ -110,6 +113,7 @@ jayus.Image = jayus.RectEntity.extend({
 		// Check the argument type
 		if(typeof image === 'string'){
 			var filepath = image;
+			this.imageSource = filepath;
 			// Check if loaded
 			if(jayus.images.isLoaded(filepath)){
 				// Set image
@@ -142,6 +146,49 @@ jayus.Image = jayus.RectEntity.extend({
 			this.width = this.image.width;
 			this.height = this.image.height;
 		}
+	},
+
+	toObject: function Image_toObject() {
+		var object = jayus.RectEntity.prototype.toObject.apply(this);
+		// Add our own properties
+		object.__type__ = 'Image';
+		if (this.section !== null) {
+			object.section = this.section.toObject();
+		}
+		if (this.keepAligned !== jayus.Image.prototype.keepAligned) {
+			object.keepAligned = this.keepAligned;
+		}
+		// Special handling for the image
+		if (this.image instanceof HTMLImageElement) {
+			object.image = this.imageSource;
+		}
+		else if (this.image instanceof jayus.Surface) {
+			object.image = this.image.toObject();
+		}
+		// Remove width/height, it derives from the image
+		delete object.width;
+		delete object.height;
+		return object;
+	},
+
+	initFromObject: function Image_initFromObject(object) {
+		this.RectEntity.prototype.initFromObject.call(this, object);
+		// Apply our properties
+		this.hasSection = typeof object.section === 'object';
+		if (this.hasSection) {
+			this.section = new jayus.Rectangle(object.section);
+		}
+		if (typeof object.keepAligned === 'boolean') {
+			this.keepAligned = object.keepAligned;
+		}
+		// Special handling for the image
+		if (typeof object.image === 'string') {
+			this.setSource(object.image);
+		}
+		else if (typeof object.image === 'object') {
+			this.setSource(new jayus.Surface(object.image));
+		}
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 		//
