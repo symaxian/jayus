@@ -81,11 +81,11 @@ jayus.Group = {
 	/**
 	Searches the group and all Entities below it for an Entity with the specified id.
 	<br> Returns null if not found.
-	@method {Entity} findChild
+	@method {Entity} find
 	@param {String} id
 	*/
 
-	findChild: function Group_findChild(id){
+	find: function Group_find(id){
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.setId', id, 'id', jayus.TYPES.DEFINED);
 		//#end
@@ -96,7 +96,7 @@ jayus.Group = {
 				return item;
 			}
 			if(item.isParent){
-				item = item.findChild(id);
+				item = item.find(id);
 				if(item !== null){
 					return item;
 				}

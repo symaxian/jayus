@@ -32,10 +32,6 @@ Represents multiple lines of text with word wrapping.
 @extends jayus.Text
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'TextBox';
-//#end
-
 jayus.TextBox = jayus.Text.extend({
 
 	//#ifdef DEBUG

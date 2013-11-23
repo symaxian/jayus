@@ -26,10 +26,6 @@ An abstract class representing a linear or radial gradient.
 @class jayus.Gradient
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Gradient';
-//#end
-
 jayus.Gradient = jayus.Dependency.extend({
 
 	//
@@ -45,6 +41,7 @@ jayus.Gradient = jayus.Dependency.extend({
 	*/
 
 	stopPositions: null,
+	//@replace jayus.Gradient.prototype.stopPositions null
 
 	/**
 	An array of the colors of the color-stops.
@@ -53,6 +50,7 @@ jayus.Gradient = jayus.Dependency.extend({
 	*/
 
 	stopColors: null,
+	//@replace jayus.Gradient.prototype.stopColors null
 
 	/**
 	The native canvas version of this gradient.
@@ -73,6 +71,41 @@ jayus.Gradient = jayus.Dependency.extend({
 	//
 	//  Methods
 	//___________//
+
+	//@ From Parsable
+	toObject: function Gradient_toObject() {
+		var object = {
+			type: 'Gradient'
+		};
+		// Apply our own properties
+		if (this.stopPositions !== jayus.Gradient.prototype.stopPositions) {
+			object.stopPositions = this.stopPositions;
+		}
+		if (this.stopColors !== jayus.Gradient.prototype.stopColors) {
+			object.stopColors = this.stopColors.toObject();
+		}
+		// Apply the id
+		if (this.id !== jayus.Dependency.prototype.id) {
+			object.id = this.id;
+		}
+		return object;
+	},
+
+	//@ From Parsable
+	initFromObject: function Gradient_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Gradient.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		if (typeof object.stopPositions === 'object') {
+			this.stopPositions = object.stopPositions;
+		}
+		if (typeof object.stopColors === 'object') {
+			this.stopColors = object.stopColors;
+		}
+		// Set as dirty
+		this.reformNative = true;
+		return this.dirty(jayus.DIRTY.ALL);
+	},
 
 	componentDirtied: function Gradient_componentDirtied(component, type){
 		this.reformNative = true;
@@ -146,10 +179,6 @@ Represents a standard linear gradient, for use as a brush style.
 @extends jayus.Gradient
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'LinearGradient';
-//#end
-
 jayus.LinearGradient = jayus.Gradient.extend({
 
 	//
@@ -162,6 +191,7 @@ jayus.LinearGradient = jayus.Gradient.extend({
 	*/
 
 	start: null,
+	//#replace jayus.LinearGradient.prototype.start null
 
 	/*
 	The ending point.
@@ -169,6 +199,7 @@ jayus.LinearGradient = jayus.Gradient.extend({
 	*/
 
 	end: null,
+	//#replace jayus.LinearGradient.prototype.end null
 
 	//
 	//  Methods
@@ -188,6 +219,8 @@ jayus.LinearGradient = jayus.Gradient.extend({
 	*/
 
 	init: overloadArgumentCount({
+
+		0: function LinearGradient_init(){},
 
 		2: function LinearGradient_init(start, end){
 			//#ifdef DEBUG
@@ -209,6 +242,36 @@ jayus.LinearGradient = jayus.Gradient.extend({
 		}
 
 	}),
+
+	//@ From Parsable
+	toObject: function LinearGradient_toObject() {
+		var object = jayus.Gradient.prototype.toObject.apply(this);
+		// Apply our own properties
+		object.type = 'LinearGradient';
+		if (this.start !== jayus.LinearGradient.prototype.start) {
+			object.start = this.start.toObject();
+		}
+		if (this.end !== jayus.LinearGradient.prototype.end) {
+			object.end = this.end.toObject();
+		}
+		return object;
+	},
+
+	//@ From Parsable
+	initFromObject: function LinearGradient_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('LinearGradient.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		jayus.Gradient.prototype.initFromObject.call(this, object);
+		if (typeof object.start === 'object') {
+			this.start = new jayus.Point(object.start);
+		}
+		if (typeof object.end === 'object') {
+			this.end = new jayus.Point(object.end);
+		}
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
+	},
 
 	//@ From Gradient
 	refresh: function LinearGradient_refresh(){
@@ -235,10 +298,6 @@ Represents a radial gradient, for use as a brush style.
 @class jayus.RadialGradient
 @extends jayus.Gradient
 */
-
-//#ifdef DEBUG
-jayus.debug.className = 'RadialGradient';
-//#end
 
 jayus.RadialGradient = jayus.Gradient.extend({
 
@@ -313,6 +372,36 @@ jayus.RadialGradient = jayus.Gradient.extend({
 		}
 
 	}),
+
+	//@ From Parsable
+	toObject: function RadialGradient_toObject() {
+		var object = jayus.Gradient.prototype.toObject.apply(this);
+		// Apply our own properties
+		object.type = 'RadialGradient';
+		if (this.start !== jayus.RadialGradient.prototype.start) {
+			object.start = this.start.toObject();
+		}
+		if (this.end !== jayus.RadialGradient.prototype.end) {
+			object.end = this.end.toObject();
+		}
+		return object;
+	},
+
+	//@ From Parsable
+	initFromObject: function RadialGradient_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('RadialGradient.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		jayus.Gradient.prototype.initFromObject.call(this, object);
+		if (typeof object.start === 'object') {
+			this.start = new jayus.Circle(object.start);
+		}
+		if (typeof object.end === 'object') {
+			this.end = new jayus.Circle(object.end);
+		}
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
+	},
 
 	//@ From Gradient
 	refresh: function RadialGradient_refresh(){

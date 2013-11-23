@@ -32,10 +32,6 @@ Represents an axis-aligned rectangle.
 @class jayus.Rectangle
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Rectangle';
-//#end
-
 jayus.Rectangle = jayus.Shape.extend({
 
 	//
@@ -143,11 +139,10 @@ jayus.Rectangle = jayus.Shape.extend({
 		}
 	},
 
-	//@ From Parsable
 	toObject: function Rectangle_toObject() {
 		// Get object from parent
 		var object = {
-			__type__: 'Rectangle',
+			type: 'Rectangle',
 			x: this.x,
 			y: this.y,
 			width: this.width,
@@ -162,7 +157,6 @@ jayus.Rectangle = jayus.Shape.extend({
 		return object;
 	},
 
-	//@ From Parsable
 	initFromObject: function Rectangle_initFromObject(object) {
 		//#ifdef DEBUG
 		jayus.debug.match('Rectangle.initFromObject', object, 'object', jayus.TYPES.OBJECT);
@@ -597,8 +591,8 @@ jayus.Rectangle = jayus.Shape.extend({
 		//_____________//
 
 	//#ifdef DEBUG
-	toString: function Rectangle_toString() {
-		return '( Rectangle: '+this.x+', '+this.y+', '+this.width+', '+this.height+' )';
+	toString: function Rectangle_toString(){
+		return '(Rectangle: '+this.x+', '+this.y+', '+this.width+', '+this.height+')';
 	},
 	//#end
 

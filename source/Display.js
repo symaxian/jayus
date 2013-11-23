@@ -38,10 +38,6 @@ A Scene that can be placed onto the page.
 //		This is somewhat strict, it would be better to check that it hasn't moved within a certain number, though that doesn't entirely fix the problem of clicks bleeding into or out of entities.
 //		A custom system could be implemented that would manually check previous and current entity cursor flags, but this might be slow/unresponsive.
 
-//#ifdef DEBUG
-jayus.debug.className = 'Display';
-//#end
-
 jayus.Display = jayus.Scene.extend({
 
 	//

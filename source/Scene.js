@@ -34,10 +34,6 @@ A entity for manipulating and rendering child entities within a fixed area.
 @extends jayus.Group
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Scene';
-//#end
-
 jayus.Scene = jayus.RectEntity.extend({
 
 	//
@@ -134,7 +130,10 @@ jayus.Scene = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
 		//#end
-		if(arguments.length){
+		if (arguments.length === 1) {
+			this.initFromObject(width);
+		}
+		else if (arguments.length === 2) {
 			//#ifdef DEBUG
 			jayus.debug.matchArgumentsAs('Scene.init', arguments, jayus.TYPES.NUMBER, 'width', 'height');
 			//#end
@@ -147,7 +146,7 @@ jayus.Scene = jayus.RectEntity.extend({
 		var object = jayus.RectEntity.prototype.toObject.apply(this);
 		jayus.groupToObject.call(this, object);
 		// Add our own properties
-		object.__type__ = 'Scene';
+		object.type = 'Scene';
 		if (this.optimizeBuffering !== jayus.Scene.prototype.optimizeBuffering) {
 			object.optimizeBuffering = this.optimizeBuffering;
 		}
@@ -168,7 +167,7 @@ jayus.Scene = jayus.RectEntity.extend({
 		this.frozen++;
 		// Apply parent properties
 		jayus.RectEntity.prototype.initFromObject.call(this, object);
-		jayus.groupFromObject.call(this, object);
+		jayus.groupInitFromObject.call(this, object);
 		// Apply our own properties
 		if (typeof object.optimizeBuffering === 'boolean') {
 			this.optimizeBuffering = object.optimizeBuffering;
@@ -178,6 +177,12 @@ jayus.Scene = jayus.RectEntity.extend({
 		}
 		if (typeof object.damagedRegionPadding === 'number') {
 			this.damagedRegionPadding = object.damagedRegionPadding;
+		}
+		if (typeof object.widthPolicy === 'object') {
+			this.widthPolicy = new jayus.SizePolicy(object.widthPolicy);
+		}
+		if (typeof object.heightPolicy === 'object') {
+			this.heightPolicy = new jayus.SizePolicy(object.heightPolicy);
 		}
 		this.frozen--;
 		// Set as dirty
@@ -189,10 +194,13 @@ jayus.Scene = jayus.RectEntity.extend({
 		//_____________//
 
 	optimizeBuffering: false,
+	//#replace jayus.Scene.prototype.optimizeBuffering false
 
 	groupDamagedRegions: true,
+	//#replace jayus.Scene.prototype.groupDamagedRegions true
 
 	damagedRegionPadding: 2,
+	//#replace jayus.Scene.prototype.damagedRegionPadding 2
 
 	/**
 	Sets the optimized buffering flag on the Scene.

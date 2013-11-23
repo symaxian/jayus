@@ -32,10 +32,6 @@ Used to describe a Rect entity's minimum and preferred size.
 @class jayus.SizePolicy
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'SizePolicy';
-//#end
-
 jayus.SizePolicy = jayus.createClass({
 
 	//
@@ -49,6 +45,7 @@ jayus.SizePolicy = jayus.createClass({
 	*/
 
 	size: 0,
+	//#replace jayus.SizePolicy.prototype.size 0
 
 	/**
 	When sharing space with siblings, the weight that this entity has.
@@ -57,6 +54,7 @@ jayus.SizePolicy = jayus.createClass({
 	*/
 
 	weight: 1,
+	//#replace jayus.SizePolicy.prototype.weight 1
 
 	/**
 	Whether or not to expand when additional space is available.
@@ -64,6 +62,46 @@ jayus.SizePolicy = jayus.createClass({
 	@property {Boolean} expand
 	*/
 
-	expand: true
+	expand: true,
+	//#replace jayus.SizePolicy.prototype.expand true
+
+	init: function SizePolicy_init(object) {
+		if (arguments.length) {
+			this.initFromObject(object);
+		}
+	},
+
+	toObject: function SizePolicy_toObject() {
+		// Add our own properties
+		object.type = 'SizePolicy';
+		if (this.size !== jayus.SizePolicy.prototype.size) {
+			object.size = this.size;
+		}
+		if (this.weight !== jayus.SizePolicy.prototype.weight) {
+			object.weight = this.weight;
+		}
+		if (this.expand !== jayus.SizePolicy.prototype.expand) {
+			object.expand = this.expand;
+		}
+		return object;
+	},
+
+	//@ From Parsable
+	initFromObject: function SizePolicy_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('SizePolicy.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		// Apply our own properties
+		if (typeof object.size === 'number') {
+			this.size = object.size;
+		}
+		if (typeof object.weight === 'number') {
+			this.weight = object.weight;
+		}
+		if (typeof object.expand === 'boolean') {
+			this.expand = object.expand;
+		}
+		return this;
+	}
 
 });

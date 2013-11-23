@@ -33,10 +33,6 @@ An Entity that holds a Shape and allows it to be added to the scenegraph.
 @extends jayus.Entity
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'PaintedShape';
-//#end
-
 jayus.PaintedShape = jayus.Entity.extend({
 
 	/**
@@ -46,6 +42,7 @@ jayus.PaintedShape = jayus.Entity.extend({
 	*/
 
 	shape: null,
+	//#replace jayus.PaintedShape.prototype.shape null
 
 	/**
 	How to draw the shape.
@@ -53,6 +50,7 @@ jayus.PaintedShape = jayus.Entity.extend({
 	*/
 
 	brush: null,
+	//#replace jayus.PaintedShape.prototype.brush null
 
 	/**
 	Whether a brush is set or not.
@@ -80,6 +78,39 @@ jayus.PaintedShape = jayus.Entity.extend({
 		if(brush !== undefined){
 			this.setBrush(brush);
 		}
+	},
+
+	toObject: function PaintedShape_toObject() {
+		var object = jayus.Entity.prototype.toObject.apply(this);
+		// Add our own properties
+		object.type = 'PaintedShape';
+		if (this.shape !== jayus.PaintedShape.prototype.shape) {
+			object.shape = this.shape.toObject();
+		}
+		if (this.brush !== jayus.PaintedShape.prototype.brush) {
+			object.brush = this.brush.toObject();
+		}
+		return object;
+	},
+
+	//@ From Parsable
+	initFromObject: function PaintedShape_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('PaintedShape.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		// Apply parent properties
+		jayus.Entity.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		this.frozen++;
+		if (typeof object.shape === 'object') {
+			this.setShape(object.shape);
+		}
+		if (typeof object.brush === 'object') {
+			this.setBrush(object.brush);
+		}
+		this.frozen--;
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 	componentDirtied: function PaintedShape_componentDirtied(component, type){
@@ -121,7 +152,7 @@ jayus.PaintedShape = jayus.Entity.extend({
 		if(this.shape !== shape){
 			this.shape.detach(this);
 			this.shape = shape;
-			shape.attach(this);	
+			shape.attach(this);
 			this.dirty(jayus.DIRTY.ALL);
 		}
 		return this;

@@ -34,10 +34,6 @@ An enhanced version of the Image entity that can be easily animated.
 @extends jayus.Image
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Sprite';
-//#end
-
 jayus.Sprite = jayus.Image.extend({
 
 	//
@@ -83,39 +79,42 @@ jayus.Sprite = jayus.Image.extend({
 	//___________//
 
 	toObject: function Sprite_toObject() {
-		var object = jayus.Image.prototype.toObject.apply(this);
+		var object = jayus.Image.prototype.toObject.call(this);
 		// Add our own properties
-		object.__type__ = 'Sprite';
-		if (this.spriteIndexX !== jayus.Sprite.prototype.spriteIndexX) {
+		object.type = 'Sprite';
+		if (this.spriteIndexX !== jayus.Sprite.prototype.spriteIndexX || this.spriteIndexY !== jayus.Sprite.prototype.spriteIndexY) {
 			object.spriteIndexX = this.spriteIndexX;
-		}
-		if (this.spriteIndexY !== jayus.Sprite.prototype.spriteIndexY) {
 			object.spriteIndexY = this.spriteIndexY;
 		}
 		return object;
 	},
 
 	initFromObject: function Sprite_initFromObject(object) {
-		jayus.Image.prototype.initFromObject.apply(this);
+		jayus.Image.prototype.initFromObject.call(this, object);
 		// Add our own properties
-		if (typeof object.spriteIndexX === 'number') {
-			this.spriteIndexX = object.spriteIndexX;
+		// We cant just set the sprite indices, if we do then when calling setSprite() it will think we're just re-setting the same value
+		// We have to call setSprite() with the new values
+		if (typeof object.spriteIndexX === 'number' && typeof object.spriteIndexY === 'number') {
+			this.setSprite(object.spriteIndexX, object.spriteIndexY);
 		}
-		if (typeof object.spriteIndexY === 'number') {
-			this.spriteIndexY = object.spriteIndexY;
+		//#ifdef DEBUG
+		else if(typeof object.spriteIndexX !== typeof object.spriteIndexY) {
+			console.warn('Sprite.initFromObject() - Properties spriteIndexX and spriteIndexY must both be present if one is');
 		}
+		//#end
 		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 	/**
 	Sets the spritesheet for this sprite.
+	<br> This overrides the usage of the spritesheet attached to the image.
 	@method {Self} setSpriteSheet
 	@param {SpriteSheet} sheet
 	*/
 
 	setSpriteSheet: function Sprite_setSpriteSheet(sheet){
+		// FIXME: Sprite.setSpriteSheet() - Does not refresh the sprite index, size, or anything
 		this.sheet = sheet;
-		// this.setSize(sheet.spriteSize);
 		return this;
 	},
 
@@ -128,21 +127,31 @@ jayus.Sprite = jayus.Image.extend({
 	@paramset 2
 	@param {Number} x
 	@param {Number} y
+	@paramset 3
+	@param {Point} name
 	*/
 
 	setSprite: function Sprite_setSprite(x, y){
-		//#ifdef DEBUG
-		jayus.debug.matchCoordinate('Sprite.setSprite', x, y);
-		//#end
-		if(arguments.length === 1){
-			y = x.y;
-			x = x.x;
-		}
+		// FIXME: Argchk
+		// //#ifdef DEBUG
+		// jayus.debug.matchCoordinate('Sprite.setSprite', x, y);
+		// //#end
 		// Get the descriptor
 		if(this.sheet !== null || typeof this.image.sheet === 'object'){
+			var sheet = this.sheet || this.image.sheet;
+			if(typeof x === 'string'){
+
+				// this.setSection(sheet.getSpriteSection(x));
+				// this.dirty(jayus.DIRTY.SIZE);
+				sheet.applySprite(this, x);
+
+			}
 			// Ensure its different from the current sprite
-			if(this.spriteIndexX !== x || this.spriteIndexY !== y){
-				var sheet = this.sheet || this.image.sheet;
+			else if(this.spriteIndexX !== x || this.spriteIndexY !== y){
+				if(arguments.length === 1){
+					y = x.y;
+					x = x.x;
+				}
 				// Set the tile number
 				this.spriteIndexX = x;
 				this.spriteIndexY = y;
@@ -193,14 +202,9 @@ jayus.Sprite = jayus.Image.extend({
 		return this.setAnimation(name, true);
 	},
 
-	stopAnimation: function Sprite_stopAnimation(){
-		if(this.animator !== null){
-			this.animator.stop();
-		}
-	},
-
 	/**
 	Sets the playing animation for the sprite.
+	<br> Does not set the animation if one with the same name is still running.
 	<br> Requires that a sheet be set on this sprite or the source image.
 	@method {Self} setAnimation
 	@param {String} name
@@ -214,8 +218,13 @@ jayus.Sprite = jayus.Image.extend({
 		if(this.sheet !== null || typeof this.image.sheet === 'object'){
 			var sheet = this.sheet || this.image.sheet;
 			if(sheet.hasAnimation(name)){
-				// Stop any previous animation
-				if(this.animator !== null){
+				// Check if there is currently a running animator
+				if(this.animator !== null && this.animator.running){
+					// If the same animation is currently running, return
+					if(this.animation === name){
+						return this;
+					}
+					// Stop any previous animation
 					this.animator.stop();
 				}
 				// Save the animation name
@@ -224,11 +233,10 @@ jayus.Sprite = jayus.Image.extend({
 				var data = sheet.animations[name],
 					sequence = data.sprites,
 					sprite = this;
-
 				// Set the flipping
 				if(data.flipX || data.flipY){
 					// Make sure to flip around the center
-					this.setAnchor(this.width/2, this.height/2);
+					// this.setAnchor(this.width/2, this.height/2);
 					if(data.flipX){
 						this.setScale(-1, this.yScale);
 					}
@@ -245,7 +253,6 @@ jayus.Sprite = jayus.Image.extend({
 				else{
 					this.setScale(1, 1);
 				}
-
 				// Create the animator
 				this.animator = new jayus.Animator.Discrete(sequence.length, function(index){
 					sprite.setSprite(sequence[index]);
@@ -267,22 +274,16 @@ jayus.Sprite = jayus.Image.extend({
 		return this;
 	},
 
-	playSequence: function Sprite_playSequence(names){
-		var i, anim,
-			seq = new jayus.AnimatorSequence(),
-			sheet = this.sheet || this.image.sheet;
-		for(i=0;i<names.length;i++){
-			seq.add(new jayus.Sprite.SpriteSequence(this, sheet.animations[names[i]].sprites).setDuration(sheet.animations[names[i]].duration));
+	/**
+	Stops the currently running animation.
+	<br> Requires that a sheet be set on this sprite or the source image.
+	@method {Self} stopAnimation
+	*/
+
+	stopAnimation: function Sprite_stopAnimation(){
+		if(this.animator !== null && this.animator.running){
+			this.animator.stop();
 		}
-		this.animator.stop();
-		this.animator = seq;
-		anim = this.animation;
-		this.animation = names;
-		seq.addHandler('finished', function(e){
-			this.setAnimation(anim);
-		},{ context: this });
-		seq.start();
-		return seq;
 	}
 
 });

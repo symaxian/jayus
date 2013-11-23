@@ -32,6 +32,34 @@ Defines the global jayus object.
 
 TODO:
 
+		What if jayus allowed Entities to hold the IDs of its dependencies rather than just references
+
+			These ID's would resolve to the actual references to these IDs when needed, or throw an error
+			This would allow for much more flexibility with declarative syntax, as we can declare something anywhere/anytime, and allow jayus to link it to objects where needed
+
+			Such as JSON defining the UI Scene for a game, but all the brushes are just ID's:
+				ui.json: {
+					type: 'Scene',
+					id: 'MainMenu',
+					bg: 'UI_BgBrush'
+				}
+				themes/dark.json: {
+					type: 'Brush',
+					id: 'UI_BgBrush',
+					fill: '#232323'
+				}
+
+			When to resolve dependencies?
+
+				When property is set, try to resolve
+				If not resolved, tell jayus to try again whenever a new item is added
+				If property is accessed, just let it throw a type error?
+
+			+ VERY powerful feature, allows for easy fragmentation and modularity of EVERY component
+			- Requires we keep a listing of identified objects in jayus
+			- Requires much more code to resolve these references from ID's
+			- Can lead to dependency hell if not careful
+
 		Allow declarative semantics for points/shapes/sizes WHEREVER POSSIBLE
 			Include numbers? Booleans?
 
@@ -49,14 +77,6 @@ TODO:
 			More graphs
 			Give some idea of what is being dirtied
 			Give tally of inits within each routine
-
-		Move away from Function.call and Function.apply for init?
-			They're slower than regular function calls
-			Move them out of the instance, into the constructor
-			Instead send the object to init as the first one
-				init: function(obj, param1, param2, ...)
-				jayus.Entity.prototype.init.apply(this)
-				jayus.Entity.init(this)
 
 		Remove the static "events" from the chart
 			Move to named ones
@@ -312,7 +332,7 @@ Credits:
 
 		LimeJS, ImpactJS
 			General insight
-	
+
 		jQuery Easing Plugin
 			Easing functions
 
@@ -465,6 +485,7 @@ jayus = {
 	//#replace jayus.DIRTY.SIZE 4
 	//#replace jayus.DIRTY.TRANSFORMS 8
 	//#replace jayus.DIRTY.CONTENT 16
+	//#replace jayus.DIRTY.CONTENT 127
 
 	DIRTY: {
 
@@ -673,9 +694,18 @@ jayus = {
 		}
 	},
 
+	/**
+	Returns whether two lines intersect.
+	@method {Boolean} intersectLineLine
+	@param {Point} a1
+	@param {Point} a2
+	@param {Point} b1
+	@param {Point} b2
+	*/
+
 	intersectLineLine: function jayus_intersectLineLine(a1, a2, b1, b2){
 		//#ifdef DEBUG
-		jayus.debug.matchArgumentsAs('jayus.intersectLineLine', arguments, jayus.TYPES.NUMBER, 'a1', 'a2', 'b1', 'b2');
+		jayus.debug.matchArgumentsAs('jayus.intersectLineLine', arguments, jayus.TYPES.POINT, 'a1', 'a2', 'b1', 'b2');
 		//#end
 		var ua_t = (b2.x - b1.x) * (a1.y - b1.y) - (b2.y - b1.y) * (a1.x - b1.x),
 			ub_t = (a2.x - a1.x) * (a1.y - b1.y) - (a2.y - a1.y) * (a1.x - b1.x),
@@ -688,38 +718,13 @@ jayus = {
 		return ua_t === 0 || ub_t === 0;
 	},
 
-	// collisionLineLine: function jayus_collisionLineLine(a1, a2, b1, b2){
-	// 	var result = {
-	// 			point: null
-	// 		},
-	// 		ua_t = (b2.x - b1.x) * (a1.y - b1.y) - (b2.y - b1.y) * (a1.x - b1.x),
-	// 		ub_t = (a2.x - a1.x) * (a1.y - b1.y) - (a2.y - a1.y) * (a1.x - b1.x),
-	// 		u_b = (b2.y - b1.y) * (a2.x - a1.x) - (b2.x - b1.x) * (a2.y - a1.y);
-	// 	if(u_b !== 0) {
-	// 		var ua = ua_t / u_b,
-	// 			ub = ub_t / u_b;
-	// 		if(0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
-	// 			result.status = "intersection";
-	// 			result.intersects = true;
-	// 			result.point = new jayus.Point(a1.x + ua * (a2.x - a1.x), a1.y + ua * (a2.y - a1.y));
-	// 		}
-	// 		else {
-	// 			result.status = "no intersection";
-	// 			result.intersects = false;
-	// 		}
-	// 	}
-	// 	else {
-	// 		if(ua_t === 0 || ub_t === 0) {
-	// 			result.status = "coincident";
-	// 			result.intersects = true;
-	// 		}
-	// 		else {
-	// 			result.status = "parallel";
-	// 			result.intersects = false;
-	// 		}
-	// 	}
-	// 	return result;
-	// },
+	/**
+	Returns whether a line and polygon intersect.
+	@method {Boolean} intersectLinePolygon
+	@param {Point} a1
+	@param {Point} a2
+	@param {Polygon} poly
+	*/
 
 	intersectLinePolygon: function jayus_intersectLinePolygon(a1, a2, poly){
 		//#ifdef DEBUG
@@ -734,22 +739,12 @@ jayus = {
 		return false;
 	},
 
-	// collisionLinePolygon: function(a1, a2, points){
-	// 	var result = new Intersection("No Intersection"),
-	// 		length = points.length;
-
-	// 	for (var i = 0; i < length; i++) {
-	// 		var b1 = points[i],
-	// 			b2 = points[(i+1) % length],
-	// 			inter = Intersection.intersectLineLine(a1, a2, b1, b2);
-
-	// 		result.appendPoints(inter.points);
-	// 	}
-	// 	if(result.points.length > 0) {
-	// 		result.status = "Intersection";
-	// 	}
-	// 	return result;
-	// },
+	/**
+	Returns whether two polygons intersect.
+	@method {Boolean} intersectPolygonPolygon
+	@param {Polygon} poly1
+	@param {Polygon} poly2
+	*/
 
 	intersectPolygonPolygon: function jayus_intersectPolygonPolygon(poly1, poly2){
 		//#ifdef DEBUG
@@ -763,23 +758,6 @@ jayus = {
 		}
 		return false;
 	},
-
-	// collisionPolygonPolygon: function (points1, points2){
-	// 	var result = new Intersection("No Intersection"),
-	// 		length = points1.length;
-
-	// 	for (var i = 0; i < length; i++) {
-	// 		var a1 = points1[i],
-	// 			a2 = points1[(i+1) % length],
-	// 			inter = Intersection.intersectLinePolygon(a1, a2, points2);
-
-	// 		result.appendPoints(inter.points);
-	// 	}
-	// 	if(result.points.length > 0) {
-	// 		result.status = "Intersection";
-	// 	}
-	// 	return result;
-	// },
 
 	/**
 	Returns the distance between two points.
@@ -837,24 +815,6 @@ jayus = {
 	},
 
 	/**
-	Returns a new random number for use as an id.
-	@method {Number} applyObject
-	*/
-
-	getNewId: function jayus_getNewId() {
-		return parseInt(Math.random()*1000000, 10);
-	},
-
-	/*
-		TODO: Keep array of every entity or not?
-			+ Allows easy retrieval?
-			- Must use entity.dealloc() to delete references
-			~ If we use pooling later, dealloc will be needed for that anyway
-	*/
-
-	entities: [],
-
-	/**
 	Creates a constructor function, which in JavaScript is essentially a class.
 	<br> The returned constructor function calls the init method with any arguments passed to it.
 	<br> Any number of superclasses may be sent, the new constructor function will have inherited from all of them, in order.
@@ -863,23 +823,12 @@ jayus = {
 	*/
 
 	createClass: function jayus_createClass(props){
-		// Create the constructor function, which just calls the init method
-		var constructor = function(){
-			this.id = jayus.getNewId();
-			jayus.entities.push(this);
-			this.init.apply(this, arguments);
-		};
-		//#ifdef DEBUG
-		if(typeof jayus.debug.className === 'string'){
-			constructor = eval('(function '+jayus.debug.className+'(){this.id=jayus.getNewId();jayus.entities.push(this);this.init.apply(this,arguments);})');
+		// Create a placeholder init method if none exists
+		if (typeof props.init !== 'function') {
+			props.init = function(){};
 		}
-		jayus.debug.className = null;
-		//#end
+		var constructor = props.init;
 		constructor.prototype = props;
-		// Ensure that there is at least a dummy initializer function
-		if(typeof constructor.prototype.init !== 'function'){
-			constructor.prototype.init = function(){};
-		}
 		// Add a helper init function for subclasses
 		constructor.init = function HelperInit(object, args){
 			constructor.prototype.init.apply(object,args);
@@ -891,24 +840,21 @@ jayus = {
 	},
 
 	extendMethod: function jayus_extendMethod(props){
-		// Create the constructor function, which just calls the init method
-		var constructor = function(){
-			this.id = jayus.getNewId();
-			jayus.entities.push(this);
-			this.init.apply(this, arguments);
-		};
-		//#ifdef DEBUG
-		if(typeof jayus.debug.className === 'string'){
-			constructor = eval('(function '+jayus.debug.className+'(){this.id=jayus.getNewId();jayus.entities.push(this);this.init.apply(this,arguments);})');
+		// Get the constructor function, either the subclass init method, the superclass init method, or a placeholder function
+		var constructor;
+		if (typeof props.init === 'function') {
+			constructor = props.init;
 		}
-		jayus.debug.className = null;
-		//#end
+		else if(typeof this.prototype.init === 'function') {
+			constructor = function(){
+				this.init.apply(this, arguments);
+			};
+		}
+		else {
+			constructor = function(){};
+		}
 		constructor.prototype = Object.create(this.prototype);
 		jayus.applyObject(props, constructor.prototype);
-		// Ensure that there is at least a dummy initializer function
-		if(typeof constructor.prototype.init !== 'function'){
-			constructor.prototype.init = function(){};
-		}
 		// Create a helper init function for subclasses
 		constructor.init = function HelperInit(object, args){
 			constructor.prototype.init.apply(object,args);
@@ -919,28 +865,23 @@ jayus = {
 		return constructor;
 	},
 
+	parse: function(obj){
+		return this.fromObject(obj);
+	},
+
 	fromObject: function jayus_fromObject(obj){
-		var type = obj.__type__;
-		if(typeof jayus[type] === 'function'){
-			for(var key in obj){
-				var value = obj[key];
-				if(value instanceof Array){
-					for(var i=0;i<value.length;i++){
-						if(typeof value[i] === 'object' && typeof value[i].type === 'string'){
-							value[i] = this.fromObject(value[i]);
-						}
-					}
-				}
-				else if(typeof value === 'object' && typeof value.type === 'string'){
-					obj[key] = this.fromObject(value);
-				}
-			}
-			var ret = new jayus[type]();
-			ret.apply(obj);
-			// ret.reform();
-			// ret.reformMatrix();
-			return ret;
+		// Return if already a Dependency
+		// TODO: Use better method
+		if (typeof obj.frozen === 'number') {
+			return obj;
 		}
+		var type = obj.type;
+		if (typeof jayus[type] !== 'function'){
+			throw new Error('jayus.fromObject() - Unknown class '+type+', check the type property');
+		}
+		var ret = new jayus[type]();
+		ret.initFromObject(obj);
+		return ret;
 	},
 
 	groupToObject: function Group_toObject(object) {
@@ -966,7 +907,7 @@ jayus = {
 		if (typeof object.children === 'object') {
 			this.children = new jayus.List(this);
 			for (var i=0;i<object.children.length;i++) {
-				this.children.items.push(jayus.fromObject(object.children[i]));
+				this.children.add(jayus.fromObject(object.children[i]));
 			}
 		}
 	},
@@ -974,8 +915,31 @@ jayus = {
 	identifiedObjects: [],
 
 	addIdentifiedObject: function jayus_addIdentifiedObject(object) {
-		// TODO: Check if already present?
-		this.identifiedObjects.push(object);
+		//#ifdef DEBUG
+		jayus.debug.match('jayus.addIdentifiedObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		// Check if already present
+		if (this.identifiedObjects.indexOf(object) === -1) {
+			this.identifiedObjects.push(object);
+		}
+	},
+
+	getObject: function jayus_getObject(id) {
+		for (var i=0;i<this.identifiedObjects.length;i++) {
+			var object = this.identifiedObjects[i];
+			if (object.id === id) {
+				return object;
+			}
+		}
+		return null;
+	},
+
+	mustGetObject: function jayus_mustGetObject(id) {
+		var object = this.getObject(id);
+		if (object === null) {
+			throw new Error('jayus.mustGetObject() - Object with id "'+id+'" not found');
+		}
+		return object;
 	},
 
 	/**
@@ -1513,32 +1477,60 @@ jayus = {
 
 			if(!this.initialized){
 
-				this.vBox = new jayus.vBox();
-				this.vBox.setSize(this.width, this.height);
-
-				this.topRow = new jayus.Scene(this.width, 30);
-				var bg = new jayus.LinearGradient(0, 0, 0, 30);
-				bg.addColorStop(0, '#DDD');
-				bg.addColorStop(1, '#CCC');
-				this.topRow.setBg({ fill: bg });
-				this.topRow.heightPolicy = new jayus.SizePolicy();
-				this.topRow.heightPolicy.size = 30;
-				this.topRow.heightPolicy.expand = false;
-
-				this.fpsLabel = jayus.parse({
-					type: 'Text',
-					setText: '',
-					setFont: '12px sans-serif',
-					setBrush: {
-						fill: '#111'
-					},
-					setOrigin: [0, 4]
+				this.vBox = new jayus.vBox({
+					width: this.width,
+					height: this.height,
+					children: [
+						{
+							type: 'Scene',
+							id: 'TopRow',
+							width: this.width,
+							height: 30,
+							heightPolicy: {
+								size: 30,
+								expand: false
+							},
+							bg: {
+								fill: {
+									type: 'LinearGradient',
+									start: {
+										x: 0,
+										y: 0
+									},
+									end: {
+										x: 0,
+										y: 30
+									},
+									stopPositions: [0, 1],
+									stopColors: ['#DDD', '#CCC']
+								}
+							},
+							children: [
+								{
+									type: 'Text',
+									id: 'FpsLabel',
+									font: '12px sans-serif',
+									x: 0,
+									y: 4,
+									brush: {
+										fill: '#111'
+									}
+								}
+							]
+						},
+						{
+							type: 'Scene',
+							id: 'Graph',
+							optimizedBuffering: false		// FIXME: Optimized buffering breaks it
+						}
+					]
 				});
 
-				this.topRow.children.add(this.fpsLabel);
+				this.topRow = this.vBox.children.get('TopRow');
+				this.graph = this.vBox.children.get('Graph');
 
-				// this.topLabel = new jayus.Text('', '13px sans-serif', { fill: '#DDD' });
-				// this.topLabel.setOrigin(4, 4);
+				this.fpsLabel = this.topRow.children.get('FpsLabel');
+
 				setInterval(function(){
 					var label = jayus.chart.fpsLabel;
 					var fps = (Math.round(jayus.fps*10)/10)+'';
@@ -1549,35 +1541,32 @@ jayus = {
 					label.setX(label.parent.width-4-label.width);
 				}, 100);
 
-				this.graph = new jayus.Scene();
-				// FIXME: Enable optimized buffering, broken for some reason
-				this.graph.setOptimizedBuffering(false);
-
-				this.vBox.children.add(this.topRow, this.graph);
-
 				// Graph
 
 				this.graphSurface = new jayus.Surface(this.graph.width, this.graph.height);
 
 				this.graph.children.add(this.graphSurface);
 
-				this.graph.addHandler('dirty', function(dirty){
+				this.graph.children.add(new jayus.PaintedShape(new jayus.Polygon.Line(0,0,0,0), { stroke: 'dimgrey' }).setId('16line'));
+				this.graph.children.add(new jayus.PaintedShape(new jayus.Polygon.Line(0,0,0,0), { stroke: 'dimgrey' }).setId('33line'));
+				this.graph.children.add(new jayus.Text('', '10px sans-serif', { fill: 'dimgrey' }).setId('16text'));
+				this.graph.children.add(new jayus.Text('', '10px sans-serif', { fill: 'dimgrey' }).setId('33text'));
+
+				this.graph.addHandler('dirty', function(dirty) {
 					if(dirty & jayus.DIRTY.SIZE){
 						// Helper function
-						var addLabel = function(ms){
-							var y = jayus.chart.graph.height-(ms/jayus.chart.topMS)*jayus.chart.graph.height,
-								line = new jayus.PaintedShape(
-									new jayus.Polygon.Line(0, Math.floor(y)+0.5, jayus.chart.graph.width, Math.floor(y)+0.5),
-									{ stroke: 'dimgrey' }
-								),
-								text = new jayus.Text(ms+' ms', '10px sans-serif', { fill: 'dimgrey' }).setOrigin(4, y-12);
-							jayus.chart.graph.children.
-								update(ms+'line', line.setId(ms+'line')).
-								update(ms+'text', text.setId(ms+'text'));
+						var updateLabel = function(ms) {
+							var y = jayus.chart.graph.height-(ms/jayus.chart.topMS)*jayus.chart.graph.height;
+							var line = jayus.chart.graph.children.get(ms+'line');
+							line.shape.setPoint(0, 0, Math.floor(y)+0.5);
+							line.shape.setPoint(1, jayus.chart.graph.width, Math.floor(y)+0.5);
+							var text = jayus.chart.graph.children.get(ms+'text');
+							text.setText(ms+' ms');
+							text.setOrigin(4, y-12);
 						};
 						// Add labels for 60 and 30 fps
-						addLabel(16);
-						addLabel(33);
+						updateLabel(16);
+						updateLabel(33);
 						// Set the graph height
 						jayus.chart.graphSurface.setHeight(this.height);
 					}
@@ -2403,6 +2392,10 @@ jayus = {
 					// Check for an object that can toString itself
 					if(typeof v.toString === 'function'){
 						return v.toString();
+					}
+					// Check for an entity to object method
+					if(typeof v.toObject === 'function'){
+						return JSON.stringify(v.toObject());
 					}
 					// Assume its a plain object
 					return '(Object:'+v+')';

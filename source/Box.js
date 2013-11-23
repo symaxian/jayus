@@ -41,10 +41,6 @@ Base class for the hBox and vBox entities.
 		//		Add onto child when added, requires code duplication
 		//		Use default if not there, requires lots of type checking
 
-//#ifdef DEBUG
-jayus.debug.className = 'Box';
-//#end
-
 jayus.Box = jayus.RectEntity.extend({
 
 	//
@@ -63,6 +59,7 @@ jayus.Box = jayus.RectEntity.extend({
 	*/
 
 	spacing: 8,
+	//#replace jayus.Box.prototype.space 8
 
 	/**
 	Whether to reverse the order of the children.
@@ -72,6 +69,7 @@ jayus.Box = jayus.RectEntity.extend({
 	*/
 
 	reversed: false,
+	//#replace jayus.Box.prototype.reversed false
 
 	isParent: true,
 
@@ -85,7 +83,7 @@ jayus.Box = jayus.RectEntity.extend({
 		//  Initiation
 		//______________//
 
-	init: function Box_init(){
+	init: function Box_init(object) {
 		jayus.Entity.prototype.init.apply(this,arguments);
 		this.children = new jayus.List(this);
 		//#ifdef DEBUG
@@ -96,6 +94,34 @@ jayus.Box = jayus.RectEntity.extend({
 				this.formContents();
 			}
 		});
+		if (arguments.length) {
+			this.initFromObject(object);
+		}
+	},
+
+	toObject: function Box_toObject() {
+		var object = jayus.RectEntity.prototype.toObject.call(this);
+		jayus.groupToObject.call(this, object);
+		object.id = '__Box__';
+		if (this.spacing !== jayus.Box.prototype.spacing) {
+			object.spacing = this.spacing;
+		}
+		if (this.reversed !== jayus.Box.prototype.reversed) {
+			object.reversed = this.reversed;
+		}
+		return object;
+	},
+
+	initFromObject: function Box_initFromObject(object) {
+		jayus.RectEntity.prototype.initFromObject.call(this, object);
+		jayus.groupInitFromObject.call(this, object);
+		if (typeof object.spacing === 'number') {
+			this.setSpacing(object.spacing);
+		}
+		if (typeof object.reversed === 'boolean') {
+			this.setReversed(object.reversed);
+		}
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 		//
@@ -213,15 +239,17 @@ An Entity that organizes its children into a horizontal row.
 @extends jayus.Box
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'hBox';
-//#end
-
 jayus.hBox = jayus.Box.extend({
 
 	//
 	//  Methods
 	//___________//
+
+	toObject: function hBox_toObject() {
+		var object = jayus.Box.prototype.toObject.call(this);
+		object.id = '__hBox__';
+		return object;
+	},
 
 	formContents: function hBox_formContents(){
 
@@ -304,15 +332,17 @@ A widget that organizes its children into a vertical column.
 @extends jayus.Box
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'vBox';
-//#end
-
 jayus.vBox = jayus.Box.extend({
 
 	//
 	//  Methods
 	//___________//
+
+	toObject: function vBox_toObject() {
+		var object = jayus.Box.prototype.toObject.call(this);
+		object.id = '__vBox__';
+		return object;
+	},
 
 	formContents: function vBox_formContents(){
 

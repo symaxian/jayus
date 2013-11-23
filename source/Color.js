@@ -27,10 +27,6 @@ Represents a 32 bit RGBA color.
 @extends jayus.Dependency
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Color';
-//#end
-
 jayus.Color = jayus.Dependency.extend({
 
 	//
@@ -110,13 +106,17 @@ jayus.Color = jayus.Dependency.extend({
 
 	//@ From Parsable
 	toObject: function Color_toObject() {
-		return {
-			__type__: 'Color',
+		var object = {
+			type: 'Color',
 			r: this.r,
 			g: this.g,
 			b: this.b,
 			a: this.a
 		};
+		if (this.id !== jayus.Dependency.prototype.id) {
+			object.id = this.id;
+		}
+		return object;
 	},
 
 	//@ From Parsable
@@ -302,12 +302,6 @@ jayus.Color = jayus.Dependency.extend({
 		//
 		//  Misc
 		//________//
-
-	//#ifdef DEBUG
-	toString: function Color_toString() {
-		return '(Color:'+this.r+','+this.g+','+this.b+(this.a-1?(','+this.a):'')+')';
-	},
-	//#end
 
 	/**
 	Returns the hexadecimal representation of the color.

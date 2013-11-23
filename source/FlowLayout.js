@@ -42,10 +42,6 @@ Arranges children in a manner similar to that of word-wrapped text.
 @extends jayus.RectEntity
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'FlowLayout';
-//#end
-
 jayus.FlowLayout = jayus.RectEntity.extend({
 
 	//

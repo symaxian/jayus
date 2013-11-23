@@ -34,10 +34,6 @@ Represents a list of some objects.
 @class jayus.List
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'List';
-//#end
-
 jayus.List = jayus.createClass({
 
 	//
@@ -182,6 +178,25 @@ jayus.List = jayus.createClass({
 			}
 		}
 		return null;
+	},
+
+	find: function List_find(id) {
+		//#ifdef DEBUG
+		jayus.debug.match('List.get', id, 'id', jayus.TYPES.DEFINED);
+		//#end
+		var i, item;
+		for(i=0;i<this.items.length;i++){
+			item = this.items[i];
+			if(item.id === id){
+				return item;
+			}
+			if(item.isParent){
+				item = item.find(id);
+				if(item !== null){
+					return item;
+				}
+			}
+		}
 	},
 
 	/**

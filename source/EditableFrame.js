@@ -32,10 +32,6 @@ Allows a framed entity to be dragged and resized with the cursor.
 @extends jayus.Frame
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'EditableFrame';
-//#end
-
 jayus.EditableFrame = jayus.Frame.extend({
 
 	//

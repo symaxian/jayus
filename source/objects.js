@@ -133,6 +133,7 @@ jayus.objects = {
 			// Send the request
 			req.send();
 		}
+		// Call the handler if already loaded
 		else if(arguments.length === 2){
 			handler(filepath, this.objects[filepath]);
 		}

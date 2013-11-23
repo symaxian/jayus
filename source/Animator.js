@@ -54,10 +54,6 @@ An abstract class for an animator, an object that performs an animation.
 @extends jayus.Responder
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Animator';
-//#end
-
 jayus.Animator = jayus.Responder.extend({
 
 	//
@@ -340,10 +336,6 @@ An abstract class for objects that can be animated.
 @class jayus.Animatable
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Animatable';
-//#end
-
 jayus.Animatable = jayus.createClass({
 
 	/*
@@ -377,10 +369,6 @@ An animator that continually calls a method on an object with numeric properties
 @class jayus.MethodAnimator
 @extends jayus.Animator
 */
-
-//#ifdef DEBUG
-jayus.debug.className = 'MethodAnimator';
-//#end
 
 jayus.MethodAnimator = jayus.Animator.extend({
 
@@ -480,10 +468,6 @@ A small extension to the Animator class that sends a discrete value(an integer) 
 @extends jayus.Animator
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'DiscreteAnimator';
-//#end
-
 jayus.Animator.Discrete = jayus.Animator.extend({
 
 	/*
@@ -541,10 +525,6 @@ Keeps a list of animators and can run them in sequence.
 @class jayus.Animator.Sequence
 @extends jayus.Animator
 */
-
-//#ifdef DEBUG
-jayus.debug.className = 'AnimatorSequence';
-//#end
 
 jayus.Animator.Sequence = jayus.Animator.extend({
 

@@ -33,10 +33,6 @@ Represents a 2d polygon.
 @extends jayus.Shape
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Polygon';
-//#end
-
 jayus.Polygon = jayus.Shape.extend({
 
 	//
@@ -102,6 +98,7 @@ jayus.Polygon = jayus.Shape.extend({
 	*/
 
 	closed: true,
+	//#replace jayus.Polygon.prototype.closed true
 
 	frame: null,
 
@@ -144,6 +141,38 @@ jayus.Polygon = jayus.Shape.extend({
 				}
 			}
 		}
+	},
+
+	toObject: function Polygon_toObject() {
+		// Get object from parent
+		var object = {
+			type: 'Polygon',
+			xPoints: this.xPoints,
+			yPoints: this.yPoints
+		};
+		if (this.closed !== jayus.Polygon.prototype.closed) {
+			object.closed = this.closed;
+		}
+		if (this.id !== jayus.Dependency.prototype.id) {
+			object.id = this.id;
+		}
+		return object;
+	},
+
+	initFromObject: function Polygon_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Polygon.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		jayus.Dependency.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		this.x = object.xPoints;
+		this.y = object.yPoints;
+		if (typeof object.closed === 'boolean') {
+			this.closed = object.closed;
+		}
+		// Set as dirty
+		this.reformFrame();
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 		//
@@ -408,16 +437,6 @@ jayus.Polygon = jayus.Shape.extend({
 		//
 		//  Utilities
 		//_____________//
-
-	//#ifdef DEBUG
-	toString: function Polygon_toString(){
-		var msg = '(Polygon:';
-		for(var i=0;i<this.xPoints.length;i++){
-			msg += '('+this.xPoints[i]+','+this.yPoints[i]+'),';
-		}
-		return msg.slice(0, msg.length-1)+')';
-	},
-	//#end
 
 	//@ From Shape
 	clone: function Polygon_clone(){

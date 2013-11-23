@@ -37,10 +37,6 @@ An abstract class for helper objects that Entities depend on, such as styling an
 		+ Can greatly reduce number of arrays instantiated, most objects only have one dependent
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Dependency';
-//#end
-
 jayus.Dependency = jayus.Animatable.extend({
 
 	//
@@ -101,7 +97,7 @@ jayus.Dependency = jayus.Animatable.extend({
 
 	initFromObject: function Dependency_initFromObject(object) {
 		if (typeof object.id !== 'undefined') {
-			this.id = id;
+			this.id = object.id;
 			jayus.addIdentifiedObject(this);
 		}
 		return this;

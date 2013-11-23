@@ -49,10 +49,6 @@ The base class for an entity that is enclosed in a rectangular frame.
 @extends jayus.Entity
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'RectEntity';
-//#end
-
 jayus.RectEntity = jayus.Entity.extend({
 
 	//
@@ -84,6 +80,14 @@ jayus.RectEntity = jayus.Entity.extend({
 	*/
 
 	y: 0,
+
+	/**
+	Whether to attempt to keep the Entity pixel-grid aligned.
+	<br> Default is false.
+	@property {Boolean} keepAligned
+	*/
+
+	keepAligned: false,
 
 		// Size
 
@@ -161,6 +165,7 @@ jayus.RectEntity = jayus.Entity.extend({
 		'height',
 		// 'bounds',
 		// 'bg',
+		'keepAligned',
 		'alignBg'
 	],
 
@@ -171,7 +176,7 @@ jayus.RectEntity = jayus.Entity.extend({
 	toObject: function RectEntity_toObject() {
 		var object = jayus.Entity.prototype.toObject.apply(this);
 		// Add our own properties
-		object.__type__ = 'RectEntity';
+		object.type = 'RectEntity';
 		var i, key, val, valType;
 		for (i=0;i<jayus.RectEntity.prototype.properties.length;i++) {
 			key = jayus.RectEntity.prototype.properties[i];
@@ -193,7 +198,6 @@ jayus.RectEntity = jayus.Entity.extend({
 		return object;
 	},
 
-	//@ From Parsable
 	initFromObject: function RectEntity_initFromObject(object) {
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.initFromObject', object, 'object', jayus.TYPES.OBJECT);
@@ -203,15 +207,18 @@ jayus.RectEntity = jayus.Entity.extend({
 		// Apply our own properties
 		this.frozen++;
 		var i, key, val, valType;
-		for (i=0;i<this.properties.length;i++) {
-			key = this.properties[i];
-			this[key] = object[key];
+		for (i=0;i<jayus.RectEntity.prototype.properties.length;i++) {
+			key = jayus.RectEntity.prototype.properties[i];
+			val = object[key];
+			if (typeof val !== 'undefined') {
+				this[key] = val;
+			}
 		}
 		if (typeof object.bounds === 'object') {
 			this.bounds = jayus.fromObject(object.bounds);
 		}
 		if (typeof object.bg === 'object') {
-			this.bg = jayus.fromObject(object.bg);
+			this.setBg(object.bg);
 		}
 		this.frozen--;
 		// Set as dirty
@@ -345,11 +352,11 @@ jayus.RectEntity = jayus.Entity.extend({
 	@param {Number} anchorY
 	*/
 
-	getPosAt: function RectEntity_getPosAt(anchorX, anchorY){
+	getPosAt: function RectEntity_getPosAt(anchorX, anchorY) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('RectEntity.getPosAt', anchorX, anchorY);
 		//#end
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			anchorY = anchorX.y;
 			anchorX = anchorX.x;
 		}
@@ -371,8 +378,8 @@ jayus.RectEntity = jayus.Entity.extend({
 	@param {Number} y
 	*/
 
-	setPosAt: function RectEntity_setPosAt(anchorX, anchorY, x, y){
-		if(arguments.length === 3){
+	setPosAt: function RectEntity_setPosAt(anchorX, anchorY, x, y) {
+		if (arguments.length === 3) {
 			y = x.y;
 			x = x.x;
 		}
@@ -384,11 +391,11 @@ jayus.RectEntity = jayus.Entity.extend({
 		return this.translate(x-(this.x+anchorX*this.width), y-(this.y+anchorY*this.height));
 	},
 
-	setRelativeAnchor: function Entity_setRelativeAnchor(x, y){
+	setRelativeAnchor: function Entity_setRelativeAnchor(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('RectEntity.setRelativeAnchor', x, y);
 		//#end
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
@@ -405,18 +412,18 @@ jayus.RectEntity = jayus.Entity.extend({
 	@param {Box2D.Body} body
 	*/
 
-	setBody: function RectEntity_setBody(body){
+	setBody: function RectEntity_setBody(body) {
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.setBody', body, 'body', jayus.TYPES.OBJECT);
 		//#end
-		if(this.body !== null){
+		if (this.body !== null) {
 			delete this.body.entity;
 		}
-		else{
+		else {
 			jayus.box2d.physicalEntities.push(this);
 			this.setAnchor(this.width/2, this.height/2);
 		}
-		this.body = body
+		this.body = body;
 		this.body.entity = this;
 		return this;
 	},
@@ -426,11 +433,11 @@ jayus.RectEntity = jayus.Entity.extend({
 	@method {Self} removeBody
 	*/
 
-	removeBody: function RectEntity_removeBody(){
-		if(this.body !== null){
+	removeBody: function RectEntity_removeBody() {
+		if (this.body !== null) {
 			delete this.body.entity;
 			this.body = null;
-			jayus.box2d.physicalEntities.splice(jayus.box2d.physicalEntities.indexOf(this));
+			jayus.box2d.physicalEntities.splice(jayus.box2d.physicalEntities.indexOf(this), 1);
 		}
 		return this;
 	},
@@ -441,9 +448,8 @@ jayus.RectEntity = jayus.Entity.extend({
 	@method updateFromBody
 	*/
 
-	updateFromBody: function RectEntity_updateFromBody(){
-		var awake = this.body.IsAwake();
-		if(awake){
+	updateFromBody: function RectEntity_updateFromBody() {
+		if (this.body !== null && this.body.IsAwake()) {
 			var pos = this.body.GetPosition();
 			this.setPosAt(0.5, 0.5, pos.x, pos.y);
 			this.angle = this.body.GetAngle();
@@ -462,14 +468,14 @@ jayus.RectEntity = jayus.Entity.extend({
 	@param {Number} width
 	*/
 
-	setWidth: function RectEntity_setWidth(width){
+	setWidth: function RectEntity_setWidth(width) {
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.setWidth', width, 'width', jayus.TYPES.NUMBER);
-		if(!this.hasFlexibleWidth){
+		if (!this.hasFlexibleWidth) {
 			throw new Error('RectEntity.setWidth() - Entity width is not flexible');
 		}
 		//#end
-		if(width !== this.width){
+		if (width !== this.width) {
 			this.changeSize(width, this.height);
 		}
 		return this;
@@ -477,9 +483,9 @@ jayus.RectEntity = jayus.Entity.extend({
 
 	widthDesc: null,
 
-	setRemoteWidth: function RectEntity_setRemoteWidth(source, key){
+	setRemoteWidth: function RectEntity_setRemoteWidth(source, key) {
 		//#ifdef DEBUG
-		if(!this.hasFlexibleWidth){
+		if (!this.hasFlexibleWidth) {
 			throw new Error('RectEntity.setRemoteWidth() - Entity width is not flexible');
 		}
 		//#end
@@ -488,8 +494,8 @@ jayus.RectEntity = jayus.Entity.extend({
 			key: key
 		};
 		
-		// if(typeof source === 'string'){
-		// 	if(source === 'parent'){
+		// if (typeof source === 'string') {
+		// 	if (source === 'parent') {
 		// 		source = this.parent;
 		// 	}
 		// }
@@ -497,7 +503,7 @@ jayus.RectEntity = jayus.Entity.extend({
 		var that = this;
 		source.addHandler('dirty', function() {
 			var width = this[key];
-			if(width !== that.width){
+			if (width !== that.width) {
 				that.changeSize(width, that.height);
 			}
 		});
@@ -512,14 +518,14 @@ jayus.RectEntity = jayus.Entity.extend({
 	@param {Number} height
 	*/
 
-	setHeight: function RectEntity_setHeight(height){
+	setHeight: function RectEntity_setHeight(height) {
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.setHeight', height, 'height', jayus.TYPES.NUMBER);
-		if(!this.hasFlexibleHeight){
+		if (!this.hasFlexibleHeight) {
 			throw new Error('RectEntity.setHeight() - Entity height is not flexible');
 		}
 		//#end
-		if(height !== this.height){
+		if (height !== this.height) {
 			this.changeSize(this.width, height);
 		}
 		return this;
@@ -536,41 +542,41 @@ jayus.RectEntity = jayus.Entity.extend({
 	@param {Number} height
 	*/
 
-	setSize: function RectEntity_setSize(width, height){
+	setSize: function RectEntity_setSize(width, height) {
 		//#ifdef DEBUG
 		jayus.debug.matchSize('RectEntity.setSize', width, height);
-		if(!this.hasFlexibleWidth || !this.hasFlexibleHeight){
+		if (!this.hasFlexibleWidth || !this.hasFlexibleHeight) {
 			throw new Error('RectEntity.setSize() - Entity size is not flexible');
 		}
 		//#end
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			height = width.height;
 			width = width.width;
 		}
-		if(this.width !== width || this.height !== height){
+		if (this.width !== width || this.height !== height) {
 			this.changeSize(width, height);
 		}
 		return this;
 	},
 
-	changeSize: function RectEntity_changeSize(width, height){
+	changeSize: function RectEntity_changeSize(width, height) {
 		this.width = width;
 		this.height = height;
 		this.dirty(jayus.DIRTY.SIZE);
 	},
 
-	intersectsAt: function RectEntity_intersectsAt(x, y){
+	intersectsAt: function RectEntity_intersectsAt(x, y) {
 		return this.getBounds().intersectsAt(x, y);
-		// if(this.bounds !== null){
+		// if (this.bounds !== null) {
 		// 	return this.boundsClone.intersectsAt(x, y);
 		// }
-		// if(this.isTransformed){
+		// if (this.isTransformed) {
 		// 	return this.getFrame().intersectsAt(x, y);
 		// }
 		// return this.x <= x && x <= this.x+this.width && this.y <= y && y <= this.y+this.height;
 	},
 
-	getUnFrame: function RectEntity_getUnFrame(){
+	getUnFrame: function RectEntity_getUnFrame() {
 		return new jayus.Rectangle(this.x, this.y, this.width, this.height);
 	},
 
@@ -579,14 +585,14 @@ jayus.RectEntity = jayus.Entity.extend({
 	@method {Polygon} getFrame
 	*/
 
-	getFrame: function RectEntity_getFrame(){
-		if(this.isTransformed){
+	getFrame: function RectEntity_getFrame() {
+		if (this.isTransformed) {
 			return new jayus.Polygon.Rectangle(0, 0, this.width, this.height).transform(this.getMatrix());
 		}
 		return new jayus.Rectangle(this.x, this.y, this.width, this.height);
 	},
 
-	getScope: function RectEntity_getScope(){
+	getScope: function RectEntity_getScope() {
 		return this.getFrame().getScope();
 	},
 
@@ -599,9 +605,9 @@ jayus.RectEntity = jayus.Entity.extend({
 	@method {Shape} getBounds
 	*/
 
-	getBounds: function RectEntity_getBounds(){
+	getBounds: function RectEntity_getBounds() {
 		// FIXME: RectEntity.getBounds() - Dont get scope of frame, just return frame
-		if(this.bounds !== null){
+		if (this.bounds !== null) {
 			this.bounds.cloneOnto(this.boundsClone);
 			return this.boundsClone.translate(this.x, this.y);
 		}
@@ -611,15 +617,23 @@ jayus.RectEntity = jayus.Entity.extend({
 	/**
 	Sets the bounds used for collision detection with other entities.
 	@method {Self} setBounds
-	@param {Shape} bounds
+	@param {String|Object|Shape} bounds
 	*/
 
-	setBounds: function RectEntity_setBounds(shape){
+	setBounds: function RectEntity_setBounds(shape) {
 		//#ifdef DEBUG
-		jayus.debug.match('RectEntity.setBounds', shape, 'shape', jayus.TYPES.SHAPE);
+		jayus.debug.match('RectEntity.setBounds', shape, 'shape', jayus.TYPES.DEFINED);
 		//#end
+		// Get the shape object
+		if (typeof shape === 'string') {
+			shape = jayus.mustGetObject(shape);
+		}
+		// Decorate if needed
+		if (!(shape instanceof jayus.Shape)) {
+			shape = jayus.fromObject(shape);
+		}
 		// Detach the old bounds
-		if(this.bounds !== null){
+		if (this.bounds !== null) {
 			this.bounds.detach(this);
 		}
 		// Set the new bounds
@@ -635,8 +649,8 @@ jayus.RectEntity = jayus.Entity.extend({
 	@method {Self} clearBounds
 	*/
 
-	clearBounds: function RectEntity_clearBounds(){
-		if(this.bounds !== null){
+	clearBounds: function RectEntity_clearBounds() {
+		if (this.bounds !== null) {
 			this.bounds.detach(this);
 			this.bounds = null;
 			this.boundsClone = null;
@@ -645,8 +659,8 @@ jayus.RectEntity = jayus.Entity.extend({
 		return this;
 	},
 
-	componentDirtied: function RectEntity_componentDirtied(component, type){
-		if(component === this.bounds){
+	componentDirtied: function RectEntity_componentDirtied(component, type) {
+		if (component === this.bounds) {
 			this.bounds.cloneOnto(this.boundsClone);
 		}
 	},
@@ -659,20 +673,24 @@ jayus.RectEntity = jayus.Entity.extend({
 	Sets the background brush.
 	<br> Sets the entity as dirty.
 	@method {Self} setBg
-	@param {Brush} brush
+	@param {String|Object|Brush} brush
 	*/
 
-	setBg: function RectEntity_setBg(brush){
+	setBg: function RectEntity_setBg(brush) {
 		//#ifdef DEBUG
-		jayus.debug.match('RectEntity.setBg', brush, 'brush', jayus.TYPES.OBJECT);
+		jayus.debug.match('RectEntity.setBg', brush, 'brush', jayus.TYPES.DEFINED);
 		//#end
-		// Detach self from the old bg
-		if(this.hasBg){
-			this.bg.detach(this);
+		// Get the object if needed
+		if (typeof brush === 'string') {
+			brush = jayus.mustGetObject(brush);
 		}
-		// Create the brush object if not given
-		if(!(brush instanceof jayus.Brush)){
+		// Decorate if needed
+		if (!(brush instanceof jayus.Brush)) {
 			brush = new jayus.Brush(brush);
+		}
+		// Detach self from the old bg
+		if (this.hasBg) {
+			this.bg.detach(this);
 		}
 		// Set and attach self to the new bg
 		this.bg = brush;
@@ -686,8 +704,8 @@ jayus.RectEntity = jayus.Entity.extend({
 	@method {Self} clearBg
 	*/
 
-	clearBg: function RectEntity_clearBg(){
-		if(this.hasBg){
+	clearBg: function RectEntity_clearBg() {
+		if (this.hasBg) {
 			this.bg.detach(this);
 			this.bg = null;
 			this.hasBg = false;
@@ -715,18 +733,18 @@ jayus.RectEntity = jayus.Entity.extend({
 	@param {Boolean} on
 	*/
 
-	setBuffering: function RectEntity_setBuffering(on){
+	setBuffering: function RectEntity_setBuffering(on) {
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.setBuffering', on, 'on', jayus.TYPES.BOOLEAN);
 		//#end
 		// Was disabled, must create the buffer to enable it now
-		if(!this.buffered && on){
+		if (!this.buffered && on) {
 			this.canvas = document.createElement('canvas');
 			this.context = this.canvas.getContext('2d');
 			this.refreshBuffer();
 		}
 		// Was enabled, we can delete the canvas and context now that it's disabled
-		else if(this.buffered && !on){
+		else if (this.buffered && !on) {
 			this.canvas = null;
 			this.context = null;
 		}
@@ -735,12 +753,12 @@ jayus.RectEntity = jayus.Entity.extend({
 	},
 
 	//@ Internal
-	refreshBuffer: function RectEntity_refreshBuffer(){
-		if(this.buffered){
+	refreshBuffer: function RectEntity_refreshBuffer() {
+		if (this.buffered) {
 			// Some vars
 			var canvas = this.canvas;
 			// Resize the canvas if needed
-			if(this.width !== canvas.width || this.height !== canvas.height){
+			if (this.width !== canvas.width || this.height !== canvas.height) {
 				canvas.width = this.width;
 				canvas.height = this.height;
 			}
@@ -750,8 +768,8 @@ jayus.RectEntity = jayus.Entity.extend({
 	},
 
 	//@ Internal
-	fullyRefreshBuffer: function RectEntity_fullyRefreshBuffer(){
-		if(this.buffered){
+	fullyRefreshBuffer: function RectEntity_fullyRefreshBuffer() {
+		if (this.buffered) {
 			// Some vars
 			var ctx = this.context;
 			// Clear the buffer
@@ -761,7 +779,7 @@ jayus.RectEntity = jayus.Entity.extend({
 			// Apply transforms 
 			// this.applyTransforms(ctx);
 			// Paint the bg
-			if(this.bufferBg && this.hasBg){
+			if (this.bufferBg && this.hasBg) {
 				this.bg.paintRect(ctx, 0, 0, this.width, this.height);
 			}
 			// Paint the contents
@@ -769,7 +787,7 @@ jayus.RectEntity = jayus.Entity.extend({
 			// Restore the context
 			ctx.restore();
 			//#ifdef DEBUG
-			if(this.showDamage){
+			if (this.showDamage) {
 				this.paintDamage(this);
 			}
 			//#end
@@ -780,53 +798,51 @@ jayus.RectEntity = jayus.Entity.extend({
 		//  Rendering
 		//_____________//
 
-	keepAligned: false,
-
 	//@ From Entity
-	applyTransforms: function RectEntity_applyTransforms(ctx){
+	applyTransforms: function RectEntity_applyTransforms(ctx) {
 		// Check if transformed
-		if(this.xScale !== 1 || this.yScale !== 1 || this.angle){
+		if (this.xScale !== 1 || this.yScale !== 1 || this.angle) {
 			// Check if an anchor is specified
-			if(this.xAnchor || this.yAnchor){
+			if (this.xAnchor || this.yAnchor) {
 				// Use anchor
-				if(this.keepAligned){
+				if (this.keepAligned) {
 					ctx.translate(Math.round(this.x)+this.xAnchor, Math.round(this.y)+this.yAnchor);
 				}
-				else{
+				else {
 					ctx.translate(this.x+this.xAnchor, this.y+this.yAnchor);
 				}
-				if(this.xScale !== 1 || this.yScale !== 1){
+				if (this.xScale !== 1 || this.yScale !== 1) {
 					ctx.scale(this.xScale, this.yScale);
 				}
-				if(this.angle !== 0){
+				if (this.angle !== 0) {
 					ctx.rotate(this.angle);
 				}
 				ctx.translate(-this.xAnchor, -this.yAnchor);
 			}
-			else{
+			else {
 				// No anchor
-				if(this.keepAligned){
+				if (this.keepAligned) {
 					ctx.translate(Math.round(this.x), Math.round(this.y));
 				}
-				else{
+				else {
 					ctx.translate(this.x, this.y);
 				}
-				if(this.xScale !== 1 || this.yScale !== 1){
+				if (this.xScale !== 1 || this.yScale !== 1) {
 					ctx.scale(this.xScale, this.yScale);
 				}
-				if(this.angle !== 0){
+				if (this.angle !== 0) {
 					ctx.rotate(this.angle);
 				}
 			}
 		}
-		else{
+		else {
 			// No transformation so anchor not useful, ignore it
 			// Translate to origin
-			if(this.x || this.y){
-				if(this.keepAligned){
+			if (this.x || this.y) {
+				if (this.keepAligned) {
 					ctx.translate(Math.round(this.x), Math.round(this.y));
 				}
-				else{
+				else {
 					ctx.translate(this.x, this.y);
 				}
 			}
@@ -835,30 +851,30 @@ jayus.RectEntity = jayus.Entity.extend({
 	},
 
 	//@ From Entity
-	drawOntoContext: function RectEntity_drawOntoContext(ctx){
+	drawOntoContext: function RectEntity_drawOntoContext(ctx) {
 		//#ifdef DEBUG
 		jayus.debug.matchContext('RectEntity.drawOntoContext', ctx);
 		//#end
 		// Save the context
 		ctx.save();
 		// Apply any styling
-		if(this.hasStyle){
+		if (this.hasStyle) {
 			this.style.applyTo(ctx);
 		}
 		// Apply alpha
-		if(this.alpha !== 1){
+		if (this.alpha !== 1) {
 			ctx.globalAlpha *= this.alpha;
 		}
 		// Apply transforms
 		this.applyTransforms(ctx);
-		if(this.buffered){
+		if (this.buffered) {
 			// Refresh the buffer
-			if(this.dirtied){
+			if (this.dirtied) {
 				this.refreshBuffer();
 			}
 			// Paint the bg if not buffered
-			if(!this.bufferBg && this.hasBg){
-				if(this.alignBg){
+			if (!this.bufferBg && this.hasBg) {
+				if (this.alignBg) {
 					this.bg.paintRect(
 						ctx,
 						0.5,
@@ -867,17 +883,17 @@ jayus.RectEntity = jayus.Entity.extend({
 						Math.round(this.height)
 					);
 				}
-				else{
+				else {
 					this.bg.paintRect(ctx, 0, 0, this.width, this.height);
 				}
 			}
 			// Draw the buffer
 			ctx.drawImage(this.canvas, 0, 0);
 		}
-		else{
+		else {
 			// Paint the bg
-			if(this.hasBg){
-				if(this.alignBg){
+			if (this.hasBg) {
+				if (this.alignBg) {
 					this.bg.paintRect(
 						ctx,
 						0.5,
@@ -886,7 +902,7 @@ jayus.RectEntity = jayus.Entity.extend({
 						Math.round(this.height)
 					);
 				}
-				else{
+				else {
 					this.bg.paintRect(ctx, 0, 0, this.width, this.height);
 				}
 			}
@@ -897,7 +913,7 @@ jayus.RectEntity = jayus.Entity.extend({
 		// Restore the context
 		ctx.restore();
 		//#ifdef DEBUG
-		if(this.debugRenderer !== null){
+		if (this.debugRenderer !== null) {
 			this.debugRenderer(ctx);
 		}
 		//#end

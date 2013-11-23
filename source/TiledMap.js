@@ -32,10 +32,6 @@ A class that loads and displays a Tiled map editor map.
 @extends jayus.RectEntity
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'TiledMap';
-//#end
-
 jayus.TiledMap = jayus.RectEntity.extend({
 
 	//
@@ -104,53 +100,50 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	@param {String} filename
 	*/
 
-	init: function TiledMap_init(map){
+	init: function TiledMap_init(map) {
 		jayus.Entity.prototype.init.apply(this);
-		if(arguments.length){
+		if (arguments.length) {
 			this.setMap(map);
 		}
 	},
 
 	//#ifdef DEBUG
-	checkLoaded: function TiledMap_checkLoaded(){
-		if(!this.loaded){
+	checkLoaded: function TiledMap_checkLoaded() {
+		if (!this.loaded) {
 			throw new Error('TiledMap.checkLoaded() - Error, map not yet loaded');
 		}
 	},
 	//#end
 
-	setMap: overloadArgumentType({
-
-		object: function TiledMap_setMap(map){
-			this.map = map;
-			this.loaded = true;
-			// this.setBuffering(true);
-		},
-
-		string: function TiledMap_setMap(filepath){
+	setMap: function TiledMap_setMap(map) {
+		if (typeof map === 'string') {
 			// FIXME: Expects the map object to have already been loaded
-			this.map = jayus.objects.get(filepath);
-			for(var i=0;i<this.map.tilesets.length;i++){
-				var data = this.map.tilesets[i];
-				// console.log(data.image);
-				// data.image = '../'+data.image;
-				jayus.images.load(data.image);
-				var sheet = new jayus.SpriteSheet();
-				// console.log(data);
-				sheet.setSpriteSize(data.tilewidth, data.tileheight);
-				jayus.images.get(data.image).sheet = sheet;
-				this.tileWidth = data.tilewidth;
-				this.tileHeight = data.tileheight;
-			}
-			this.layerVisibility = [];
-			for(i=0;i<this.map.layers.length;i++){
-				this.layerVisibility.push(this.map.layers[i].visible);
-			}
-			this.loaded = true;
-			this.setSize(this.map.width*this.map.tilewidth, this.map.height*this.map.tileheight);
+			map = jayus.objects.get(filepath);
 		}
-
-	}),
+		this.map = map;
+		for (var i=0;i<this.map.tilesets.length;i++) {
+			var data = this.map.tilesets[i];
+			// console.log(data.image);
+			// data.image = '../'+data.image;
+			jayus.images.load(data.image);
+			var sheet = new jayus.SpriteSheet();
+			// console.log(data);
+			sheet.setSpriteSize(data.tilewidth, data.tileheight);
+			jayus.images.get(data.image).sheet = sheet;
+			this.tileWidth = data.tilewidth;
+			this.tileHeight = data.tileheight;
+		}
+		this.layerVisibility = [];
+		this.layerOffsetsX = [];
+		this.layerOffsetsY = [];
+		for (i=0;i<this.map.layers.length;i++) {
+			this.layerVisibility.push(this.map.layers[i].visible);
+			this.layerOffsetsX.push(0);
+			this.layerOffsetsY.push(0);
+		}
+		this.loaded = true;
+		this.setSize(this.map.width*this.map.tilewidth, this.map.height*this.map.tileheight);
+	},
 
 		//
 		//  Tile Size
@@ -166,11 +159,11 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	@param {Number} y
 	*/
 
-	getTileAt: function TiledMap_getTileAt(x, y){
+	getTileAt: function TiledMap_getTileAt(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('TiledMap.getTileAt', x, y);
 		//#end
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
@@ -189,12 +182,12 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	@param {Number} y
 	*/
 
-	getSlotFrame: function TiledMap_getSlotFrame(x, y){
+	getSlotFrame: function TiledMap_getSlotFrame(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('TiledMap.getSlotFrame', x, y);
 		this.checkLoaded();
 		//#end
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
@@ -212,7 +205,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	@param {Number} index
 	*/
 
-	isLayerVisible: function TiledMap_isLayerVisible(index){
+	isLayerVisible: function TiledMap_isLayerVisible(index) {
 		//#ifdef DEBUG
 		jayus.debug.match('TiledMap.isLayerVisible', index, 'index', jayus.TYPES.NUMBER);
 		this.checkLoaded();
@@ -228,14 +221,14 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	@param {Boolean} visible
 	*/
 
-	setLayerVisibility: function TiledMap_setLayerVisibility(index, visible){
+	setLayerVisibility: function TiledMap_setLayerVisibility(index, visible) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('TiledMap.setLayerVisibility', arguments, 'index', jayus.TYPES.NUMBER, 'visible', jayus.TYPES.BOOLEAN);
 		this.checkLoaded();
 		//#end
-		if(this.layerVisibility[index] !== visible){
+		if (this.layerVisibility[index] !== visible) {
 			this.layerVisibility[index] = visible;
-			this.dirty();
+			this.dirty(jayus.DIRTY.ALL);
 		}
 		return this;
 	},
@@ -246,7 +239,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	@param {Number} index
 	*/
 
-	showLayer: function TiledMap_showLayer(index){
+	showLayer: function TiledMap_showLayer(index) {
 		//#ifdef DEBUG
 		jayus.debug.match('TiledMap.showLayer', index, 'index', jayus.TYPES.NUMBER);
 		this.checkLoaded();
@@ -260,7 +253,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	@param {Number} index
 	*/
 
-	hideLayer: function TiledMap_hideLayer(index){
+	hideLayer: function TiledMap_hideLayer(index) {
 		//#ifdef DEBUG
 		jayus.debug.match('TiledMap.hideLayer', index, 'index', jayus.TYPES.NUMBER);
 		this.checkLoaded();
@@ -274,54 +267,58 @@ jayus.TiledMap = jayus.RectEntity.extend({
 
 	// FIXME: TiledMap.paintContents() - Allow for more than 1 tileset
 
-	paintContents: function TiledMap_paintContents(ctx){
+	paintContents: function TiledMap_paintContents(ctx) {
 		//#ifdef DEBUG
 		jayus.debug.matchContext('TiledMap.paintContents', ctx);
 		this.checkLoaded();
 		//#end
 
 		var i,
-			image,
-			tileset = this.map.tilesets[0],
-			tileSheet = jayus.images.get(tileset.image),
-			sheetInfo = tileSheet.sheet,
-			tileWidth = sheetInfo.spriteWidth,
-			tileHeight = sheetInfo.spriteHeight,
 			layer,
+			tileset = this.map.tilesets[0],
+			imageWidth = tileset.imagewidth,
+			image = jayus.images.get(tileset.image),
+			marginX = image.sheet.marginX,
+			marginY = image.sheet.marginY,
+			tileWidth = image.sheet.spriteWidth,
+			tileHeight = image.sheet.spriteHeight,
 			tileY, tileX,
 			index,
-			sourceTileX, sourceTileY,
-			x, y;
+			sourceTileX, sourceTileY;
 
 		// Check the tilesheets
-		for(i=0;i<this.map.tilesets.length;i++){
+		for (i=0;i<this.map.tilesets.length;i++) {
 			tileset = this.map.tilesets[i];
-			if(!jayus.images.isLoaded(tileset.image)){
+			if (!jayus.images.isLoaded(tileset.image)) {
 				console.warn('TiledMap.paintContents() - Tileset "'+tileset.image+'" not yet loaded');
 			}
 		}
 
 		// Loop through each layer
-		for(i=0;i<this.map.layers.length;i++){
+		for (i=0;i<this.map.layers.length;i++) {
 			layer = this.map.layers[i];
 			// Check if it's a tile layer and visible
-			if(layer.type === 'tilelayer' && this.layerVisibility[i]){
-				for(tileY=0;tileY<layer.height;tileY++){
-					for(tileX=0;tileX<layer.width;tileX++){
+			if (layer.type === 'tilelayer' && this.layerVisibility[i]) {
+				// Loop through each tile
+				for (tileY=0;tileY<layer.height;tileY++) {
+					for (tileX=0;tileX<layer.width;tileX++) {
 						// Get the tile number, tiled indexes start from 1 not 0, so subtract it
 						index = layer.data[tileY*layer.width+tileX] - 1;
-						if(index !== -1){
+						if (index !== -1) {
 
-							sourceTileX = index%(tileset.imagewidth/tileset.tilewidth);
-							sourceTileY = (index-sourceTileX)/(tileset.imagewidth/tileset.tilewidth);
+							// sourceTileX = index%(tileset.imagewidth/tileset.tilewidth);
+							// sourceTileY = (index-sourceTileX)/(tileset.imagewidth/tileset.tilewidth);
 
-							x = sheetInfo.marginX + sourceTileX*(tileWidth);
-							y = sheetInfo.marginY + sourceTileY*(tileHeight);
+							sourceTileX = index%(imageWidth/tileWidth);
+							sourceTileY = (index-sourceTileX)/(imageWidth/tileWidth);
+
+							// x = marginX + sourceTileX*tileWidth;
+							// y = marginY + sourceTileY*tileHeight;
 
 							ctx.drawImage(
-								tileSheet,
-								x,
-								y,
+								image,
+								marginX + sourceTileX*tileWidth,
+								marginY + sourceTileY*tileHeight,
 								tileWidth,
 								tileHeight,
 								tileX*tileWidth,
@@ -330,12 +327,6 @@ jayus.TiledMap = jayus.RectEntity.extend({
 								tileHeight
 							);
 
-							// ctx.fillStyle = 'green';
-							// ctx.fillRect(x, y, tileWidth, tileHeight);
-
-							// img = new jayus.Image(tileset.image,index-1);
-							// img.setOrigin(tileX*tileset.tilewidth,tileY*tileset.tileheight);
-							// img.drawOntoContext(ctx);
 						}
 					}
 				}

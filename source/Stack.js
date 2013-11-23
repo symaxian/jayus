@@ -35,10 +35,6 @@ Base class for the hStack and vStack entities.
 @extends jayus.Group
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Stack';
-//#end
-
 jayus.Stack = jayus.RectEntity.extend({
 
 	//
@@ -94,7 +90,7 @@ jayus.Stack = jayus.RectEntity.extend({
 		var object = jayus.RectEntity.prototype.toObject.apply(this);
 		jayus.groupToObject.call(this, object);
 		// Add our own properties
-		object.__type__ = 'Stack';
+		object.type = 'Stack';
 		if (this.spacing !== jayus.Stack.prototype.spacing) {
 			object.spacing = this.spacing;
 		}
@@ -112,7 +108,7 @@ jayus.Stack = jayus.RectEntity.extend({
 		this.frozen++;
 		// Apply parent properties
 		jayus.RectEntity.prototype.initFromObject.call(this, object);
-		jayus.groupFromObject.call(this, object);
+		jayus.groupInitFromObject.call(this, object);
 		// Apply our own properties
 		if (typeof object.spacing === 'number') {
 			this.spacing = object.spacing;
@@ -254,10 +250,6 @@ An Entity that organizes child widgets into a horizontal row.
 @extends jayus.Stack
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'hStack';
-//#end
-
 jayus.hStack = jayus.Stack.extend({
 
 	/**
@@ -279,7 +271,7 @@ jayus.hStack = jayus.Stack.extend({
 	toObject: function hStack_toObject() {
 		var object = jayus.Stack.prototype.toObject.apply(this);
 		// Add our own properties
-		object.__type__ = 'hStack';
+		object.type = 'hStack';
 		if (this.automaticHeight !== jayus.hStack.prototype.automaticHeight) {
 			object.automaticHeight = this.automaticHeight.toObject();
 		}
@@ -343,10 +335,6 @@ A widget that organizes child widgets into a vertical column.
 @extends jayus.Stack
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'vStack';
-//#end
-
 jayus.vStack = jayus.Stack.extend({
 
 	/**
@@ -394,7 +382,7 @@ jayus.vStack = jayus.Stack.extend({
 	toObject: function vStack_toObject() {
 		var object = jayus.Stack.prototype.toObject.apply(this);
 		// Add our own properties
-		object.__type__ = 'vStack';
+		object.type = 'vStack';
 		if (this.automaticWidth !== jayus.hStack.prototype.automaticWidth) {
 			object.automaticWidth = this.automaticWidth.toObject();
 		}

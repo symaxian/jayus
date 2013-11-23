@@ -31,10 +31,6 @@ The base class for an object that uses the jayus event system.
 @class jayus.Responder
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Responder';
-//#end
-
 // TODO: jayus.Responder() - A few tweaks could improve memory usage, dont create arrays for a single handler, and dont create an options object for the default options
 
 jayus.Responder = jayus.createClass({

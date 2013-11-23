@@ -33,10 +33,6 @@ Standard Circle shape.
 @extends jayus.Shape
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Circle';
-//#end
-
 jayus.Circle = jayus.Shape.extend({
 
 	//
@@ -134,7 +130,7 @@ jayus.Circle = jayus.Shape.extend({
 	toObject: function Circle_toObject() {
 		// Get object from parent
 		var object = {
-			__type__: 'Circle',
+			type: 'Circle',
 			x: this.x,
 			y: this.y,
 			radius: this.radius
@@ -284,12 +280,6 @@ jayus.Circle = jayus.Shape.extend({
 		//
 		//  Utilities
 		//_____________//
-
-	//#ifdef DEBUG
-	toString: function Circle_toString() {
-		return '(Circle: '+this.x+','+this.y+','+this.radius+')';
-	},
-	//#end
 
 	//@ From Shape
 	clone: function Circle_clone() {

@@ -55,10 +55,6 @@ The base class for any drawable object.
 @extends jayus.Animatable
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Entity';
-//#end
-
 jayus.applyObject(jayus.Dependency.prototype, jayus.Responder.prototype);
 
 jayus.Entity = jayus.Responder.extend({
@@ -293,41 +289,41 @@ jayus.Entity = jayus.Responder.extend({
 		'yVelocity'
 	],
 
-	expose: function Entity_expose(){
+	expose: function Entity_expose() {
 		this.debugRenderer = jayus.debug.defaultDebugRenderer;
 		this.dirty(jayus.DIRTY.ALL);
 	},
 
-	unexpose: function Entity_unexpose(){
+	unexpose: function Entity_unexpose() {
 		this.debugRenderer = null;
 		this.dirty(jayus.DIRTY.ALL);
 	},
 
-	toggleExposed: function Entity_toggleExposed(){
-		if(this.debugRenderer !== null){
+	toggleExposed: function Entity_toggleExposed() {
+		if (this.debugRenderer !== null) {
 			this.unexpose();
 		}
-		else{
+		else {
 			this.expose();
 		}
 	},
 
-	exposeAll: function Entity_exposeAll(){
+	exposeAll: function Entity_exposeAll() {
 		this.debugRenderer = jayus.debug.defaultDebugRenderer;
 		this.exposingAll = true;
-		if(this.isParent){
-			this.forEachChild(function(){
+		if (this.isParent) {
+			this.forEachChild(function() {
 				this.exposeAll();
 			});
 		}
 		this.dirty(jayus.DIRTY.ALL);
 	},
 
-	unexposeAll: function Entity_exposeAll(){
+	unexposeAll: function Entity_exposeAll() {
 		this.debugRenderer = null;
 		this.exposingAll = false;
-		if(this.isParent){
-			this.forEachChild(function(){
+		if (this.isParent) {
+			this.forEachChild(function() {
 				this.unexposeAll();
 			});
 		}
@@ -338,7 +334,7 @@ jayus.Entity = jayus.Responder.extend({
 
 	toObject: function Entity_toObject() {
 		var object = {
-			__type__: 'Entity'
+			type: 'Entity'
 		};
 		if (this.id !== jayus.Dependency.prototype.id) {
 			object.id = this.id;
@@ -369,14 +365,17 @@ jayus.Entity = jayus.Responder.extend({
 		// Apply our own properties
 		this.frozen++;
 		var i, key, val, valType;
-		for (i=0;i<this.properties.length;i++) {
-			key = this.properties[i];
+		for (i=0;i<jayus.Entity.prototype.properties.length;i++) {
+			key = jayus.Entity.prototype.properties[i];
 			val = object[key];
 			valType = typeof val;
-			if (valType === 'object') {
-				val = jayus.fromObject(val);
+			if (val !== undefined) {
+				if (valType === 'object') {
+					val = jayus.fromObject(val);
+				}
+				// this['set'+key[0].toUpperCase()+key.slice(1)](val);
+				this[key] = val;
 			}
-			this['set'+key[0].toUpperCase()+key.slice(1)](val);
 		}
 		if (typeof object.id !== 'undefined') {
 			this.id = object.id;
@@ -384,34 +383,6 @@ jayus.Entity = jayus.Responder.extend({
 		this.frozen--;
 		// Set as dirty
 		return this.dirty(jayus.DIRTY.ALL);
-	},
-
-	/**
-	Applies the given properties to the Entity.
-	<br> See the Property Application article for detiled information.
-	@method {Self} apply
-	*/
-
-	apply: function Entity_apply(obj){
-		//# if DEBUG
-		jayus.debug.match('Entity.apply', obj, 'type', jayus.TYPES.OBJECT);
-		//# end
-		for(var property in obj){
-			if(obj.hasOwnProperty(property)){
-				if(typeof this[property] === 'function'){
-					if(obj[property] instanceof Array){
-						this[property].apply(this,obj[property]);
-					}
-					else{
-						this[property](obj[property]);
-					}
-				}
-				else{
-					this[property] = obj[property];
-				}
-			}
-		}
-		return this;
 	},
 
 		//
@@ -444,7 +415,7 @@ jayus.Entity = jayus.Responder.extend({
 	@method {Self} animate
 	*/
 
-	animate: function Animatable_animate(){
+	animate: function Animatable_animate() {
 		this.actionsToAnimate++;
 		return this;
 	},
@@ -454,81 +425,81 @@ jayus.Entity = jayus.Responder.extend({
 	@constructor init
 	*/
 
-	init: function Entity_init(){
-		this.addHandler('dirty', function(type){
-			if(type & jayus.DIRTY.POSITION){
+	init: function Entity_init() {
+		this.addHandler('dirty', function(type) {
+			if (type & jayus.DIRTY.POSITION) {
 				this.matrixDirty = true;
 			}
 		});
 		//#ifdef DEBUG
-		// this.addHandler('cursorOver', function(e){
+		// this.addHandler('cursorOver', function(e) {
 		// 	this.expose();
 		// });
-		// this.addHandler('cursorOut', function(e){
+		// this.addHandler('cursorOut', function(e) {
 		// 	this.unexpose();
 		// });
 		//#end
-		if(this.enableDragEvents){
+		if (this.enableDragEvents) {
 			this.handle({
 
-				leftPress: function(e){
+				leftPress: function(e) {
 					this.leftDragging = true;
 					return this.fire('leftDragStart', e);
 				},
 
-				leftRelease: function(e){
-					if(this.leftDragging){
+				leftRelease: function(e) {
+					if (this.leftDragging) {
 						this.leftDragging = false;
 						return this.fire('leftDragEnd', e);
 					}
 				},
 
-				middlePress: function(e){
+				middlePress: function(e) {
 					this.middleDragging = true;
 					return this.fire('middleDragStart', e);
 				},
 
-				middleRelease: function(e){
-					if(this.middleDragging){
+				middleRelease: function(e) {
+					if (this.middleDragging) {
 						this.middleDragging = false;
 						return this.fire('middleDragEnd', e);
 					}
 				},
 
-				rightPress: function(e){
+				rightPress: function(e) {
 					this.rightDragging = true;
 					return this.fire('rightDragStart', e);
 				},
 
-				rightRelease: function(e){
-					if(this.rightDragging){
+				rightRelease: function(e) {
+					if (this.rightDragging) {
 						this.rightDragging = false;
 						return this.fire('rightDragEnd', e);
 					}
 				},
 
-				cursorMove: function(e){
+				cursorMove: function(e) {
 					var ret = false;
-					if(this.leftDragging){
+					if (this.leftDragging) {
 						ret = this.fire('leftDrag',e) || ret;
 					}
-					if(this.middleDragging){
+					if (this.middleDragging) {
 						ret = this.fire('middleDrag',e) || ret;
 					}
-					if(this.rightDragging){
+					if (this.rightDragging) {
 						ret = this.fire('rightDrag',e) || ret;
 					}
 					return ret;
 				},
 
-				cursorOut: function(){
-					if(this.leftDragging){
+				cursorOut: function() {
+					if (this.leftDragging) {
 						this.fire('leftDragEnd');
 					}
-					if(this.middleDragging){
+					if (this.middleDragging) {
 						this.fire('middleDragEnd');
 					}
-					if(this.rightDragging){
+					if (this.rightDragging) {
 						this.fire('rightDragEnd');
 					}
 					this.leftDragging = this.middleDragging = this.rightDragging = false;
@@ -543,11 +514,11 @@ jayus.Entity = jayus.Responder.extend({
 		//_________//
 
 	//@ From Dependency
-	dirty: function Entity_dirty(type){
+	dirty: function Entity_dirty(type) {
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.dirty', type, 'type', jayus.TYPES.NUMBER);
 		//#end
-		if(!this.frozen){
+		if (!this.frozen) {
 			this.fire('dirty', type);
 			this.dirtied = true;
 			this.informDependents(type);
@@ -565,17 +536,17 @@ jayus.Entity = jayus.Responder.extend({
 	@method {Entity} getAbsoluteParent
 	*/
 
-	getAbsoluteParent: function Entity_getAbsoluteParent(){
+	getAbsoluteParent: function Entity_getAbsoluteParent() {
 		return this.hasParent ? this.parent.getAbsoluteParent() : this;
 	},
 
 	//@ Internal
-	setParent: function Entity_setParent(parent){
+	setParent: function Entity_setParent(parent) {
 		//#ifdef DEBUG
-		if(this.hasParent){
+		if (this.hasParent) {
 			throw new Error('Entity.setParent() - Entity already has a parent');
 		}
-		if(parent.exposingAll){
+		if (parent.exposingAll) {
 			this.expose();
 		}
 		//#end
@@ -586,7 +557,7 @@ jayus.Entity = jayus.Responder.extend({
 	},
 
 	//@ Internal
-	removeParent: function Entity_removeParent(){
+	removeParent: function Entity_removeParent() {
 		this.hasParent = false;
 		this.parent = null;
 		this.underCursor = false;
@@ -606,11 +577,11 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Boolean} on
 	*/
 
-	setVisible: function Entity_setVisible(on){
+	setVisible: function Entity_setVisible(on) {
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.setVisible', on, 'on', jayus.TYPES.BOOLEAN);
 		//#end
-		if(this.visible !== on){
+		if (this.visible !== on) {
 			this.visible = on;
 			this.dirty(jayus.DIRTY.VISIBILITY);
 		}
@@ -624,7 +595,7 @@ jayus.Entity = jayus.Responder.extend({
 	@method {Self} show
 	*/
 
-	show: function Entity_show(){
+	show: function Entity_show() {
 		return this.setVisible(true);
 	},
 
@@ -635,7 +606,7 @@ jayus.Entity = jayus.Responder.extend({
 	@method {Self} hide
 	*/
 
-	hide: function Entity_hide(){
+	hide: function Entity_hide() {
 		return this.setVisible(false);
 	},
 
@@ -652,18 +623,18 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Number} alpha
 	*/
 
-	setAlpha: function Entity_setAlpha(alpha){
+	setAlpha: function Entity_setAlpha(alpha) {
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.setAlpha', alpha, 'alpha', jayus.TYPES.NUMBER);
 		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setAlpha, this.alpha, alpha);
 		}
 		// Set the alpha
-		if(this.alpha !== alpha){
+		if (this.alpha !== alpha) {
 			this.alpha = alpha;
 			this.dirty(jayus.DIRTY.CONTENT);
 		}
@@ -674,46 +645,46 @@ jayus.Entity = jayus.Responder.extend({
 		//  Cursor
 		//__________//
 
-	updateCursor: function Entity_updateCursor(x, y){
+	updateCursor: function Entity_updateCursor(x, y) {
 		// this.localX = x;
 		// this.localY = y;
 		// Check if child previously had the cursor
-		if(this.underCursor){
+		if (this.underCursor) {
 			// Check if the child currently has the cursor
-			if(!this.intersectsAt(x, y)){
+			if (!this.intersectsAt(x, y)) {
 				// Clear the cursor flag and fire the cursorOut event
 				this.underCursor = false;
 				this.fire('cursorOut');
 				// If this is a parent, clear the cursor flags from every child
-				if(this.isParent){
+				if (this.isParent) {
 					this.removeCursorFromChildren();
 				}
 			}
 			// If the child still has the cursor and is a parent, update its children
-			else if(this.isParent){
+			else if (this.isParent) {
 				this.updateCursorOnChildren(x, y);
 			}
 		}
 		// Else check if the child just got the cursor
-		else if(this.intersectsAt(x, y)){
+		else if (this.intersectsAt(x, y)) {
 			// If so set the cursor flag to true and fire the cursorOver event
 			this.underCursor = true;
 			this.fire('cursorOver');
 			// Update every sub-child if it's a parent
-			if(this.isParent){
+			if (this.isParent) {
 				this.updateCursorOnChildren(x, y);
 			}
 		}
 	},
 
-	removeCursor: function Entity_removeCursor(){
+	removeCursor: function Entity_removeCursor() {
 		// Check if the child has the cursor
-		if(this.underCursor){
+		if (this.underCursor) {
 			// Clear the cursor flag and fire the cursorOut event
 			this.underCursor = false;
 			this.fire('cursorOut');
 			// If its a parent, call the removeCursorFromChildren() method
-			if(this.isParent){
+			if (this.isParent) {
 				this.removeCursorFromChildren();
 			}
 		}
@@ -723,10 +694,10 @@ jayus.Entity = jayus.Responder.extend({
 	//  Dragging
 	//____________//
 
-	setDragButton: function Entity_setDragButton(button){
-		if(this.dragButton !== button){
+	setDragButton: function Entity_setDragButton(button) {
+		if (this.dragButton !== button) {
 			this.dragButton = button;
-			if(this.draggable){
+			if (this.draggable) {
 				this.setDraggable(false);
 				this.setDraggable(true);
 			}
@@ -740,12 +711,12 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Boolean} on
 	*/
 
-	setDraggable: function Entity_setDraggable(on){
+	setDraggable: function Entity_setDraggable(on) {
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.setDraggable', on, 'on', jayus.TYPES.BOOLEAN);
 		//#end
-		if(!this.draggable && on){
-			this.addHandler(this.dragButton+'Press', function(e){
+		if (!this.draggable && on) {
+			this.addHandler(this.dragButton+'Press', function(e) {
 				// The left mouse button was pressed, start dragging
 				this.dragging = true;
 				this.canReleaseCursor = false;
@@ -755,7 +726,7 @@ jayus.Entity = jayus.Responder.extend({
 				this.fire('dragStart');
 
 				// Clear the dragging flag if the button is released
-				jayus.interceptNextEvent(this.dragButton+'Release', function(e){
+				jayus.interceptNextEvent(this.dragButton+'Release', function(e) {
 					this.dragging = false;
 					this.canReleaseCursor = true;
 					this.display.updateCursor(this.display.cursor.x, this.display.cursor.y);
@@ -766,11 +737,11 @@ jayus.Entity = jayus.Responder.extend({
 				this.display = e.display;
 				var that = this;
 
-				var dragHandler = function(e){
-					if(that.dragging){
+				var dragHandler = function(e) {
+					if (that.dragging) {
 						that.translate(e.deltaX, e.deltaY);
 					}
-					else{
+					else {
 						that.display.removeHandler('cursorMove', 'dragHandler');
 					}
 					return true;
@@ -782,12 +753,12 @@ jayus.Entity = jayus.Responder.extend({
 
 			});
 			// var that = this;
-			// this.addHandler('cursorLeave', function(){
+			// this.addHandler('cursorLeave', function() {
 			// 	return that.dragging;
 			// });
 			this.draggable = true;
 		}
-		else if(this.draggable && !on){
+		else if (this.draggable && !on) {
 			// FIXME: Entity.setDraggable(false)
 		}
 		return this;
@@ -817,12 +788,12 @@ jayus.Entity = jayus.Responder.extend({
 	@method {Matrix} getMatrix
 	*/
 
-	getMatrix: function Entity_getMatrix(){
-		if(this.matrixDirty){
-			if(this.matrix === null){
+	getMatrix: function Entity_getMatrix() {
+		if (this.matrixDirty) {
+			if (this.matrix === null) {
 				this.matrix = new jayus.Matrix();
 			}
-			else{
+			else {
 				this.matrix.identity();
 			}
 			this.applyTransforms(this.matrix);
@@ -837,44 +808,44 @@ jayus.Entity = jayus.Responder.extend({
 	@param {CanvasRenderingContext2D|Matrix} ctx
 	*/
 
-	// applyTransforms2: function Entity_applyTransforms(ctx){
+	// applyTransforms2: function Entity_applyTransforms(ctx) {
 	// 	// ctx.translate(this.x, this.y);
-	// 	if(this.isTransformed){
-	// 		if(this.xAnchor || this.yAnchor){
+	// 	if (this.isTransformed) {
+	// 		if (this.xAnchor || this.yAnchor) {
 	// 			ctx.translate(this.xAnchor, this.yAnchor);
 	// 		}
 	// 		ctx.scale(this.xScale, this.yScale);
-	// 		if(this.angle !== 0){
+	// 		if (this.angle !== 0) {
 	// 			ctx.rotate(this.angle);
 	// 		}
-	// 		if(this.xAnchor || this.yAnchor){
+	// 		if (this.xAnchor || this.yAnchor) {
 	// 			ctx.translate(-this.xAnchor, -this.yAnchor);
 	// 		}
 	// 	}
 	// 	return this;
 	// },
 
-	applyTransforms: function Entity_applyTransforms(ctx){
+	applyTransforms: function Entity_applyTransforms(ctx) {
 		// Check if transformed
-		if(this.isTransformed){
+		if (this.isTransformed) {
 			// Check if an anchor is specified
-			if(this.xAnchor || this.yAnchor){
+			if (this.xAnchor || this.yAnchor) {
 				// Use anchor
 				ctx.translate(this.xAnchor, this.yAnchor);
-				if(this.xScale !== 1 || this.yScale !== 1){
+				if (this.xScale !== 1 || this.yScale !== 1) {
 					ctx.scale(this.xScale, this.yScale);
 				}
-				if(this.angle !== 0){
+				if (this.angle !== 0) {
 					ctx.rotate(this.angle);
 				}
 				ctx.translate(-this.xAnchor, -this.yAnchor);
 			}
-			else{
+			else {
 				// No anchor
-				if(this.xScale !== 1 || this.yScale !== 1){
+				if (this.xScale !== 1 || this.yScale !== 1) {
 					ctx.scale(this.xScale, this.yScale);
 				}
-				if(this.angle !== 0){
+				if (this.angle !== 0) {
 					ctx.rotate(this.angle);
 				}
 			}
@@ -894,17 +865,17 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Number} angle
 	*/
 
-	setAngle: function Entity_setAngle(angle){
+	setAngle: function Entity_setAngle(angle) {
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.setAngle', angle, 'angle', jayus.TYPES.NUMBER);
 		//#end
 		// Check to animate
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			this.actionsToAnimate--;
 			return jayus.MethodAnimator(this, this.setAngle, this.angle, angle);
 		}
 		// Set the angle
-		if(this.angle !== angle){
+		if (this.angle !== angle) {
 			this.angle = angle;
 			this.isTransformed = true;
 			this.matrixDirty = true;
@@ -921,7 +892,7 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Number} angle
 	*/
 
-	rotate: function Entity_rotate(angle){
+	rotate: function Entity_rotate(angle) {
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.rotate', angle, 'angle', jayus.TYPES.NUMBER);
 		//#end
@@ -944,20 +915,20 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Number} y
 	*/
 
-	setScale: function Entity_setScale(x, y){
+	setScale: function Entity_setScale(x, y) {
 		//#ifdef DEBUG
 		// jayus.debug.matchCoordinate('Entity.setScale', x, y);
 		//#end
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			y = x;
 		}
 		// Check if animated
-		if(this.actionsToAnimate){
+		if (this.actionsToAnimate) {
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setScale, [this.xScale, this.yScale], [x, y]);
 		}
 		// Set the scale
-		if(this.xScale !== x || this.yScale !== y){
+		if (this.xScale !== x || this.yScale !== y) {
 			this.xScale = x;
 			this.yScale = y;
 			this.isTransformed = true;
@@ -979,15 +950,15 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Number} y
 	*/
 
-	scale: function Entity_scale(x, y){
-		if(arguments.length === 1){
+	scale: function Entity_scale(x, y) {
+		if (arguments.length === 1) {
 			//#ifdef DEBUG
 			jayus.debug.match('Entity.scale', x, 'scale', jayus.TYPES.NUMBER);
 			//#end
 			y = x;
 		}
 		//#ifdef DEBUG
-		else{
+		else {
 			jayus.debug.matchArgumentsAs('Entity.scale', arguments, jayus.TYPES.NUMBER, 'x', 'y');
 		}
 		//#end
@@ -1004,15 +975,15 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Number} y
 	*/
 
-	setAnchor: function Entity_setAnchor(x, y){
+	setAnchor: function Entity_setAnchor(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Entity.setAnchor', x, y);
 		//#end
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
-		if(this.xAnchor !== x || this.yAnchor !== y){
+		if (this.xAnchor !== x || this.yAnchor !== y) {
 			this.xAnchor = x;
 			this.yAnchor = y;
 			this.matrixDirty = true;
@@ -1035,15 +1006,15 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Number} y
 	*/
 
-	screenToLocal: function Entity_screenToLocal(x, y){
+	screenToLocal: function Entity_screenToLocal(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Entity.screenToLocal', x, y);
 		//#end
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
-		if(this.hasParent){
+		if (this.hasParent) {
 			var pos = this.parent.screenToLocal(x, y);
 			return this.parentToLocal(pos);
 		}
@@ -1060,20 +1031,20 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Number} y
 	*/
 
-	parentToLocal: function Entity_parentToLocal(x, y){
+	parentToLocal: function Entity_parentToLocal(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Entity.parentToLocal', x, y);
 		//#end
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
-		if(this.hasParent){
+		if (this.hasParent) {
 			x -= this.x;
 			y -= this.y;
 			x /= this.xScale;
 			y /= this.yScale;
-			if(this.angle !== 0){
+			if (this.angle !== 0) {
 				var x2 = x,
 					y2 = y,
 					cos = Math.cos(this.angle),
@@ -1095,29 +1066,29 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Number} y
 	*/
 
-	localToScreen: function Entity_localToScreen(x, y){
+	localToScreen: function Entity_localToScreen(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Entity.localToScreen', x, y);
 		//#end
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
-		if(this.hasParent){
+		if (this.hasParent) {
 			return this.parent.localToScreen(this.localToParent(x, y));
 		}
 		return new jayus.Point(x, y);
 	},
 
-	localToScreenOnto: function Entity_localToScreenOnto(x, y, ret){
+	localToScreenOnto: function Entity_localToScreenOnto(x, y, ret) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Entity.localToScreenOnto', arguments, 'x', jayus.TYPES.NUMBER, 'y', jayus.TYPES.NUMBER, 'ret', jayus.TYPES.POINT);
 		//#end
-		if(this.hasParent){
+		if (this.hasParent) {
 			this.localToParentOnto(x, y, ret);
 			this.parent.localToScreenOnto(ret.x, ret.y, ret);
 		}
-		else{
+		else {
 			ret.x = x;
 			ret.y = y;
 		}
@@ -1134,11 +1105,11 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Number} y
 	*/
 
-	localToParent: function Entity_localToParent(x, y){
+	localToParent: function Entity_localToParent(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Entity.localToParent', x, y);
 		//#end
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
@@ -1147,13 +1118,13 @@ jayus.Entity = jayus.Responder.extend({
 		return ret;
 	},
 
-	localToParentOnto: function Entity_localToParentOnto(x, y, ret){
+	localToParentOnto: function Entity_localToParentOnto(x, y, ret) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Entity.localToParentOnto', arguments, 'x', jayus.TYPES.NUMBER, 'y', jayus.TYPES.NUMBER, 'ret', jayus.TYPES.POINT);
 		//#end
 		// FIXME: Entity.localToParentOnto() - Originally didnt take transforms into account without a parent, hotfixed, might still be broken
-		// if(this.hasParent){
-			if(this.angle !== 0){
+		// if (this.hasParent) {
+			if (this.angle !== 0) {
 				var x2 = x,
 					y2 = y,
 					cos = Math.cos(this.angle),
@@ -1171,28 +1142,28 @@ jayus.Entity = jayus.Responder.extend({
 		return ret;
 	},
 
-	localToParentOntoORIGINAL: function Entity_localToParentOntoORIGINAL(x, y, ret){
-		//#ifdef DEBUG
-		jayus.debug.matchArguments('Entity.localToParentOntoORIGINAL', arguments, 'x', jayus.TYPES.NUMBER, 'y', jayus.TYPES.NUMBER, 'ret', jayus.TYPES.POINT);
-		//#end
-		if(this.hasParent){
-			if(this.angle !== 0){
-				var x2 = x,
-					y2 = y,
-					cos = Math.cos(this.angle),
-					sin = Math.sin(this.angle);
-				x = cos*x2 - sin*y2;
-				y = cos*y2 + sin*x2;
-			}
-			x *= this.xScale;
-			y *= this.yScale;
-			x += this.x;
-			y += this.y;
-		}
-		ret.x = x;
-		ret.y = y;
-		return ret;
-	},
+	// localToParentOntoORIGINAL: function Entity_localToParentOntoORIGINAL(x, y, ret) {
+	// 	//#ifdef DEBUG
+	// 	jayus.debug.matchArguments('Entity.localToParentOntoORIGINAL', arguments, 'x', jayus.TYPES.NUMBER, 'y', jayus.TYPES.NUMBER, 'ret', jayus.TYPES.POINT);
+	// 	//#end
+	// 	if (this.hasParent) {
+	// 		if (this.angle !== 0) {
+	// 			var x2 = x,
+	// 				y2 = y,
+	// 				cos = Math.cos(this.angle),
+	// 				sin = Math.sin(this.angle);
+	// 			x = cos*x2 - sin*y2;
+	// 			y = cos*y2 + sin*x2;
+	// 		}
+	// 		x *= this.xScale;
+	// 		y *= this.yScale;
+	// 		x += this.x;
+	// 		y += this.y;
+	// 	}
+	// 	ret.x = x;
+	// 	ret.y = y;
+	// 	return ret;
+	// },
 
 		//
 		//  Animation
@@ -1204,23 +1175,23 @@ jayus.Entity = jayus.Responder.extend({
 
 	yVelocity: 0,
 
-	setVelocity: function Entity_setVelocity(x, y){
+	setVelocity: function Entity_setVelocity(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Entity.setVelocity', x, y);
 		//#end
-		if(arguments.length === 1){
+		if (arguments.length === 1) {
 			y = x.y;
 			x = x.x;
 		}
 		this.xVelocity = x;
 		this.yVelocity = y;
-		if(!this.running){
+		if (!this.running) {
 			jayus.animators.push(this);
 			this.running = true;
 		}
 	},
 
-	clearVelocity: function Entity_clearVelocity(){
+	clearVelocity: function Entity_clearVelocity() {
 		this.velocity = null;
 		jayus.animators.splice(jayus.animators.indexOf(this), 1);
 		this.running = false;
@@ -1235,7 +1206,7 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Number} elapsed Seconds elapsed since last frame
 	*/
 
-	tick: function Entity_tick(now, elapsed){
+	tick: function Entity_tick(now, elapsed) {
 		this.translate(this.xVelocity*elapsed, this.yVelocity*elapsed);
 	},
 
@@ -1259,7 +1230,7 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Object} object
 	*/
 
-	intersects: function Entity_intersects(object){
+	intersects: function Entity_intersects(object) {
 		return jayus.intersectTest(this, object);
 	},
 
@@ -1270,18 +1241,18 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Array} entities
 	*/
 
-	intersectCount: function Entity_intersectCount(entities){
+	intersectCount: function Entity_intersectCount(entities) {
 		//#ifdef DEBUG
 		jayus.debug.matchArray('Entity.intersectCount', entities, 'entities', jayus.TYPES.ENTITY);
-		if(!entities.length){
+		if (!entities.length) {
 			throw new RangeError('Entity.intersectCount() - Invalid entities'+jayus.debug.toString(entities)+' sent, length of at least 1 required');
 		}
 		//#end
 		var i, count = 0;
 		// Loop through the entities
-		for(i=0;i<entities.length;i++){
+		for(i=0;i<entities.length;i++) {
 			// Check if it intersects
-			if(jayus.intersectTest(this, entities[i])){
+			if (jayus.intersectTest(this, entities[i])) {
 				count++;
 			}
 		}
@@ -1299,17 +1270,17 @@ jayus.Entity = jayus.Responder.extend({
 	@param {List} entities
 	*/
 
-	intersectsAny: function Entity_intersectsAny(entities){
-		if(entities instanceof jayus.List){
+	intersectsAny: function Entity_intersectsAny(entities) {
+		if (entities instanceof jayus.List) {
 			entities = entities.items;
 		}
 		//#ifdef DEBUG
 		jayus.debug.matchArray('Entity.intersectsAny', entities, 'entities', jayus.TYPES.ENTITY);
 		//#end
 		// Loop through the entity
-		for(var i=0;i<entities.length;i++){
+		for(var i=0;i<entities.length;i++) {
 			// Return true if the entity intersects
-			if(jayus.intersectTest(this, entities[i])){
+			if (jayus.intersectTest(this, entities[i])) {
 				return true;
 			}
 		}
@@ -1327,20 +1298,20 @@ jayus.Entity = jayus.Responder.extend({
 	@param {List} entities
 	*/
 
-	intersectsAll: function Entity_intersectsAll(entities){
-		if(entities instanceof jayus.List){
+	intersectsAll: function Entity_intersectsAll(entities) {
+		if (entities instanceof jayus.List) {
 			entities = entities.items;
 		}
 		//#ifdef DEBUG
 		jayus.debug.matchArray('Entity.intersectsAll', entities, 'entities', jayus.TYPES.ENTITY);
-		if(!entities.length){
+		if (!entities.length) {
 			throw new RangeError('Entity.intersectsAll() - Invalid entities'+jayus.debug.toString(entities)+' sent, length of at least 1 required');
 		}
 		//#end
 		// Loop through the entities
-		for(var i=0;i<entities.length;i++){
+		for(var i=0;i<entities.length;i++) {
 			// Return false if the entity does not intersect
-			if(!jayus.intersectTest(this, entities[i])){
+			if (!jayus.intersectTest(this, entities[i])) {
 				return false;
 			}
 		}
@@ -1358,8 +1329,8 @@ jayus.Entity = jayus.Responder.extend({
 	@param {List} entities
 	*/
 
-	intersectsWhich: function Entity_intersectsWhich(entities){
-		if(entities instanceof jayus.List){
+	intersectsWhich: function Entity_intersectsWhich(entities) {
+		if (entities instanceof jayus.List) {
 			entities = entities.items;
 		}
 		//#ifdef DEBUG
@@ -1367,9 +1338,9 @@ jayus.Entity = jayus.Responder.extend({
 		//#end
 		var i, ret = [];
 		// Loop through the entities
-		for(i=0;i<entities.length;i++){
+		for(i=0;i<entities.length;i++) {
 			// Add the index if it intersects
-			if(jayus.intersectTest(this, entities[i])){
+			if (jayus.intersectTest(this, entities[i])) {
 				ret.push(entities[i]);
 			}
 		}
@@ -1387,17 +1358,21 @@ jayus.Entity = jayus.Responder.extend({
 	@param {Brush} style
 	*/
 
-	setStyle: function RectEntity_setStyle(style){
+	setStyle: function RectEntity_setStyle(style) {
 		//#ifdef DEBUG
 		jayus.debug.match('RectEntity.setStyle', style, 'style', jayus.TYPES.OBJECT);
 		//#end
-		// Detach self from the old style
-		if(this.hasStyle){
-			this.style.detach(this);
+		// Get the object if needed
+		if (typeof brush === 'string') {
+			brush = jayus.mustGetObject(brush);
 		}
-		// Create the style object if not given
-		if(!(style instanceof jayus.Brush)){
-			style = new jayus.Brush(style);
+		// Decorate if needed
+		if (!(shape instanceof jayus.Shape)) {
+			shape = jayus.fromObject(shape);
+		}
+		// Detach self from the old style
+		if (this.hasStyle) {
+			this.style.detach(this);
 		}
 		// Set and attach self to the new style
 		this.style = style;
@@ -1408,11 +1383,11 @@ jayus.Entity = jayus.Responder.extend({
 
 	/**
 	Removes the style.
-	@method {Self} clearBg
+	@method {Self} clearStyle
 	*/
 
-	clearBg: function RectEntity_clearBg(){
-		if(this.hasStyle){
+	clearStyle: function RectEntity_clearStyle() {
+		if (this.hasStyle) {
 			this.style.detach(this);
 			this.style = null;
 			this.hasStyle = false;
@@ -1432,7 +1407,7 @@ jayus.Entity = jayus.Responder.extend({
 	@method {Surface} rasterize
 	*/
 
-	rasterize: function Entity_rasterize(){
+	rasterize: function Entity_rasterize() {
 		var scope = this.getScope(),
 			surface = new jayus.Surface(scope.width, scope.height),
 			x = this.x,
@@ -1451,7 +1426,7 @@ jayus.Entity = jayus.Responder.extend({
 	@method {Self} drawOnto
 	*/
 
-	drawOnto: function Entity_drawOnto(surface){
+	drawOnto: function Entity_drawOnto(surface) {
 		var ctx = surface.context;
 		ctx.save();
 		this.drawOntoContext(ctx, 0, 0);

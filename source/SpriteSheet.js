@@ -31,10 +31,6 @@ An entity that describes a number of sprites and animations for an image.
 @class jayus.SpriteSheet
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'SpriteSheet';
-//#end
-
 jayus.SpriteSheet = jayus.Dependency.extend({
 
 	/**
@@ -92,6 +88,8 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 
 	animations: null,
 
+	namedSprites: null,
+
 	/**
 	Initiates the sprite sheet.
 	@constructor init
@@ -106,6 +104,59 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 			//#end
 			jayus.images.images[filepath].sheet = this;
 		}
+	},
+
+	/**
+	Defines a named sprite.
+	@method {Self} nameSprite
+	@param {String} name
+	@param {Number} x
+	@param {Number} y
+	@param {Number} width
+	@param {Number} height
+	*/
+
+	nameSprite: function SpriteSheet_nameSprite(name, x, y, width, height) {
+		// TODO: Argchk
+		if(this.namedSprites === null){
+			this.namedSprites = {};
+		}
+		this.namedSprites[name] = {
+			x: x,
+			y: y,
+			width: width,
+			height: height,
+			flipX: false,
+			flipY: false
+		};
+		return this;
+	},
+
+	setSpriteFlipping: function SpriteSheet_setSpriteFlipping(name, flipX, flipY) {
+		if(typeof this.namedSprites[name] === 'object'){
+			var data = this.namedSprites[name];
+			data.flipX = flipX;
+			data.flipY = flipY;
+			return;
+		}
+		throw new Error('SpriteSheet.applySprite() - Unknown sprite name: '+name);
+	},
+
+	// TODO: Everything, support x/y
+	applySprite: function SpriteSheet_applySprite(sprite, name) {
+		if(typeof this.namedSprites[name] === 'object'){
+			var data = this.namedSprites[name];
+			sprite.setSection(data.x, data.y, data.width, data.height);
+			sprite.setRelativeAnchor(0.5, 0.5);
+			if(data.flipX){
+				sprite.setScale(-1, 1);
+			}
+			else{
+				sprite.setScale(1, 1);
+			}
+			return;
+		}
+		throw new Error('SpriteSheet.applySprite() - Unknown sprite name: '+name);
 	},
 
 	/**
@@ -198,7 +249,7 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 
 	/**
 	Defines a named animation using sprites within the spritesheet.
-	<br> Default duration is 1 second.
+	<br> Default duration is 1000 milliseconds.
 	@method {Self} addAnimation
 	@param {String} name
 	@param {Array} sprites
@@ -209,11 +260,13 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 		if(arguments.length === 2){
 			duration = 1000;
 			//#ifdef DEBUG
-			arguments[2] = duration;
+			jayus.debug.matchArguments('SpriteSheet.addAnimation', arguments, 'name', jayus.TYPES.STRING, 'sprites', jayus.TYPES.ARRAY);
 			//#end
 		}
 		//#ifdef DEBUG
-		jayus.debug.matchArguments('SpriteSheet.addAnimation', arguments, 'name', jayus.TYPES.STRING, 'sprites', jayus.TYPES.ARRAY, 'duration', jayus.TYPES.NUMBER);
+		else{
+			jayus.debug.matchArguments('SpriteSheet.addAnimation', arguments, 'name', jayus.TYPES.STRING, 'sprites', jayus.TYPES.ARRAY, 'duration', jayus.TYPES.NUMBER);
+		}
 		//#end
 		this.animations[name] = {
 			sprites: sprites,

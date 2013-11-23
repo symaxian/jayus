@@ -33,10 +33,6 @@ A entity for manipulating and rendering child entities within a fixed area.
 @extends jayus.Group
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Layer';
-//#end
-
 jayus.Layer = jayus.Entity.extend({
 
 	//

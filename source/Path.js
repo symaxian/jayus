@@ -33,10 +33,6 @@ Represents a path.
 @extends jayus.Shape
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Path';
-//#end
-
 jayus.Path = jayus.Shape.extend({
 
 	//
@@ -97,6 +93,7 @@ jayus.Path = jayus.Shape.extend({
 	*/
 
 	toPolygonDetail: 10,
+	//#replace jayus.Path.prototype.toPolygonDetail 10
 
 	//
 	//  Methods
@@ -117,6 +114,37 @@ jayus.Path = jayus.Shape.extend({
 			//#end
 			this.addSVS(pathString);
 		}
+	},
+
+	toObject: function Path_toObject() {
+		// Get object from parent
+		var object = {
+			type: 'Path',
+			segments: this.segments
+		};
+		if (this.toPolygonDetail !== jayus.Path.prototype.toPolygonDetail) {
+			object.toPolygonDetail = this.toPolygonDetail;
+		}
+		if (this.id !== jayus.Dependency.prototype.id) {
+			object.id = this.id;
+		}
+		return object;
+	},
+
+	initFromObject: function Path_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Path.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		jayus.Dependency.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		this.x = object.xPoints;
+		this.y = object.yPoints;
+		if (typeof object.toPolygonDetail === 'number') {
+			this.toPolygonDetail = object.toPolygonDetail;
+		}
+		// Set as dirty
+		this.reformFrame();
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 		//
@@ -785,19 +813,6 @@ jayus.Path = jayus.Shape.extend({
 		//
 		//  Utilities
 		//_____________//
-
-	//#ifdef DEBUG
-	toString: function Path_toString(){
-		// Create a new string to pickle into
-		var i, str = '(Path:[';
-		// Loop through and add the items
-		for(i=0;i<this.getSegmentCount();i++){
-			str += jayus.debug.toString(this.segments[i]);
-		}
-		// Return the closed string
-		return str+'])';
-	},
-	//#end
 
 	//@ From Shape
 	clone: function Path_clone(){

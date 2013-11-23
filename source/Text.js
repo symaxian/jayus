@@ -32,10 +32,6 @@ Represents a single line of text.
 @extends jayus.RectEntity
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Text';
-//#end
-
 jayus.Text = jayus.RectEntity.extend({
 
 	//
@@ -49,6 +45,7 @@ jayus.Text = jayus.RectEntity.extend({
 	*/
 
 	text: '',
+	//#replace jayus.Text.prototype.text ''
 
 	/**
 	The font to draw the text in.
@@ -57,6 +54,7 @@ jayus.Text = jayus.RectEntity.extend({
 	*/
 
 	font: '12pt sans-serif',
+	//#replace jayus.Text.prototype.font '12pt sans-serif'
 
 	/**
 	How to draw the text.
@@ -65,6 +63,7 @@ jayus.Text = jayus.RectEntity.extend({
 	*/
 
 	brush: null,
+	//#replace jayus.Text.prototype.brush null
 
 	/**
 	Whether a brush is set or not.
@@ -81,6 +80,7 @@ jayus.Text = jayus.RectEntity.extend({
 	*/
 
 	alignment: 0,
+	//#replace jayus.Text.prototype.alignment 0
 
 	/**
 	The font descriptor for the current font.
@@ -139,8 +139,9 @@ jayus.Text = jayus.RectEntity.extend({
 		// Call the entity's init method
 		jayus.Entity.prototype.init.apply(this);
 		//#ifdef DEBUG
+		// FIXME: Argchk
 		// Check the arguments
-		if(arguments.length === 1){
+		if(arguments.length === 1 && typeof text === 'string'){
 			jayus.debug.match('Text.init', text, 'text', jayus.TYPES.STRING);
 		}
 		else if(arguments.length === 2){
@@ -151,7 +152,10 @@ jayus.Text = jayus.RectEntity.extend({
 		}
 		//#end
 		// Set the properties
-		if(arguments.length){
+		if(arguments.length === 1 && typeof text === 'object'){
+			this.initFromObject(text);
+		}
+		else if(arguments.length){
 			this.text = text;
 			if(arguments.length > 1){
 				this.font = font;
@@ -161,6 +165,52 @@ jayus.Text = jayus.RectEntity.extend({
 			}
 		}
 		this.refreshMetrics();
+	},
+
+	toObject: function Text_toObject() {
+		var object = jayus.RectEntity.prototype.toObject.apply(this);
+		// Add our own properties
+		object.type = 'Text';
+		if (this.text !== jayus.Text.prototype.text) {
+			object.text = this.text;
+		}
+		if (this.font !== jayus.Text.prototype.font) {
+			object.font = this.font;
+		}
+		if (this.brush !== jayus.Text.prototype.brush) {
+			object.brush = this.brush;
+		}
+		if (this.alignment !== jayus.Text.prototype.alignment) {
+			object.alignment = this.alignment;
+		}
+		return object;
+	},
+
+	//@ From Parsable
+	initFromObject: function Text_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Text.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		this.frozen++;
+		// Apply parent properties
+		jayus.RectEntity.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		if (typeof object.text === 'string') {
+			this.setText(object.text);
+		}
+		if (typeof object.font === 'string') {
+			this.setFont(object.font);
+		}
+		if (typeof object.brush !== 'undefined') {
+			this.setBrush(object.brush);
+		}
+		if (typeof object.alignment === 'number') {
+			this.setAlignment(object.alignment);
+		}
+		this.frozen--;
+		this.refreshMetrics();
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 	componentDirtied: function Text_componentDirtied(){
@@ -358,6 +408,12 @@ jayus.Text = jayus.RectEntity.extend({
 			height = this.fontDesc.height;
 
 		// Apply the brush and font
+		//#ifdef DEBUG
+		if(this.brush === null){
+			console.log(this);
+			throw new Error('Text.paintContents() - Brush is null');
+		}
+		//#end
 		this.brush.applyTo(ctx);
 		ctx.font = this.font;
 

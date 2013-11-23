@@ -52,10 +52,6 @@ Possibilities:
 
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Grid';
-//#end
-
 jayus.Grid = jayus.RectEntity.extend({
 
 	//

@@ -31,10 +31,6 @@ A two-dimensional transformation matrix.
 @class jayus.Matrix
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Matrix';
-//#end
-
 jayus.Matrix = jayus.createClass({
 
 	//	a	b	tx
@@ -57,8 +53,11 @@ jayus.Matrix = jayus.createClass({
 	@param {Number} ty
 	*/
 
-	init: function Matrix_init(a, b, tx, c, d, ty){
-		if(arguments.length){
+	init: function Matrix_init(a, b, tx, c, d, ty) {
+		if (arguments.length === 1) {
+			this.initFromObject(a);
+		}
+		else if (arguments.length) {
 			//#ifdef DEBUG
 			jayus.debug.matchArgumentsAs('Matrix.init', arguments, jayus.TYPES.NUMBER, 'a', 'b', 'tx', 'c', 'd', 'ty');
 			//#end
@@ -74,7 +73,7 @@ jayus.Matrix = jayus.createClass({
 	//@ From Parsable
 	toObject: function Matrix_toObject() {
 		var object = {
-			__type__: 'Matrix',
+			type: 'Matrix',
 			a: this.a,
 			b: this.b,
 			tx: this.tx,
@@ -343,14 +342,6 @@ jayus.Matrix = jayus.createClass({
 		ret.init(this.a, this.b, this.tx, this.c, this.d, this.ty);
 		return ret;
 	},
-
-	//#ifdef DEBUG
-	toString: function Matrix_toString(){
-		return	'[ '+this.a+', '+this.b+', '+this.tx+' ]\n'+
-				'[ '+this.b+', '+this.d+', '+this.ty+' ]\n'+
-				'[ '+0+', '+0+', '+1+' ]';
-	},
-	//#end
 
 	/**
 	Compares against another matrix for equality.

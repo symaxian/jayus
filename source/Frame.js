@@ -33,10 +33,6 @@ Represents padded border around an Entity.
 @extends jayus.Wrapper
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Frame';
-//#end
-
 jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 
 	//
@@ -122,18 +118,24 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	/**
 	Initiates the Frame object.
 	@constructor init
-	@param {Entity} child
+	@param {Entity} child Optional
 	*/
 
-	init: function Frame_init(child){
-		//#ifdef DEBUG
-		jayus.debug.match('Frame.init', child, 'child', jayus.TYPES.ENTITY);
-		jayus.chart.tallyInit(jayus.TYPES.ENTITY);
-		//#end
+	init: function Frame_init(child) {
 		jayus.Entity.prototype.init.apply(this);
-		this.setChild(child);
-		// this.dirty(jayus.DIRTY.ALL);
-		this.formContents();
+		if (arguments.length) {
+			//#ifdef DEBUG
+			jayus.debug.match('Frame.init', child, 'child', jayus.TYPES.ENTITY);
+			jayus.chart.tallyInit(jayus.TYPES.ENTITY);
+			//#end
+			this.setChild(child);
+			// this.dirty(jayus.DIRTY.ALL);
+			this.formContents();
+			this.isParent = true;
+		}
+		else {
+			this.isParent = false;
+		}
 		this.addHandler('dirty', function(type){
 			if(type & jayus.DIRTY.SIZE || type & jayus.DIRTY.POSITION){
 				this.formContents();
@@ -141,10 +143,45 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 		});
 	},
 
+	initFromObject: function Frame_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Frame.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		this.frozen++;
+		// Apply parent properties
+		jayus.RectEntity.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		if (typeof object.marginLeft === 'number') {
+			this.marginLeft = object.marginLeft;
+		}
+		if (typeof object.marginRight === 'number') {
+			this.marginRight = object.marginRight;
+		}
+		if (typeof object.marginTop === 'number') {
+			this.marginTop = object.marginTop;
+		}
+		if (typeof object.marginBottom === 'number') {
+			this.marginBottom = object.marginBottom;
+		}
+		if (typeof object.child === 'object') {
+			this.setChild(jayus.parse(object.child));
+		}
+		this.frozen--;
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
+	},
+
 	setChild: function Frame_setChild(child){
 		jayus.Wrapper.setChild.call(this, child);
 		this.changeSize(child.width+this.marginLeft+this.marginRight, child.height+this.marginTop+this.marginBottom);
 		return this;
+	},
+
+	find: function Frame_find(id) {
+		if (this.isParent && this.child.id === id) {
+			return this.child;
+		}
+		return null;
 	},
 
 	componentDirtied: function Frame_componentDirtied(component, type){

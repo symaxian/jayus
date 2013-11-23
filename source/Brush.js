@@ -52,10 +52,6 @@ Contains styling information to describe how entities will draw their components
 
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Brush';
-//#end
-
 jayus.Brush = jayus.Dependency.extend({
 
 	//
@@ -250,7 +246,7 @@ jayus.Brush = jayus.Dependency.extend({
 
 	toObject: function Brush_toObject() {
 		var object = {};
-		object.__type__ = 'Brush';
+		object.type = 'Brush';
 		var i, key, val, valType;
 		for (i=0;i<jayus.Brush.prototype.properties.names.length;i++) {
 			key = jayus.Brush.prototype.properties.names[i];
@@ -558,6 +554,10 @@ jayus.Brush = jayus.Dependency.extend({
 		if(this.fillType >= 4){
 			this.fill.detach(this);
 		}
+		// Check if we need to turn it form an object to an entity
+		if (typeof style === 'object' && typeof style.type === 'string') {
+			style = jayus.fromObject(style);
+		}
 		// Set the new style and type
 		this.fill = style;
 		this.fillType = this.findStyleType(style);
@@ -586,6 +586,10 @@ jayus.Brush = jayus.Dependency.extend({
 		// If the old style was a Dependency, detach self
 		if(this.strokeType >= 4){
 			this.stroke.detach(this);
+		}
+		// Check if we need to turn it form an object to an entity
+		if (typeof style === 'object' && typeof style.type === 'string') {
+			style = jayus.fromObject(style);
 		}
 		// Set the new style and type
 		this.stroke = style;

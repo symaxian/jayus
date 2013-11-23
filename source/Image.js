@@ -34,10 +34,6 @@ An entity that represents a single image.
 @extends jayus.RectEntity
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Image';
-//#end
-
 jayus.Image = jayus.RectEntity.extend({
 
 	//
@@ -110,48 +106,16 @@ jayus.Image = jayus.RectEntity.extend({
 
 	init: function Image_init(image){
 		jayus.Entity.prototype.init.apply(this);
-		// Check the argument type
-		if(typeof image === 'string'){
-			var filepath = image;
-			this.imageSource = filepath;
-			// Check if loaded
-			if(jayus.images.isLoaded(filepath)){
-				// Set image
-				this.loaded = true;
-				this.image = jayus.images.images[filepath];
-				this.width = this.image.width;
-				this.height = this.image.height;
-			}
-			else{
-				// Load the file
-				var that = this;
-				jayus.addHandler('imageLoaded', function(data){
-					if(data.filepath === filepath){
-						that.loaded = true;
-						that.image = data.image;
-						if(!that.hasSection){
-							that.width = data.image.width;
-							that.height = data.image.height;
-							that.dirty(jayus.DIRTY.SIZE);
-						}
-					}
-				});
-				jayus.images.load(filepath);
-			}
+		if(arguments.length === 0){
+			return;
 		}
-		else{
-			// Set the image and size
-			this.loaded = true;
-			this.image = image;
-			this.width = this.image.width;
-			this.height = this.image.height;
-		}
+		this.setSource(image);
 	},
 
 	toObject: function Image_toObject() {
 		var object = jayus.RectEntity.prototype.toObject.apply(this);
 		// Add our own properties
-		object.__type__ = 'Image';
+		object.type = 'Image';
 		if (this.section !== null) {
 			object.section = this.section.toObject();
 		}
@@ -172,7 +136,7 @@ jayus.Image = jayus.RectEntity.extend({
 	},
 
 	initFromObject: function Image_initFromObject(object) {
-		this.RectEntity.prototype.initFromObject.call(this, object);
+		jayus.RectEntity.prototype.initFromObject.call(this, object);
 		// Apply our properties
 		this.hasSection = typeof object.section === 'object';
 		if (this.hasSection) {
@@ -208,6 +172,7 @@ jayus.Image = jayus.RectEntity.extend({
 		// Check the argument type
 		if(typeof image === 'string'){
 			var filepath = image;
+			this.imageSource = filepath;
 			// Check if loaded
 			if(jayus.images.isLoaded(filepath)){
 				// Set image
@@ -215,18 +180,23 @@ jayus.Image = jayus.RectEntity.extend({
 				this.image = jayus.images.images[filepath];
 				this.width = this.image.width;
 				this.height = this.image.height;
-				this.dirty(jayus.DIRTY.SIZE);
 			}
 			else{
 				// Load the file
 				var that = this;
-				jayus.images.load(filepath, function(source, image){
-					that.loaded = true;
-					that.image = jayus.images.images[filepath];
-					that.width = image.width;
-					that.height = image.height;
-					that.dirty(jayus.DIRTY.SIZE);
+				jayus.addHandler('imageLoaded', function(data){
+					// console.log('AHA!');
+					if(data.filepath === filepath){
+						that.loaded = true;
+						that.image = data.image;
+						if(!that.hasSection){
+							that.width = data.image.width;
+							that.height = data.image.height;
+							that.dirty(jayus.DIRTY.SIZE);
+						}
+					}
 				});
+				jayus.images.load(filepath);
 			}
 		}
 		else{
@@ -235,7 +205,6 @@ jayus.Image = jayus.RectEntity.extend({
 			this.image = image;
 			this.width = this.image.width;
 			this.height = this.image.height;
-			this.dirty(jayus.DIRTY.SIZE);
 		}
 	},
 
@@ -316,13 +285,6 @@ jayus.Image = jayus.RectEntity.extend({
 		//  Utilities
 		//_____________//
 
-	//#ifdef DEBUG
-	//@ From Entity
-	toString: function Image_toString(){
-		return '(Image:'+this.image+')';
-	},
-	//#end
-
 	/**
 	Returns a CanvasPattern representing the image.
 	<br> The repetition string is optional and may be 'repeat', 'repeat-x', 'repeat-y', or 'no-repeat'.
@@ -347,29 +309,6 @@ jayus.Image = jayus.RectEntity.extend({
 		//
 		//  Rendering
 		//_____________//
-
-	//@ From Entity
-	// applyTransforms: function Image_applyTransforms(ctx){
-	// 	if(this.keepAligned){
-	// 		ctx.translate(Math.round(this.x), Math.round(this.y));
-	// 	}
-	// 	else{
-	// 		ctx.translate(this.x, this.y);
-	// 	}
-	// 	if(this.isTransformed){
-	// 		if(this.xAnchor || this.yAnchor){
-	// 			ctx.translate(this.xAnchor, this.yAnchor);
-	// 		}
-	// 		ctx.scale(this.xScale, this.yScale);
-	// 		if(this.angle !== 0){
-	// 			ctx.rotate(this.angle);
-	// 		}
-	// 		if(this.xAnchor || this.yAnchor){
-	// 			ctx.translate(-this.xAnchor, -this.yAnchor);
-	// 		}
-	// 	}
-	// 	return this;
-	// },
 
 	//@ From Entity
 	paintContents: function Image_paintContents(ctx){

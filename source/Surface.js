@@ -32,10 +32,6 @@ An Entity that represents an editable image.
 @class jayus.Surface
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Surface';
-//#end
-
 jayus.Surface = jayus.RectEntity.extend({
 
 	//
@@ -560,12 +556,6 @@ jayus.Surface = jayus.RectEntity.extend({
 		window.open(this.canvas.toDataURL('image/png'), '_blank');
 		return this;
 	},
-
-	//#ifdef DEBUG
-	toString: function Surface_toString(){
-		return '(Surface:'+this.width+','+this.height+')';
-	},
-	//#end
 
 	/**
 	Returns a CanvasPattern representing the image on the surface.

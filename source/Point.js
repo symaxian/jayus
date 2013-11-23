@@ -32,10 +32,6 @@ Represents a point in two dimensional space.
 @class jayus.Point
 */
 
-//#ifdef DEBUG
-jayus.debug.className = 'Point';
-//#end
-
 jayus.Point = jayus.Dependency.extend({
 
 	//
@@ -87,7 +83,7 @@ jayus.Point = jayus.Dependency.extend({
 	//@ From Parsable
 	toObject: function Point_toObject() {
 		var object = {
-			__type___: 'Point',
+			type_: 'Point',
 			x: this.x,
 			y: this.y
 		};
@@ -216,8 +212,8 @@ jayus.Point = jayus.Dependency.extend({
 		//_____________//
 
 	//#ifdef DEBUG
-	toString: function Point_toString() {
-		return '(Point:'+this.x+','+this.y+')';
+	toString: function Point_toString(){
+		return '(Point: '+this.x+', '+this.y+')';
 	},
 	//#end
 
