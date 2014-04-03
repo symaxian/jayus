@@ -228,7 +228,7 @@ jayus.Group = {
 		//#end
 		// Loop through the children
 		var i, item,
-			items = this.items;
+			items = this.items.slice(0);
 		for(i=items.length-1;i>=0;i--) {
 		// for(;i<items.length;i++) {
 			item = items[i];

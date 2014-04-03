@@ -214,8 +214,8 @@ jayus.Responder = jayus.createClass({
 		this.hasHandlers = false;
 		this.isHandler = null;
 		this.handlers = null;
-		if(typeof this.addDefaultHandlers === 'function') {
-			this.addDefaultHandlers();
+		if(typeof this.events === 'object' && this.events !== null) {
+			this.handle(this.events);
 		}
 		return this;
 	},
@@ -247,42 +247,6 @@ jayus.Responder = jayus.createClass({
 					- Can be messy for the user to deal with
 	*/
 
-	// fire2: function Responder_fire2(event, data) {
-	// 	//#ifdef DEBUG
-	// 	jayus.debug.match('Responder.fire', event, 'event', jayus.TYPES.STRING);
-	// 	jayus.debug.matchOptional('Responder.fire', data, 'data', jayus.TYPES.DEFINED);
-	// 	//#end
-	// 	var i,
-	// 		opts,
-	// 		result,
-	// 		handlers;
-	// 	if(this.hasHandlers && this.isHandler[event]) {
-	// 		handlers = this.handlers[event];
-	// 		// Loop through the responders for the event
-	// 		for(i=0;i<handlers.length;i++) {
-	// 			// Get the event handler data
-	// 			opts = handlers[i];
-	// 			// Call the handler
-	// 			result = !!opts.handler.call(opts.hasContext ? opts.context : this, data);
-	// 			// Check to remove
-	// 			if(opts.remove) {
-	// 				// Remove the handler and decrement the count
-	// 				this.removeHandler(event, opts.handler);
-	// 				i--;
-	// 				// Check to exit the loop early
-	// 				if(!this.isHandler[event]) {
-	// 					// Return true if accepted, else false
-	// 					return result;
-	// 				}
-	// 			}
-	// 			else if(result) {
-	// 				return true;
-	// 			}
-	// 		}
-	// 	}
-	// 	return false;
-	// },
-
 	fire: function Responder_fire(event, data) {
 		//#ifdef DEBUG
 		jayus.debug.match('Responder.fire', event, 'event', jayus.TYPES.STRING);
@@ -293,16 +257,16 @@ jayus.Responder = jayus.createClass({
 			result,
 			handlers;
 		if(this.hasHandlers && this.isHandler[event]) {
-			handlers = this.handlers[event];
+			// Copy the handler array, so that any manipulation of it will not affect the fire loop
+			handlers = this.handlers[event].slice(0);
 			// Loop through the responders for the event
 			for(i=0;i<handlers.length;i++) {
 				// Get the event handler data
 				opts = handlers[i];
 				// Check to remove
 				if(opts.remove) {
-					// Remove the handler and decrement the count
+					// Remove the handler
 					this.removeHandler(event, opts.handler);
-					i--;
 				}
 				else if(opts.enabled) {
 					// Call the handler

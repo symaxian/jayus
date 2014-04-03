@@ -329,12 +329,10 @@ jayus.List = jayus.createClass({
 		else {
 			// Loop through the arguments
 			for(i=0;i<arguments.length;i++) {
-				item = arguments[i];
-				index = this.items.indexOf(item);
+				index = this.items.indexOf(arguments[i]);
 				if(index >= 0) {
 					// Remove the item
 					this.items.splice(index, 1);
-					this.removed(item);
 				}
 			}
 			this.removedMany(arguments);

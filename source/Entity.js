@@ -111,6 +111,13 @@ jayus.Entity = jayus.Responder.extend({
 		//_______//
 
 	/*
+	An object containing default event handlers for use when subclassing.
+	@property {Object} events
+	*/
+
+	events: null,
+
+	/*
 	Whether the entity has a scale or angle specified.
 	<br> Do not modify.
 	@property {private Boolean} isTransformed
@@ -269,6 +276,10 @@ jayus.Entity = jayus.Responder.extend({
 		// 	this.unexpose();
 		// });
 		//#end
+		// Add the default event handlers
+		if(typeof this.events === 'object' && this.events !== null) {
+			this.handle(this.events);
+		}
 		if(this.enableDragEvents) {
 			this.handle({
 
@@ -413,6 +424,9 @@ jayus.Entity = jayus.Responder.extend({
 		}
 		if(typeof object.constraints === 'object') {
 			this.setConstraints(object.constraints);
+		}
+		if(typeof object.events === 'object' && object.events !== null) {
+			this.handle(object.events);
 		}
 		this.frozen--;
 		// Set as dirty

@@ -161,9 +161,38 @@ jayus.Display = jayus.Scene.extend({
 		// Internal stuff
 		jayus.displays.push(this);
 		this.hookCursorListeners(this.canvas);
-		this.addDefaultHandlers();
+		//#ifdef DEBUG
+		var display = this;
+		jayus.addHandler('keyPress', function(e) {
+			if(display.underCursor && e.key === 'grave') {
+				var i, target,
+					targets = display.getChildrenUnderCursor();
+				if(targets.length === 0) {
+					targets.push(display);
+				}
+				for(i=0;i<targets.length;i++) {
+					target = targets[i];
+					if(e.event.shiftKey) {
+						if(target.exposingAll) {
+							target.exposeAll();
+						}
+						else {
+							target.unexposeAll();
+						}
+					}
+					else {
+						if(target.debugRenderer === null) {
+							target.expose();
+						}
+						else {
+							target.unexpose();
+						}
+					}
+				}
+			}
+		});
+		//#end
 		this.addHandler('dirty', function Display_dirty_updateCursor(e) {
-			// console.log(e);
 			if(e & jayus.DIRTY.SCOPE) {
 				this.startCursorUpdate();
 			}
@@ -504,40 +533,6 @@ jayus.Display = jayus.Scene.extend({
 			});
 		}
 
-	},
-
-	addDefaultHandlers: function Display_addDefaultHandlers() {
-		//#ifdef DEBUG
-		var display = this;
-		jayus.addHandler('keyPress', function(e) {
-			if(display.underCursor && e.key === 'grave') {
-				var i, target,
-					targets = display.getChildrenUnderCursor();
-				if(targets.length === 0) {
-					targets.push(display);
-				}
-				for(i=0;i<targets.length;i++) {
-					target = targets[i];
-					if(e.event.shiftKey) {
-						if(target.exposingAll) {
-							target.exposeAll();
-						}
-						else {
-							target.unexposeAll();
-						}
-					}
-					else {
-						if(target.debugRenderer === null) {
-							target.expose();
-						}
-						else {
-							target.unexpose();
-						}
-					}
-				}
-			}
-		});
-		//#end
 	},
 
 	startCursorUpdate: function Display_startCursorUpdate() {
