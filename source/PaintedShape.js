@@ -146,9 +146,12 @@ jayus.PaintedShape = jayus.Entity.extend({
 
 	setShape: function PaintedShape_setShape(shape) {
 		//#ifdef DEBUG
-		jayus.debug.match('PaintedShape.setShape', shape, 'shape', jayus.TYPES.SHAPE);
+		jayus.debug.match('PaintedShape.setShape', shape, 'shape', jayus.TYPES.OBJECT);
 		//#end
 		if(this.shape !== shape) {
+			if(typeof shape.frozen !== 'number') {
+				shape = jayus.parse(shape);
+			}
 			if(this.shape !== null) {
 				this.shape.detach(this);
 			}

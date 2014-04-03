@@ -975,7 +975,7 @@ jayus.Entity = jayus.Responder.extend({
 
 	cursorY: 0,
 
-	tooltip: 'Hi!',
+	tooltip: '',
 
 	setTooltip: function Entity_setTooltip(text) {
 		this.trackCursor = true;
@@ -1583,8 +1583,12 @@ jayus.Entity = jayus.Responder.extend({
 			return this.setAnchor(x.x, x.y);
 		}
 		if(this.xAnchor !== x || this.yAnchor !== y) {
+			var pos = this.getPosAt(this.xAnchor/this.width, this.yAnchor/this.height);
 			this.xAnchor = x;
 			this.yAnchor = y;
+			var pos2 = this.getPosAt(this.xAnchor/this.width, this.yAnchor/this.height);
+			console.log(pos2.x-pos.x, pos2.y-pos.y);
+			// this.translate(this.getPosAt(this.xAnchor/this.width, this.yAnchor/this.height).translate(pos.x, pos.y));
 			this.dirty(jayus.DIRTY.TRANSFORMS);
 		}
 		return this;
@@ -2002,6 +2006,9 @@ jayus.Entity = jayus.Responder.extend({
 	*/
 
 	drawOnto: function Entity_drawOnto(surface) {
+		//#ifdef DEBUG
+		jayus.debug.match('Entity.drawOnto', surface, 'surface', jayus.TYPES.SURFACE);
+		//#end
 		var ctx = surface.context;
 		ctx.save();
 		this.drawOntoContext(ctx, 0, 0);

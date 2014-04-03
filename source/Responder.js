@@ -193,9 +193,9 @@ jayus.Responder = jayus.createClass({
 	@param {String} event
 	*/
 
-	removeHandlers: function Entity_removeHandlers(event) {
+	removeHandlers: function Responder_removeHandlers(event) {
 		//#ifdef DEBUG
-		jayus.debug.match('Entity.removeHandlers', event, 'event', jayus.TYPES.STRING);
+		jayus.debug.match('Responder.removeHandlers', event, 'event', jayus.TYPES.STRING);
 		//#end
 		// Remove the handler
 		if(this.isHandler[event]) {
@@ -210,7 +210,7 @@ jayus.Responder = jayus.createClass({
 	@method {Self} removeAllHandlers
 	*/
 
-	removeAllHandlers: function Entity_removeAllHandlers() {
+	removeAllHandlers: function Responder_removeAllHandlers() {
 		this.hasHandlers = false;
 		this.isHandler = null;
 		this.handlers = null;

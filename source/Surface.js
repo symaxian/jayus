@@ -91,6 +91,14 @@ jayus.Surface = jayus.RectEntity.extend({
 		this.dirty(jayus.DIRTY.ALL);
 	},
 
+	changeSize: function Surface_changeSize(width, height) {
+		this.width = width;
+		this.height = height;
+		this.canvas.width = width;
+		this.canvas.height = height;
+		this.dirty(jayus.DIRTY.SIZE);
+	},
+
 			//
 			//  Filling
 			//___________//

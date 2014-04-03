@@ -967,6 +967,12 @@ window.jayus = {
 		}
 		//#end
 		if(!this.running) {
+			if(this.isHandler === null) {
+				this.isHandler = {
+					frame: false,
+					step: false
+				};
+			}
 			// Set the running flag
 			this.running = true;
 			// Setup an interval if we cant use the requestAnimationFrame function
@@ -1145,10 +1151,6 @@ window.jayus = {
 
 	// TODO: Find better method? Document?
 	addDefaultHandlers: function jayus_addDefaultHandlers() {
-		jayus.isHandler = {
-			step: false,
-			frame: false
-		};
 		//#ifdef DEBUG
 		jayus.addHandler('keyPress', function(e) {
 			if(e.key === 'grave' && e.event.ctrlKey) {

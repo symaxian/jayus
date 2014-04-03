@@ -70,8 +70,6 @@ jayus.RectEntity = jayus.Entity.extend({
 	properties: [
 		'x',
 		'y',
-		'width',
-		'height',
 		'roundX',
 		'roundY',
 		'alignBg'
@@ -170,6 +168,12 @@ jayus.RectEntity = jayus.Entity.extend({
 			if(typeof val !== 'undefined') {
 				this[key] = val;
 			}
+		}
+		if(typeof object.width === 'number') {
+			this.setWidth(object.width);
+		}
+		if(typeof object.height === 'number') {
+			this.setHeight(object.height);
 		}
 		if(typeof object.bounds === 'object') {
 			this.bounds = jayus.parse(object.bounds);
@@ -403,7 +407,9 @@ jayus.RectEntity = jayus.Entity.extend({
 		//#end
 		// Get the current un-transformed position
 		// Move the entity by the difference
-		return this.translate(x-(this.x+anchorX*this.width), y-(this.y+anchorY*this.height));
+		// return this.translate(x-(this.x+anchorX*this.width), y-(this.y+anchorY*this.height));
+		var pos = this.getPosAt(anchorX, anchorY);
+		return this.translate(x-pos.x, y-pos.y);
 	},
 
 	/**

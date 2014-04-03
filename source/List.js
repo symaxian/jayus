@@ -207,7 +207,13 @@ jayus.List = jayus.createClass({
 	*/
 
 	add: function List_add(item) {
+		var tempItem;
 		if(arguments.length === 1) {
+			// Reassign item to tempItem, Chrome doesn't like assignments to parameters
+			tempItem = item;
+			if(typeof tempItem.frozen !== 'number') {
+				tempItem = jayus.parse(tempItem);
+			}
 			//#ifdef DEBUG
 			jayus.debug.match('List.add', item, 'item', this.typeId);
 			//#end
@@ -218,11 +224,18 @@ jayus.List = jayus.createClass({
 			//#ifdef DEBUG
 			// jayus.debug.matchArray('List.add', items, 'items', this.typeId);
 			//#end
+			var items = Array.prototype.slice.call(arguments);
 			// Loop through the arguments
-			for(var i=0;i<arguments.length;i++) {
-				this.items.push(arguments[i]);
+			for(var i=0;i<items.length;i++) {
+				// Assign to tempItem, assigning to item would mess up the argument array
+				tempItem = items[i];
+				if(typeof tempItem.frozen !== 'number') {
+					tempItem = jayus.parse(tempItem);
+					items[i] = tempItem;
+				}
+				this.items.push(tempItem);
 			}
-			this.addedMany(arguments);
+			this.addedMany(items);
 		}
 		return this;
 	},
