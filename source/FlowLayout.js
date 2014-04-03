@@ -57,11 +57,22 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 
 	alignment: 0,
 
+	/**
+	Whether the height of the layout will always be kept to it's minimum.
+	<br> Do not modify.
+	<br> Default is false
+	@property {Boolean} contractHeight
+	*/
+
+	contractHeight: false,
+
 	width: 100,
 
 	height: 100,
 
 	forming: false,
+
+	minWidth: 0,
 
 	//
 	//  Methods
@@ -71,14 +82,15 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 		//  Initiation
 		//______________//
 
-	init: function FlowLayout_init(){
+	init: function FlowLayout() {
 		jayus.Entity.prototype.init.apply(this);
 		this.children = new jayus.List(this);
+		this.items = this.children.items;
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
 		//#end
-		this.addHandler('dirty', function(type){
-			if(type & jayus.DIRTY.SIZE){
+		this.addHandler('dirty', function(type) {
+			if(type & jayus.DIRTY.SIZE) {
 				this.formContents();
 			}
 		});
@@ -92,34 +104,54 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 		//  Children
 		//____________//
 
-	componentDirtied: function Box_componentDirtied(component, type){
-		if(!this.forming){
+	componentDirtied: function Box_componentDirtied(component, type) {
+		if(!this.forming) {
 			this.dirty(jayus.DIRTY.ALL);
 		}
 	},
 
-	listItemAdded: function FlowLayout_listItemAdded(list, item){
+	listItemAdded: function FlowLayout_listItemAdded(list, item) {
 		item.setParent(this);
-		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	listItemsAdded: function FlowLayout_listItemsAdded(list, items){
-		for(var i=0;i<items.length;i++){
-			items[i].setParent(this);
+		if(item.minWidth > this.minWidth) {
+			this.minWidth = item.minWidth;
 		}
 		this.dirty(jayus.DIRTY.ALL);
 	},
 
-	listItemRemoved: function FlowLayout_listItemRemoved(list, item){
-		item.removeParent();
+	listItemsAdded: function FlowLayout_listItemAdded(list, items) {
+		for(var i=0;i<items.length;i++) {
+			var item = items[i];
+			item.setParent(this);
+			if(item.minWidth > this.minWidth) {
+				this.minWidth = item.minWidth;
+			}
+		}
 		this.dirty(jayus.DIRTY.ALL);
 	},
 
-	listItemsRemoved: function FlowLayout_listItemsRemoved(list, items){
-		for(var i=0;i<items.length;i++){
+	listItemRemoved: function FlowLayout_listItemRemoved(list, item) {
+		item.removeParent();
+		this.refreshMinWidth();
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	listItemsRemoved: function FlowLayout_listItemsRemoved(list, items) {
+		for(var i=0;i<items.length;i++) {
 			items[i].removeParent();
 		}
+		this.refreshMinWidth();
 		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	refreshMinWidth: function FlowLayout_refreshMinWidth() {
+		var w = 0;
+		for(var i=0;i<this.items.length;i++) {
+			var item = this.items[i];
+			if(item.minWidth > w) {
+				w = item.minWidth;
+			}
+		}
+		this.minWidth = w;
 	},
 
 		//
@@ -133,40 +165,34 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 	@param {Number} alignment
 	*/
 
-	setAlignment: function FlowLayout_setAlignment(alignment){
+	setAlignment: function FlowLayout_setAlignment(alignment) {
 		//#ifdef DEBUG
 		jayus.debug.match('FlowLayout.setAlignment', alignment, 'alignment', jayus.TYPES.NUMBER);
 		//#end
-		if(this.alignment !== alignment){
+		if(this.alignment !== alignment) {
 			this.alignment = alignment;
 			this.formContents();
 		}
 		return this;
 	},
 
-	/**
-	Returns the horizontal alignment of the elements.
-	@method {Number} getAlignment
-	*/
-
-	getAlignment: function FlowLayout_getAlignment(){
-		return this.alignment;
-	},
-
 		//
 		//  Frame
 		//_________//
 
-	formContents: function FlowLayout_formContents(){
+	formContents: function FlowLayout_formContents() {
 
-		// if(width > this.width && this.lineHeights.length === 1){
+		if(this.forming) return;
+
+		// if(width > this.width && this.lineHeights.length === 1) {
 		// 	return;
 		// }
 
 		this.forming = true;
 
-		var i = 0,
-			j,
+		var items = this.items,
+			itemIndex = 0,
+			currentLineIndex,
 			y = 0,
 			currentLine,
 			currentLineWidth,
@@ -177,13 +203,13 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 			nextItemWidth,
 			lineHeights = [];
 
-		while(i !== this.children.items.length){
+		while(itemIndex !== items.length) {
 
 			currentLine = [];
 			currentLineWidth = 0;
 			h = 0;
 			x = 0;
-			nextItem = this.children.items[i];
+			nextItem = items[itemIndex];
 			nextItemWidth = nextItem.width;
 
 			do {
@@ -195,33 +221,30 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 
 				x += nextItemWidth;
 
-				if(nextItem.height > h){
+				if(nextItem.height > h) {
 					h = nextItem.height;
 				}
 
-				i++;
+				itemIndex++;
 
-				if(i === this.children.items.length){
+				if(itemIndex === items.length) {
 					break;
 				}
 
-				nextItem = this.children.items[i];
+				nextItem = items[itemIndex];
 				nextItemWidth = nextItem.width;
 
 			} while(currentLineWidth+nextItemWidth < this.width);
 
-			// Re-align the lines if there is a non-left alignment
-			if(this.alignment !== 0){
-				for(j=0;j<currentLine.length;j++){
-					item = currentLine[j];
+			// Loop through each item in the current line
+			for(currentLineIndex=0;currentLineIndex<currentLine.length;currentLineIndex++) {
+				item = currentLine[currentLineIndex];
+				// Re-align the lines if there is a non-left alignment
+				if(this.alignment !== 0) {
 					item.x += (this.width-currentLineWidth)*this.alignment;
 				}
-			}
-
-			// Vertically re-align each item if they request it
-			for(j=0;j<currentLine.length;j++){
-				item = currentLine[j];
-				if(typeof item.verticalAlign === 'number'){
+				// Vertically re-align each item if they request it
+				if(typeof item.verticalAlign === 'number') {
 					item.y = item.y + item.verticalAlign*(h-item.height);
 				}
 			}
@@ -231,12 +254,22 @@ jayus.FlowLayout = jayus.RectEntity.extend({
 
 		}
 
-		for(i=0;i<this.children.items.length;i++){
-			item = this.children.items[i];
-			item.dirty(jayus.DIRTY.POSITION);
+		// Dirty each child's position
+		for(itemIndex=0;itemIndex<items.length;itemIndex++) {
+			items[itemIndex].dirty(jayus.DIRTY.POSITION);
 		}
 
 		this.lineHeights = lineHeights;
+
+		// Save the minHeight
+		this.minHeight = y;
+
+		// Resize if desired, or if height is too low
+		if(this.contractHeight || this.height < this.minHeight) {
+			this.changeSize(this.width, this.minHeight);
+		}
+
+		this.dirty(jayus.DIRTY.SIZE);
 
 		this.forming = false;
 

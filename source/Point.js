@@ -38,8 +38,6 @@ jayus.Point = jayus.Dependency.extend({
 	//  Properties
 	//______________//
 
-	componentType: 'POINT',
-
 	/**
 	The x coordinate.
 	<br> Do not modify.
@@ -62,18 +60,15 @@ jayus.Point = jayus.Dependency.extend({
 
 	/**
 	Initates the Point object.
-	@constructor init
+	@constructor Point
 	@param {Number} x Optional, default is 0
 	@param {Number} y Optional, default is 0
 	*/
 
-	init: function Point_init(x, y) {
-		if (arguments.length === 1) {
-			this.initFromObject(x);
-		}
-		else if (arguments.length) {
+	init: function Point(x, y) {
+		if(arguments.length) {
 			//#ifdef DEBUG
-			jayus.debug.matchArgumentsAs('Point.init', arguments, jayus.TYPES.NUMBER, 'x', 'y');
+			jayus.debug.matchArgumentsAs('Point', arguments, jayus.TYPES.NUMBER, 'x', 'y');
 			//#end
 			this.x = x;
 			this.y = y;
@@ -83,11 +78,11 @@ jayus.Point = jayus.Dependency.extend({
 	//@ From Parsable
 	toObject: function Point_toObject() {
 		var object = {
-			type_: 'Point',
+			type: 'Point',
 			x: this.x,
 			y: this.y
 		};
-		if (this.id !== jayus.Dependency.prototype.id) {
+		if(this.id !== jayus.Dependency.prototype.id) {
 			object.id = this.id;
 		}
 		return object;
@@ -122,12 +117,12 @@ jayus.Point = jayus.Dependency.extend({
 		jayus.debug.match('Point.setX', x, 'x', jayus.TYPES.NUMBER);
 		//#end
 		// Check if animated
-		if (this.actionsToAnimate) {
+		if(this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setX, this.x, x);
 		}
-		if (this.x !== x) {
+		if(this.x !== x) {
 			this.x = x;
 			this.dirty(jayus.DIRTY.POSITION);
 		}
@@ -146,12 +141,12 @@ jayus.Point = jayus.Dependency.extend({
 		jayus.debug.match('Point.setY', y, 'y', jayus.TYPES.NUMBER);
 		//#end
 		// Check if animated
-		if (this.actionsToAnimate) {
+		if(this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setY, this.y, y);
 		}
-		if (this.y !== y) {
+		if(this.y !== y) {
 			this.y = y;
 			this.dirty(jayus.DIRTY.POSITION);
 		}
@@ -171,13 +166,13 @@ jayus.Point = jayus.Dependency.extend({
 		jayus.debug.matchArgumentsAs('Point.set', arguments, jayus.TYPES.NUMBER, 'x', 'y');
 		//#end
 		// Check if animated
-		if (this.actionsToAnimate) {
+		if(this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.set, [this.x, this.y], [x, y]);
 		}
 		// Check if different
-		if (this.x !== x || this.y !== y) {
+		if(this.x !== x || this.y !== y) {
 			this.x = x;
 			this.y = y;
 			this.dirty(jayus.DIRTY.POSITION);
@@ -200,9 +195,8 @@ jayus.Point = jayus.Dependency.extend({
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Point.translate', x, y);
 		//#end
-		if (arguments.length === 1) {
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.set(this.x+x.x, this.y+y.y);
 		}
 		return this.set(this.x+x, this.y+y);
 	},
@@ -212,7 +206,7 @@ jayus.Point = jayus.Dependency.extend({
 		//_____________//
 
 	//#ifdef DEBUG
-	toString: function Point_toString(){
+	toString: function Point_toString() {
 		return '(Point: '+this.x+', '+this.y+')';
 	},
 	//#end
@@ -253,9 +247,8 @@ jayus.Point = jayus.Dependency.extend({
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Point.equals', x, y);
 		//#end
-		if (arguments.length === 1) {
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.equals(x.x, x.y);
 		}
 		return this.x === x && this.y === y;
 	}

@@ -45,12 +45,12 @@ jayus.Dependency = jayus.Animatable.extend({
 
 	/**
 	The object's id.
-	<br> Default is 0.
+	<br> Default is ''.
 	@property {Number|String} id
 	*/
 
-	id: 0,
-	//#replace jayus.Dependency.prototype.id 0
+	id: '',
+	//#replace jayus.Dependency.prototype.id ''
 
 	/**
 	The dependent object[s].
@@ -91,14 +91,19 @@ jayus.Dependency = jayus.Animatable.extend({
 		jayus.debug.match('Dependency.setId', id, 'id', jayus.TYPES.DEFINED);
 		//#end
 		this.id = id;
-		jayus.addIdentifiedObject(this);
+		// Push onto the identified objects array if enabled
+		if(jayus.keepTrackOfObjects) {
+			// Check if already present
+			if(jayus.identifiedObjects.indexOf(this) === -1) {
+				jayus.identifiedObjects.push(this);
+			}
+		}
 		return this;
 	},
 
 	initFromObject: function Dependency_initFromObject(object) {
-		if (typeof object.id !== 'undefined') {
-			this.id = object.id;
-			jayus.addIdentifiedObject(this);
+		if(typeof object.id !== 'undefined') {
+			this.setId(object.id);
 		}
 		return this;
 	},
@@ -113,11 +118,11 @@ jayus.Dependency = jayus.Animatable.extend({
 	// 	// Apply our own properties
 	// 	this.id = id;
 	// 	this.dependents = object.dependents;
-	// 	if (this.dependents !== null) {
+	// 	if(this.dependents !== null) {
 	// 		// If there are any dependents, transform them from their id to the object
 	// 		// FIXME: When this dependency is created, all of its dependent objects might not yet be. So we might need to reperform this step once the entire JSON has been parsed
 	// 		this.dependentCount = object.dependents.length;
-	// 		for (var i=0;i<this.dependentCount;i++) {
+	// 		for(var i=0;i<this.dependentCount;i++) {
 	// 			this.dependents[i] = jayus.getObject(this.dependents[i]);
 	// 		}
 	// 	}
@@ -139,7 +144,7 @@ jayus.Dependency = jayus.Animatable.extend({
 		jayus.debug.match('Dependency.attach', dependent, 'dependent', jayus.TYPES.OBJECT);
 		//#end
 		// If we have more than one, just append it
-		if (!this.dependentCount) {
+		if(!this.dependentCount) {
 			this.dependents = [];
 		}
 		this.dependents.push(dependent);
@@ -153,11 +158,32 @@ jayus.Dependency = jayus.Animatable.extend({
 	*/
 
 	detach: function Dependency_detach(dependent) {
-		// TODO: Check to see if dependent is actually attached
-		if (this.dependentCount) {
-			this.dependents.splice(this.dependents.indexOf(dependent), 1);
-			this.dependentCount--;
+		//#ifdef DEBUG
+		jayus.debug.match('Dependency.attach', dependent, 'dependent', jayus.TYPES.OBJECT);
+		//#end
+		if(this.dependentCount) {
+			var index = this.dependents.indexOf(dependent);
+			if(index !== -1) {
+				this.dependents.splice(index, 1);
+				this.dependentCount--;
+			}
+			//#ifdef DEBUG
+			else {
+				console.warn('Dependency.detach() - Cannot remove dependent that is not attached');
+			}
+			//#end
 		}
+	},
+
+	/**
+	Detaches all dependents.
+	<br> Detaching dependents can provide performance benefits in many cases, so long as you manually update the dependencies.
+	@method clearDependents
+	*/
+
+	clearDependents: function Dependency_clearDependents() {
+		this.dependents = null;
+		this.dependentCount = 0;
 	},
 
 	/**
@@ -167,9 +193,10 @@ jayus.Dependency = jayus.Animatable.extend({
 	*/
 
 	dirty: function Dependency_dirty(type) {
-		if (!this.frozen) {
+		if(!this.frozen) {
 			this.informDependents(type);
 		}
+		return this;
 	},
 
 	/**

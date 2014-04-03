@@ -43,36 +43,22 @@ jayus.EditableFrame = jayus.Frame.extend({
 		//________//
 
 	/**
-	The minimum width of the child.
-	<br> Default is 20.
-	@property {Number} minW
-	*/
-
-	minW: 20,
-
-	/**
-	The minimum height of the child.
-	<br> Default is 20.
-	@property {Number} minH
-	*/
-
-	minH: 20,
-
-	/**
 	The maximum width of the child.
 	<br> Default is Infinity.
-	@property {Number} maxW
+	@property {Number} maxWidth
 	*/
 
-	maxW: Infinity,
+	maxWidth: Infinity,
 
 	/**
 	The maximum height of the child.
 	<br> Default is Infinity.
-	@property {Number} maxH
+	@property {Number} maxHeight
 	*/
 
-	maxH: Infinity,
+	maxHeight: Infinity,
+
+	flexible: true,
 
 		//
 		//  Handles
@@ -112,7 +98,7 @@ jayus.EditableFrame = jayus.Frame.extend({
 
 	edgeThreshold: 5,
 
-		// VARS
+		// Temporary variables
 
 	state: '',
 
@@ -128,117 +114,114 @@ jayus.EditableFrame = jayus.Frame.extend({
 
 	/**
 	Initiates the frame.
-	@constructor init
+	@constructor EditableFrame
 	@param {Entity} child
 	*/
 
-	init: function EditableFrame_init(child){
-		//#ifdef DEBUG
-		jayus.debug.match('Frame.init', child, 'child', jayus.TYPES.ENTITY);
-		//#end
+	init: function EditableFrame(child) {
 		jayus.Frame.prototype.init.call(this, child);
 
-		this.addHandler('cursorMove', function(e){
+		this.addHandler('cursorMove', function(e) {
 			// Check if not currently dragging something
-			if(!this.dragging){
+			if(!this.dragging) {
 				this.state = '';
 				// Save which display is used
-				this.display = e.display;
 				var cursor = e.display.cursor,
 					varWidth = this.child.hasFlexibleWidth,
 					varHeight = this.child.hasFlexibleHeight;
 				// Check the distance to the corners
-				if(varWidth && varHeight){
-					if(this.enabledHandles.nw && jayus.distance(this.getPosAt(0, 0), cursor) < this.cornerThreshold){
+				if(varWidth && varHeight) {
+					if(this.enabledHandles.nw && jayus.distance(this.getPosAt(0, 0), cursor) < this.cornerThreshold) {
 						this.state = 'nw';
 					}
-					else if(this.enabledHandles.ne && jayus.distance(this.getPosAt(1, 0), cursor) < this.cornerThreshold){
+					else if(this.enabledHandles.ne && jayus.distance(this.getPosAt(1, 0), cursor) < this.cornerThreshold) {
 						this.state = 'ne';
 					}
-					else if(this.enabledHandles.sw && jayus.distance(this.getPosAt(0, 1), cursor) < this.cornerThreshold){
+					else if(this.enabledHandles.sw && jayus.distance(this.getPosAt(0, 1), cursor) < this.cornerThreshold) {
 						this.state = 'sw';
 					}
-					else if(this.enabledHandles.se && jayus.distance(this.getPosAt(1, 1), cursor) < this.cornerThreshold){
+					else if(this.enabledHandles.se && jayus.distance(this.getPosAt(1, 1), cursor) < this.cornerThreshold) {
 						this.state = 'se';
 					}
 				}
 				// Check the distance to the edges
-				if(this.state === '' && varWidth){
-					if(this.enabledHandles.w && Math.abs(this.x-e.x) < this.edgeThreshold){
+				if(this.state === '' && varWidth) {
+					if(this.enabledHandles.w && Math.abs(this.x-e.x) < this.edgeThreshold) {
 						this.state = 'w';
 					}
-					else if(this.enabledHandles.e && Math.abs((this.x+this.width)-e.x) < this.edgeThreshold){
+					else if(this.enabledHandles.e && Math.abs((this.x+this.width)-e.x) < this.edgeThreshold) {
 						this.state = 'e';
 					}
 				}
-				if(this.state === '' && varHeight){
-					if(this.enabledHandles.n && Math.abs(this.y-e.y) < this.edgeThreshold){
+				if(this.state === '' && varHeight) {
+					if(this.enabledHandles.n && Math.abs(this.y-e.y) < this.edgeThreshold) {
 						this.state = 'n';
 					}
-					else if(this.enabledHandles.s && Math.abs((this.y+this.height)-e.y) < this.edgeThreshold){
+					else if(this.enabledHandles.s && Math.abs((this.y+this.height)-e.y) < this.edgeThreshold) {
 						this.state = 's';
 					}
 				}
 				// Set the cursor on the display if by a handle
-				if(this.state !== ''){
-					this.display.setCursor(this.state+'-resize');
+				if(this.state !== '') {
+					this.parentDisplay.setCursor(this.state+'-resize');
 				}
-				else{
-					this.display.resetCursor();
+				else {
+					this.parentDisplay.resetCursor();
 				}
 			}
 		});
 
-		this.addHandler('cursorOut', function(e){
+		this.addHandler('cursorOut', function(e) {
 			// Unless were dragging something, reset the cursor and state
-			if(!this.dragging){
-				this.display.resetCursor();
+			if(!this.dragging) {
+				this.parentDisplay.resetCursor();
 				this.state = '';
 			}
 		});
 
-		this.addHandler('leftPress', function(e){
+		this.addHandler('leftPress', function(e) {
 
 			// The left mouse button was pressed, start dragging
 			this.dragging = true;
 
 			// Set the move cursor if we're not at a handle
-			if(this.state === ''){
-				this.display.setCursor('move');
+			if(this.state === '') {
+				this.parentDisplay.setCursor('move');
 				this.fire('dragStart');
 			}
 			// Else save the position of the frame at the anchor point for the resize
-			else if(this.state === 'nw'){
+			else if(this.state === 'nw') {
 				this.start = this.getPosAt(1, 1);
 			}
-			else if(this.state === 'n' || this.state === 'e' || this.state === 'ne'){
+			else if(this.state === 'n' || this.state === 'e' || this.state === 'ne') {
 				this.start = this.getPosAt(0, 1);
 			}
-			else if(this.state === 'sw' || this.state === 'w'){
+			else if(this.state === 'sw' || this.state === 'w') {
 				this.start = this.getPosAt(1, 0);
 			}
-			else if(this.state === 's' || this.state === 'se'){
+			else if(this.state === 's' || this.state === 'se') {
 				this.start = this.getPosAt(0, 0);
 			}
 
 			var that = this;
 
 			// Clear the dragging flag if the button is released
-			jayus.interceptNextEvent('leftRelease', function(e){
-				this.dragging = false;
-				if(this.state === ''){
-					this.fire('dragEnd');
-					this.display.resetCursor();
+			jayus.addHandler('leftRelease', function(data, options) {
+				that.dragging = false;
+				if(that.state === '') {
+					that.fire('dragEnd');
+					that.parentDisplay.resetCursor();
 				}
-			},{ context: this });
+				options.remove = true;
+			});
 
 			// 
-			var dragHandler = function(e){
-				if(that.dragging){
-					if(that.state === ''){
+			var dragHandler = function(e, options) {
+				if(that.dragging) {
+					if(that.state === '') {
 						that.translate(e.deltaX, e.deltaY);
 					}
-					else{
+					else {
 
 						// Some vars, the new size, and the anchor point
 						var width = null,
@@ -247,37 +230,37 @@ jayus.EditableFrame = jayus.Frame.extend({
 							anchorY = 0;
 
 						// Discern the anchor point and new dimension from the handle point
-						if(that.state === 'nw'){
+						if(that.state === 'nw') {
 							anchorX = 1;
 							anchorY = 1;
 							width = that.start.x-e.x;
 							height = that.start.y-e.y;
 						}
-						else if(that.state === 'n'){
+						else if(that.state === 'n') {
 							anchorY = 1;
 							height = that.start.y-e.y;
 						}
-						else if(that.state === 'ne'){
+						else if(that.state === 'ne') {
 							anchorY = 1;
 							width = e.x-that.start.x;
 							height = that.start.y-e.y;
 						}
-						else if(that.state === 'sw'){
+						else if(that.state === 'sw') {
 							anchorX = 1;
 							width = that.start.x-e.x;
 							height = e.y-that.start.y;
 						}
-						else if(that.state === 's'){
+						else if(that.state === 's') {
 							height = e.y-that.start.y;
 						}
-						else if(that.state === 'se'){
+						else if(that.state === 'se') {
 							width = e.x-that.start.x;
 							height = e.y-that.start.y;
 						}
-						else if(that.state === 'e'){
+						else if(that.state === 'e') {
 							width = e.x-that.start.x;
 						}
-						else if(that.state === 'w'){
+						else if(that.state === 'w') {
 							anchorX = 1;
 							width = that.start.x-e.x;
 						}
@@ -285,47 +268,49 @@ jayus.EditableFrame = jayus.Frame.extend({
 						// Get the position at the anchor point
 						var pos = that.getPosAt(anchorX, anchorY);
 
-						if(width !== null){
+						if(width !== null) {
 							// Clamp the width to the min/max values
-							if(width < that.minW+that.marginLeft+that.marginRight){
-								width = that.minW+that.marginLeft+that.marginRight;
+							if(width < that.minWidth) {
+								width = that.minWidth;
 							}
-							else if(width > that.maxW+that.marginLeft+that.marginRight){
-								width = that.maxW+that.marginLeft+that.marginRight;
+							else if(width > that.maxWidth) {
+								width = that.maxWidth;
 							}
 						}
 
-						if(height !== null){
+						if(height !== null) {
 							// Clamp the height to the min/max values
-							if(height < that.minH+that.marginTop+that.marginBottom){
-								height = that.minH+that.marginTop+that.marginBottom;
+							if(height < that.minHeight) {
+								height = that.minHeight;
 							}
-							else if(height > that.maxH+that.marginTop+that.marginBottom){
-								height = that.maxH+that.marginTop+that.marginBottom;
+							else if(height > that.maxHeight) {
+								height = that.maxHeight;
 							}
 						}
 
-						if(width === null){
+						if(width !== null && height !== null) {
+							that.setSize(width, height);
 							width = that.width;
 						}
-
-						if(height === null){
-							height = that.height;
+						else if(height === null) {
+							that.setWidth(width);
+						}
+						else {
+							that.setHeight(height);
 						}
 
-						that.setSize(width, height);
-
 						// Reposition the entity
-						that.setPosAt(anchorX, anchorY, pos);
+						that.setPosAt(pos, anchorX, anchorY);
 
 					}
-					// Since were still dragging, intercept the next cursorMove as well
-					that.display.interceptNextEvent('cursorMove', dragHandler);
+					// Accept the event
 					return true;
 				}
+				// Were no longer dragging, remove this handler
+				options.remove = true;
 
 			};
-			e.display.interceptNextEvent('cursorMove', dragHandler);
+			e.display.addHandler('cursorMove', dragHandler);
 			return true;
 		});
 
@@ -342,7 +327,7 @@ jayus.EditableFrame = jayus.Frame.extend({
 	@param {Number} height
 	*/
 
-	setMinimumSize: function EditableFrame_setMinimumSize(width, height){
+	setMinimumSize: function EditableFrame_setMinimumSize(width, height) {
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('EditableFrame.setMinimumSize', arguments, jayus.TYPES.NUMBER, 'width', 'height');
 		//#end

@@ -18,7 +18,7 @@
  */
 
 /**
-Defines the base jayus.PaintedShape class.
+Defines the PaintedShape entity.
 @file PaintedShape.js
 */
 
@@ -52,13 +52,6 @@ jayus.PaintedShape = jayus.Entity.extend({
 	brush: null,
 	//#replace jayus.PaintedShape.prototype.brush null
 
-	/**
-	Whether a brush is set or not.
-	@property {Boolean} hasBrush
-	*/
-
-	hasBrush: false,
-
 	//
 	//  Methods
 	//___________//
@@ -70,13 +63,15 @@ jayus.PaintedShape = jayus.Entity.extend({
 	@param {Object} brush Optional
 	*/
 
-	init: function PaintedShape_init(shape, brush){
+	init: function PaintedShape(shape, brush) {
 		// Call the inherited init method
 		jayus.Entity.prototype.init.apply(this);
-		this.shape = shape;
-		shape.attach(this);
-		if(brush !== undefined){
-			this.setBrush(brush);
+		if(arguments.length === 2) {
+			this.shape = shape;
+			shape.attach(this);
+			if(brush !== undefined) {
+				this.setBrush(brush);
+			}
 		}
 	},
 
@@ -84,10 +79,10 @@ jayus.PaintedShape = jayus.Entity.extend({
 		var object = jayus.Entity.prototype.toObject.apply(this);
 		// Add our own properties
 		object.type = 'PaintedShape';
-		if (this.shape !== jayus.PaintedShape.prototype.shape) {
+		if(this.shape !== jayus.PaintedShape.prototype.shape) {
 			object.shape = this.shape.toObject();
 		}
-		if (this.brush !== jayus.PaintedShape.prototype.brush) {
+		if(this.brush !== jayus.PaintedShape.prototype.brush) {
 			object.brush = this.brush.toObject();
 		}
 		return object;
@@ -101,23 +96,23 @@ jayus.PaintedShape = jayus.Entity.extend({
 		// Apply parent properties
 		jayus.Entity.prototype.initFromObject.call(this, object);
 		// Apply our own properties
-		this.frozen++;
-		if (typeof object.shape === 'object') {
+		this.ignoreDirty++;
+		if(typeof object.shape === 'object') {
 			this.setShape(object.shape);
 		}
-		if (typeof object.brush === 'object') {
+		if(typeof object.brush === 'object') {
 			this.setBrush(object.brush);
 		}
-		this.frozen--;
+		this.ignoreDirty--;
 		// Set as dirty
 		return this.dirty(jayus.DIRTY.ALL);
 	},
 
-	componentDirtied: function PaintedShape_componentDirtied(component, type){
+	componentDirtied: function PaintedShape_componentDirtied(component, type) {
 		this.dirty(jayus.DIRTY.CONTENT);
 	},
 
-	translate: function PaintedShape_translate(x, y){
+	translate: function PaintedShape_translate(x, y) {
 		// Translate the shape
 		this.shape.translate.call(this.shape, x, y);
 		// Alert as moved
@@ -125,12 +120,16 @@ jayus.PaintedShape = jayus.Entity.extend({
 	},
 
 	//@ From Entity
-	intersectsAt: function PaintedShape_intersectsAt(x, y){
-		if(this.isTransformed){
+	intersectsAt: function PaintedShape_intersectsAt(x, y) {
+		if(this.isTransformed) {
 			var pos = this.getMatrix().inverseTransformPoint(x, y);
 			x = pos.x;
 			y = pos.y;
 		}
+		return this.shape.intersectsAt(x, y);
+	},
+
+	cursorHitTest: function Shape_cursorHitTest(x, y) {
 		return this.shape.intersectsAt(x, y);
 	},
 
@@ -145,12 +144,14 @@ jayus.PaintedShape = jayus.Entity.extend({
 	@param {Shape} shape
 	*/
 
-	setShape: function PaintedShape_setShape(shape){
+	setShape: function PaintedShape_setShape(shape) {
 		//#ifdef DEBUG
 		jayus.debug.match('PaintedShape.setShape', shape, 'shape', jayus.TYPES.SHAPE);
 		//#end
-		if(this.shape !== shape){
-			this.shape.detach(this);
+		if(this.shape !== shape) {
+			if(this.shape !== null) {
+				this.shape.detach(this);
+			}
 			this.shape = shape;
 			shape.attach(this);
 			this.dirty(jayus.DIRTY.ALL);
@@ -169,21 +170,20 @@ jayus.PaintedShape = jayus.Entity.extend({
 	@param {Brush} brush
 	*/
 
-	setBrush: function PaintedShape_setBrush(brush){
+	setBrush: function PaintedShape_setBrush(brush) {
 		//#ifdef DEBUG
 		jayus.debug.match('PaintedShape.setBrush', brush, 'brush', jayus.TYPES.OBJECT);
 		//#end
 		// Detach self from the old brush
-		if(this.hasBrush){
+		if(this.brush !== null) {
 			this.brush.detach(this);
 		}
 		// Set and attach self to the new brush
-		if(!(brush instanceof jayus.Brush)){
+		if(!(brush instanceof jayus.Brush)) {
 			brush = new jayus.Brush(brush);
 		}
 		this.brush = brush;
 		brush.attach(this);
-		this.hasBrush = true;
 		return this.dirty(jayus.DIRTY.CONTENT);
 	},
 
@@ -192,11 +192,10 @@ jayus.PaintedShape = jayus.Entity.extend({
 	@method {Self} clearBrush
 	*/
 
-	clearBrush: function PaintedShape_clearBrush(){
-		if(this.hasBrush){
+	clearBrush: function PaintedShape_clearBrush() {
+		if(this.brush !== null) {
 			this.brush.detach(this);
 			this.brush = null;
-			this.hasBrush = false;
 			this.dirty(jayus.DIRTY.CONTENT);
 		}
 		return this;
@@ -207,36 +206,33 @@ jayus.PaintedShape = jayus.Entity.extend({
 		//____________//
 
 	//@ From Entity
-	getScope: function PaintedShape_getScope(){
-		if(!this.isTransformed){
+	getScope: function PaintedShape_getScope() {
+		if(!this.isTransformed) {
 			return this.shape.getScope();
 		}
 		var scope = this.shape.getScope().getTransformed(this.getMatrix()).getScope();
 		// var scope = this.shape.getScope().getTransformed(this.getMatrix()).translate(this.x, this.y).getScope();
-		if(this.brush.stroking || this.brush.shadowing){
+		if(this.brush.stroking || this.brush.shadowing) {
 			var scale = Math.max(this.xScale, this.yScale),
 				left = 0,
 				right = 0,
 				top = 0,
 				bottom = 0;
 			// Check if stroking
-			if(this.brush.stroking){
+			if(this.brush.stroking) {
 				// Old method
 				// Derived from distance formula and doesn't work past 90 degree angles
-				var width = (this.brush.lineWidth*scale)/2;
-				left = right = top = bottom = Math.sqrt(width*width*2);
+				// var width = (this.brush.lineWidth*scale)/2;
+				// left = right = top = bottom = Math.sqrt(width*width*2);
 				// New method, works but is overkill for most shapes
-				var miterLimit;
-				if(this.brush.miterLimit === undefined){
-					miterLimit = 10;
-				}
-				else{
+				var miterLimit = 10;
+				if(typeof this.brush.miterLimit === 'number') {
 					miterLimit = this.brush.miterLimit;
 				}
 				left = right = top = bottom = miterLimit*scale/1.5;
 			}
 			// Check if shadowing
-			if(this.brush.shadowing){
+			if(this.brush.shadowing) {
 				// Expand each side by the shadow size and offset
 				left = Math.max(left, left+this.brush.shadowBlur-this.brush.shadowOffsetX);
 				right = Math.max(right, right+this.brush.shadowBlur+this.brush.shadowOffsetX);
@@ -250,7 +246,7 @@ jayus.PaintedShape = jayus.Entity.extend({
 	},
 
 	//@ From Entity
-	getBounds: function PaintedShape_getBounds(){
+	getBounds: function PaintedShape_getBounds() {
 		return this.shape;
 	},
 
@@ -259,14 +255,14 @@ jayus.PaintedShape = jayus.Entity.extend({
 		//_____________//
 
 	//@ From Entity
-	drawOntoContext: function PaintedShape_drawOntoContext(ctx){
+	drawOntoContext: function PaintedShape_drawOntoContext(ctx) {
 		//#ifdef DEBUG
 		jayus.debug.matchContext('PaintedShape.drawOntoContext', ctx);
 		//#end
-		if(this.hasBrush){
+		if(this.brush !== null) {
 			// Save the context
 			ctx.save();
-			if(this.alpha !== 1){
+			if(this.alpha !== 1) {
 				ctx.globalAlpha *= this.alpha;
 			}
 			// Set the transformations
@@ -279,7 +275,7 @@ jayus.PaintedShape = jayus.Entity.extend({
 			ctx.restore();
 			// Run the debug renderer
 			//#ifdef DEBUG
-			if(this.debugRenderer !== null){
+			if(this.debugRenderer !== null) {
 				this.debugRenderer(ctx);
 			}
 			//#end

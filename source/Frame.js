@@ -27,11 +27,25 @@ Defines the Frame entity.
 //________________//
 
 /**
-Represents padded border around an Entity.
+An entity that serves as a padded border around an entity.
+<br> Whenever the frame is resized, it resizes its child to fit.
+<br> Requires a resizable entity for a child.
 @class jayus.Frame
 @extends jayus.RectEntity
 @extends jayus.Wrapper
 */
+
+	/*
+
+		Size Modes:
+			resize self from child
+			resize child from self
+
+	*/
+
+jayus.RESIZE_SELF = 0;
+jayus.RESIZE_CHILD = 1;
+jayus.RESIZE_MARGINS = 2;
 
 jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 
@@ -39,19 +53,179 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	//  Properties
 	//______________//
 
+	flexible: false,
+
+	forming: false,
+
+	widthMode: 0,
+
+	heightMode: 0,
+
+	minWidthMode: 'child',
+
+	minHeightMode: 'child',
+
+	//
+	//  Methods
+	//___________//
+
+		//
+		//  Initiation
+		//______________//
+
 	/**
-	How to draw the border.
-	@property {Brush} brush
+	Initiates the Frame object.
+	@constructor Frame
+	@param {Entity} child Optional
 	*/
 
-	brush: null,
+	init: function Frame(child) {
+		jayus.Entity.prototype.init.apply(this);
+		if(child !== undefined) {
+			//#ifdef DEBUG
+			jayus.debug.match('Frame', child, 'child', jayus.TYPES.ENTITY);
+			jayus.chart.tallyInit(jayus.TYPES.ENTITY);
+			//#end
+			this.setChild(child);
+			// this.dirty(jayus.DIRTY.ALL);
+			this.formContents();
+			this.isParent = true;
+		}
+		else {
+			this.isParent = false;
+		}
+		this.addHandler('dirty', function(type) {
+			// if(!this.flexible && (type & jayus.DIRTY.SIZE+jayus.DIRTY.POSITION)) {
+				this.formContents();
+			// }
+		});
+	},
+
+	initFromObject: function Frame_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Frame.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		this.ignoreDirty++;
+		// Apply parent properties
+		jayus.RectEntity.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		if(typeof object.marginLeft === 'number') {
+			this.marginLeft = object.marginLeft;
+		}
+		if(typeof object.marginRight === 'number') {
+			this.marginRight = object.marginRight;
+		}
+		if(typeof object.marginTop === 'number') {
+			this.marginTop = object.marginTop;
+		}
+		if(typeof object.marginBottom === 'number') {
+			this.marginBottom = object.marginBottom;
+		}
+		if(typeof object.widthMode === 'number') {
+			this.widthMode = object.widthMode;
+		}
+		if(typeof object.heightMode === 'number') {
+			this.heightMode = object.heightMode;
+		}
+		if(typeof object.child === 'object') {
+			this.setChild(jayus.parse(object.child));
+		}
+		this.ignoreDirty--;
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
+	},
 
 	/**
-	Whether the border brush is set or not.
-	@property {Boolean} hasBrush
+	Sets the child.
+	@method {Self} setChild
+	@param {Entity} child
 	*/
 
-	hasBrush: false,
+	setChild: function Frame_setChild(child) {
+		jayus.Wrapper.setChild.call(this, child);
+		if(!this.width) {
+			this.setWidth(child.width + this.marginLeft + this.marginRight);
+		}
+		if(!this.height) {
+			this.setHeight(child.height + this.marginTop + this.marginBottom);
+		}
+		if(typeof child.minWidth === 'number') {
+			this.minWidth = child.minWidth + this.marginLeft + this.marginRight;
+		}
+		if(typeof child.minHeight === 'number') {
+			this.minHeight = child.minHeight + this.marginTop + this.marginBottom;
+		}
+		this.formContents();
+		return this;
+	},
+
+	componentDirtied: function Frame_componentDirtied(component, type) {
+		if(type & jayus.DIRTY.SIZE) {
+			if(this.minWidthMode === 'child' && typeof this.child.minWidth === 'number') {
+				this.minWidth = this.child.minWidth + this.marginLeft + this.marginRight;
+			}
+			if(this.minHeightMode === 'child' && typeof this.child.minHeight === 'number') {
+				this.minHeight = this.child.minHeight + this.marginTop + this.marginBottom;
+			}
+			if(!this.forming) {
+				this.formContents();
+			}
+			// Set the frame's size then tell the parent
+			// this.changeSize(this.child.width+this.marginLeft+this.marginRight, this.child.height+this.marginTop+this.marginBottom);
+		}
+		else {
+			this.dirty(jayus.DIRTY.ALL);
+		}
+	},
+
+		//
+		//  Styling
+		//___________//
+
+	/**
+	The brush used to draw the margins of the frame.
+	@property {Brush} marginBrush
+	*/
+
+	marginBrush: null,
+
+	/**
+	Sets the brush used when drawing the margins of the frame.
+	<br> Sets the entity as dirty.
+	@method {Self} setMarginBrush
+	@param {Object} brush
+	*/
+
+	setMarginBrush: function Frame_setMarginBrush(brush) {
+		//#ifdef DEBUG
+		jayus.debug.match('Frame.setMarginBrush', brush, 'brush', jayus.TYPES.OBJECT);
+		//#end
+		// Detach self from the old brush
+		if(this.marginBrush !== null) {
+			this.marginBrush.detach(this);
+		}
+		// Set and attach self to the new brush
+		if(!(brush instanceof jayus.Brush)) {
+			brush = new jayus.Brush(brush);
+		}
+		this.marginBrush = brush;
+		this.marginBrush.attach(this);
+		return this.dirty(jayus.DIRTY.CONTENT);
+	},
+
+	/**
+	Removes the margin brush.
+	@method {Self} clearMarginBrush
+	*/
+
+	clearMarginBrush: function Frame_clearMarginBrush() {
+		if(this.marginBrush !== null) {
+			this.marginBrush.detach(this);
+			this.marginBrush = null;
+			this.dirty(jayus.DIRTY.CONTENT);
+		}
+		return this;
+	},
 
 		//
 		//  Margins
@@ -93,168 +267,8 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 
 	marginBottom: 6,
 
-	forming: false,
-
-	//
-	//  Methods
-	//___________//
-
-	updateCursorOnChildren: function Frame_updateCursorOnChildren(x, y){
-		if(this.propagateCursor){
-			// Translate point from parent to local coordinate space
-			var pos = this.parentToLocal(x, y);
-			x = pos.x;
-			y = pos.y;
-			this.localX = x;
-			this.localY = y;
-			this.child.updateCursor(x-this.marginLeft, y-this.marginTop);
-		}
-	},
-
-		//
-		//  Initiation
-		//______________//
-
 	/**
-	Initiates the Frame object.
-	@constructor init
-	@param {Entity} child Optional
-	*/
-
-	init: function Frame_init(child) {
-		jayus.Entity.prototype.init.apply(this);
-		if (arguments.length) {
-			//#ifdef DEBUG
-			jayus.debug.match('Frame.init', child, 'child', jayus.TYPES.ENTITY);
-			jayus.chart.tallyInit(jayus.TYPES.ENTITY);
-			//#end
-			this.setChild(child);
-			// this.dirty(jayus.DIRTY.ALL);
-			this.formContents();
-			this.isParent = true;
-		}
-		else {
-			this.isParent = false;
-		}
-		this.addHandler('dirty', function(type){
-			if(type & jayus.DIRTY.SIZE || type & jayus.DIRTY.POSITION){
-				this.formContents();
-			}
-		});
-	},
-
-	initFromObject: function Frame_initFromObject(object) {
-		//#ifdef DEBUG
-		jayus.debug.match('Frame.initFromObject', object, 'object', jayus.TYPES.OBJECT);
-		//#end
-		this.frozen++;
-		// Apply parent properties
-		jayus.RectEntity.prototype.initFromObject.call(this, object);
-		// Apply our own properties
-		if (typeof object.marginLeft === 'number') {
-			this.marginLeft = object.marginLeft;
-		}
-		if (typeof object.marginRight === 'number') {
-			this.marginRight = object.marginRight;
-		}
-		if (typeof object.marginTop === 'number') {
-			this.marginTop = object.marginTop;
-		}
-		if (typeof object.marginBottom === 'number') {
-			this.marginBottom = object.marginBottom;
-		}
-		if (typeof object.child === 'object') {
-			this.setChild(jayus.parse(object.child));
-		}
-		this.frozen--;
-		// Set as dirty
-		return this.dirty(jayus.DIRTY.ALL);
-	},
-
-	setChild: function Frame_setChild(child){
-		jayus.Wrapper.setChild.call(this, child);
-		this.changeSize(child.width+this.marginLeft+this.marginRight, child.height+this.marginTop+this.marginBottom);
-		return this;
-	},
-
-	find: function Frame_find(id) {
-		if (this.isParent && this.child.id === id) {
-			return this.child;
-		}
-		return null;
-	},
-
-	componentDirtied: function Frame_componentDirtied(component, type){
-		if(!this.forming){
-			if(type & jayus.DIRTY.SIZE){
-				// Set the frame's size then tell the parent
-				this.changeSize(this.child.width+this.marginLeft+this.marginRight, this.child.height+this.marginTop+this.marginBottom);
-			}
-			else{
-				this.dirty(jayus.DIRTY.ALL);
-			}
-		}
-	},
-
-		//
-		//  Styling
-		//___________//
-
-	/**
-	Sets the brush used when drawing the geometric.
-	<br> Sets the entity as dirty.
-	@method {Self} setBrush
-	@param {Object} brush
-	*/
-
-	setBrush: function Frame_setBrush(brush){
-		//#ifdef DEBUG
-		jayus.debug.match('Frame.setBrush', brush, 'brush', jayus.TYPES.OBJECT);
-		//#end
-		// Detach self from the old brush
-		if(this.hasBrush){
-			this.brush.detach(this);
-		}
-		// Set and attach self to the new brush
-		if(!(brush instanceof jayus.Brush)){
-			brush = new jayus.Brush(brush);
-		}
-		this.brush = brush;
-		this.brush.attach(this);
-		this.hasBrush = true;
-		return this.dirty(jayus.DIRTY.CONTENT);
-	},
-
-	/**
-	Removes the brush.
-	@method {Self} clearBrush
-	*/
-
-	clearBrush: function Frame_clearBrush(){
-		if(this.hasBrush){
-			this.brush.detach(this);
-			this.brush = null;
-			this.hasBrush = false;
-			this.dirty(jayus.DIRTY.CONTENT);
-		}
-		return this;
-	},
-
-		//
-		//  Margin
-		//___________//
-
-	formContents: function Frame_formContents(){
-		this.forming = true;
-		// Set the childs origin
-		this.child.setOrigin(this.marginLeft, this.marginTop);
-		// Set the childs size
-		this.child.changeSize(this.width-this.marginLeft-this.marginRight, this.height-this.marginTop-this.marginBottom);
-		this.forming = false;
-	},
-
-	/**
-	Sets the margins on the frame.
+	Sets the margins of the frame.
 	@method {Self} setMargin
 	@paramset Syntax 1
 	@param {Number} margin
@@ -265,15 +279,15 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	@param {Number} bottom
 	*/
 
-	setMargin: function Frame_setMargin(left, right, top, bottom){
-		if(arguments.length === 1){
+	setMargin: function Frame_setMargin(left, right, top, bottom) {
+		if(arguments.length === 1) {
 			//#ifdef DEBUG
 			jayus.debug.match('Frame.setMargin', left, 'margin', jayus.TYPES.NUMBER);
 			//#end
 			bottom = top = right = left;
 		}
 		//#ifdef DEBUG
-		else{
+		else {
 			jayus.debug.matchArgumentsAs('Frame.setMargin', arguments, jayus.TYPES.NUMBER, 'left', 'right', 'top', 'bottom');
 		}
 		//#end
@@ -282,20 +296,21 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 		this.marginTop = top;
 		this.marginBottom = bottom;
 		// Check to resize child first, else resize self and tell parent
-		this.child.frozen++;
-		if(this.child.hasFlexibleWidth){
-			this.child.setWidth(this.width-this.marginLeft-this.marginRight);
-		}
-		else{
-			this.changeSize(this.child.width+left+right, this.child.height);
-		}
-		if(this.child.hasFlexibleHeight){
-			this.child.setHeight(this.height-this.marginTop-this.marginBottom);
-		}
-		else{
-			this.changeSize(this.child.width, this.child.height+top+bottom);
-		}
-		this.child.frozen--;
+		// this.child.ignoreDirty++;
+		// if(this.child.hasFlexibleWidth) {
+		// 	this.child.setWidth(this.width-this.marginLeft-this.marginRight);
+		// }
+		// else {
+		// 	this.changeSize(this.child.width+left+right, this.child.height);
+		// }
+		// if(this.child.hasFlexibleHeight) {
+		// 	this.child.setHeight(this.height-this.marginTop-this.marginBottom);
+		// }
+		// else {
+		// 	this.changeSize(this.child.width, this.child.height+top+bottom);
+		// }
+		// this.child.ignoreDirty--;
+		this.formContents();
 		return this;
 	},
 
@@ -306,7 +321,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	@param {Number} margin
 	*/
 
-	setMarginLeft: function Frame_setMarginLeft(margin){
+	setMarginLeft: function Frame_setMarginLeft(margin) {
 		//#ifdef DEBUG
 		jayus.debug.match('Frame.setMarginLeft', margin, 'margin', jayus.TYPES.NUMBER);
 		//#end
@@ -320,7 +335,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	@param {Number} margin
 	*/
 
-	setMarginRight: function Frame_setMarginRight(margin){
+	setMarginRight: function Frame_setMarginRight(margin) {
 		//#ifdef DEBUG
 		jayus.debug.match('Frame.setMarginRight', margin, 'margin', jayus.TYPES.NUMBER);
 		//#end
@@ -334,7 +349,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	@param {Number} margin
 	*/
 
-	setMarginTop: function Frame_setMarginTop(margin){
+	setMarginTop: function Frame_setMarginTop(margin) {
 		//#ifdef DEBUG
 		jayus.debug.match('Frame.setMarginTop', margin, 'margin', jayus.TYPES.NUMBER);
 		//#end
@@ -348,7 +363,7 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	@param {Number} margin
 	*/
 
-	setMarginBottom: function Frame_setMarginBottom(margin){
+	setMarginBottom: function Frame_setMarginBottom(margin) {
 		//#ifdef DEBUG
 		jayus.debug.match('Frame.setMarginBottom', margin, 'margin', jayus.TYPES.NUMBER);
 		//#end
@@ -359,28 +374,99 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 		//  Rendering
 		//_____________//
 
-	paintContents: function Frame_paintContents(ctx){
+	//@ Internal
+	formContents: function Frame_formContents() {
+		if(this.child !== null && !this.forming) {
+			var child = this.child;
+			this.forming = true;
+
+			// // Set the childs origin
+			child.setOrigin(this.marginLeft, this.marginTop);
+
+			if(this.widthMode === jayus.RESIZE_SELF) {
+				this.setWidth(child.width+this.marginLeft+this.marginRight);
+			}
+			else if(this.widthMode === jayus.RESIZE_CHILD) {
+				child.setWidth(this.width-this.marginLeft-this.marginRight);
+			}
+			else {
+				console.error('Frame.formContents() - Invalid widthMode: '+this.widthMode);
+			}
+
+			if(this.heightMode === jayus.RESIZE_SELF) {
+				this.setHeight(child.height+this.marginTop+this.marginBottom);
+			}
+			else if(this.heightMode === jayus.RESIZE_CHILD) {
+				child.setHeight(this.height-this.marginTop-this.marginBottom);
+			}
+			else {
+				console.error('Frame.formContents() - Invalid heightMode: '+this.heightMode);
+			}
+
+ // || (typeof this.child.minHeight === 'number' && this.height-this.marginTop-this.marginBottom < this.child.minHeight)
+
+
+ 			if(this.width < this.minWidth) {
+ 				this.changeSize(this.minWidth, this.height);
+ 			}
+
+ 			if(this.height < this.minHeight) {
+ 				this.changeSize(this.width, this.minHeight);
+ 			}
+
+
+
+
+			// child.domainWidth = this.width-this.marginLeft-this.marginRight;
+			// child.domainHeight = this.height-this.marginTop-this.marginBottom;
+			// // Set the childs origin
+			// child.setOrigin(this.marginLeft, this.marginTop);
+			// child.constrain();
+			// if(this.flexible) {
+			// 	// Set our own size
+			// 	this.changeSize(child.width+this.marginLeft+this.marginRight, child.height+this.marginTop+this.marginBottom);
+			// }
+			// else {
+			// 	// Set the child's size
+			// 	child.setSize(this.width-this.marginLeft-this.marginRight, this.height-this.marginTop-this.marginBottom);
+			// }
+
+
+			this.forming = false;
+		}
+	},
+
+	paintContents: function Frame_paintContents(ctx) {
 		//#ifdef DEBUG
 		jayus.debug.matchContext('Frame.paintContents', ctx);
 		//#end
 		// Draw the frame
-		if(this.hasBrush){
-			if(this.brush.fill || this.brush.stroking){
+		if(this.marginBrush !== null) {
+			if(this.marginBrush.fill || this.marginBrush.stroking) {
 				ctx.save();
-				this.brush.applyTo(ctx);
+				this.marginBrush.applyTo(ctx);
 				// Etch the border
 				ctx.beginPath();
-				ctx.rect(0, 0, this.width, this.height);
+				ctx.moveTo(0, 0);
+				ctx.lineTo(this.width, 0);
+				ctx.lineTo(this.width, this.height);
+				ctx.lineTo(0, this.height);
+				ctx.lineTo(0, 0);
+				ctx.moveTo(this.marginLeft, this.marginTop);
+				ctx.lineTo(this.width-this.marginRight, this.marginTop);
+				ctx.lineTo(this.width-this.marginRight, this.height-this.marginBottom);
+				ctx.lineTo(this.marginLeft, this.height-this.marginBottom);
+				ctx.lineTo(this.marginLeft, this.marginTop);
 				// Check if stroking first
-				if(this.brush.stroking && this.brush.strokeFirst){
+				if(this.marginBrush.stroking && this.marginBrush.strokeFirst) {
 					ctx.stroke();
 				}
 				// Fill the shape
-				if(this.brush.filling){
+				if(this.marginBrush.filling) {
 					ctx.fill();
 				}
 				// Check if stroking last
-				if(this.brush.stroking && !this.brush.strokeFirst){
+				if(this.marginBrush.stroking && !this.marginBrush.strokeFirst) {
 					ctx.stroke();
 				}
 				ctx.restore();
@@ -394,3 +480,20 @@ jayus.Frame = jayus.RectEntity.extend(jayus.applyObject({
 	}
 
 }, jayus.copyObject(jayus.Wrapper)));
+
+//
+//  jayus.FlexibleFrame()
+//_________________________//
+
+/**
+A flexible version of the Frame entity.
+<br> Whenever the child is resized, the frame resizes itself to match.
+@class jayus.FlexibleFrame
+@extends jayus.Frame
+*/
+
+jayus.FlexibleFrame = jayus.Frame.extend({
+
+	flexible: true
+
+});

@@ -9,7 +9,6 @@
 
 	var files = [
 
-		'argumentOverloading.min.js',
 		'jayus.js',
 		'easing.js',
 		'Responder.js',
@@ -30,7 +29,7 @@
 		'objects.js',
 		'keyboard.js',
 
-		'Shape.js',
+		// 'Shape.js',
 		'Point.js',
 		'Rectangle.js',
 		'Circle.js',

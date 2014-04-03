@@ -33,13 +33,11 @@ Represents a 2d polygon.
 @extends jayus.Shape
 */
 
-jayus.Polygon = jayus.Shape.extend({
+jayus.Polygon = jayus.Dependency.extend({
 
 	//
 	//  Properties
 	//______________//
-
-	componentType: 'POLYGON',
 
 	shapeType: 8,
 
@@ -110,8 +108,8 @@ jayus.Polygon = jayus.Shape.extend({
 
 	/**
 	Initializes the Polygon.
+	<br> Arguments are optional, will initialize as an empty polygon if not given.
 	@method init
-	@paramset 0
 	@paramset 1
 	@param {Array<Point>} points
 	@paramset 2
@@ -119,23 +117,23 @@ jayus.Polygon = jayus.Shape.extend({
 	@param {Array<Number>} yPoints
 	*/
 
-	init: function Polygon_init(xPoints, yPoints){
-		if(arguments.length === 2){
+	init: function Polygon(xPoints, yPoints) {
+		if(arguments.length === 2) {
 			//#ifdef DEBUG
-			jayus.debug.matchArray('Polygon.init', xPoints, 'xPoints', jayus.TYPES.NUMBER);
-			jayus.debug.matchArray('Polygon.init', yPoints, 'yPoints', jayus.TYPES.NUMBER);
+			jayus.debug.matchArray('Polygon', xPoints, 'xPoints', jayus.TYPES.NUMBER);
+			jayus.debug.matchArray('Polygon', yPoints, 'yPoints', jayus.TYPES.NUMBER);
 			//#end
 			this.xPoints = xPoints;
 			this.yPoints = yPoints;
 		}
-		else{
+		else {
 			this.xPoints = [];
 			this.yPoints = [];
-			if(arguments.length === 1){
+			if(arguments.length === 1) {
 				//#ifdef DEBUG
-				jayus.debug.matchArray('Polygon.init', xPoints, 'xPoints', jayus.TYPES.POINT);
+				jayus.debug.matchArray('Polygon', xPoints, 'xPoints', jayus.TYPES.POINT);
 				//#end
-				for(var i=0;i<xPoints.length;i++){
+				for(var i=0;i<xPoints.length;i++) {
 					this.xPoints[i] = xPoints[i].x;
 					this.yPoints[i] = xPoints[i].y;
 				}
@@ -150,10 +148,10 @@ jayus.Polygon = jayus.Shape.extend({
 			xPoints: this.xPoints,
 			yPoints: this.yPoints
 		};
-		if (this.closed !== jayus.Polygon.prototype.closed) {
+		if(this.closed !== jayus.Polygon.prototype.closed) {
 			object.closed = this.closed;
 		}
-		if (this.id !== jayus.Dependency.prototype.id) {
+		if(this.id !== jayus.Dependency.prototype.id) {
 			object.id = this.id;
 		}
 		return object;
@@ -165,9 +163,9 @@ jayus.Polygon = jayus.Shape.extend({
 		//#end
 		jayus.Dependency.prototype.initFromObject.call(this, object);
 		// Apply our own properties
-		this.x = object.xPoints;
-		this.y = object.yPoints;
-		if (typeof object.closed === 'boolean') {
+		this.xPoints = object.xPoints;
+		this.yPoints = object.yPoints;
+		if(typeof object.closed === 'boolean') {
 			this.closed = object.closed;
 		}
 		// Set as dirty
@@ -180,16 +178,15 @@ jayus.Polygon = jayus.Shape.extend({
 		//____________//
 
 	//@ From Shape
-	translate: function Polygon_translate(x, y){
+	translate: function Polygon_translate(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Polygon.translate', x, y);
 		//#end
-		if(arguments.length === 1){
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.translate(x.x, x.y);
 		}
-		if(x || y){
-			for(var i=0;i<this.xPoints.length;i++){
+		if(x || y) {
+			for(var i=0;i<this.xPoints.length;i++) {
 				this.xPoints[i] += x;
 				this.yPoints[i] += y;
 			}
@@ -199,9 +196,14 @@ jayus.Polygon = jayus.Shape.extend({
 	},
 
 	//@ From Shape
-	alignToCanvas: function Polygon_alignToCanvas(){
-		// TODO: Anything to do here?
+	alignToCanvas: function Polygon_alignToCanvas() {
+		// Nothing to do here
 		return this;
+	},
+
+	//@ From Shape
+	paintedWith: function Polygon_paintedWith(brush) {
+		return new jayus.PaintedShape(this, brush);
 	},
 
 		//
@@ -218,19 +220,17 @@ jayus.Polygon = jayus.Shape.extend({
 	@param {Number} y
 	*/
 
-	addPoint: function Polygon_addPoint(x, y){
+	addPoint: function Polygon_addPoint(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Polygon.addPoint', x, y);
 		//#end
-		if(arguments.length === 1){
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.addPoint(x.x, x.y);
 		}
 		this.xPoints.push(x);
 		this.yPoints.push(y);
 		this.frameDirty = true;
-		this.dirty(jayus.DIRTY.CONTENT);
-		return this;
+		return this.dirty(jayus.DIRTY.CONTENT);
 	},
 
 	/**
@@ -243,17 +243,17 @@ jayus.Polygon = jayus.Shape.extend({
 	@param {Array<Number>} yPoints
 	*/
 
-	addPoints: function Polygon_addPoints(xPoints, yPoints){
-		if(arguments.length === 1){
+	addPoints: function Polygon_addPoints(xPoints, yPoints) {
+		if(arguments.length === 1) {
 			//#ifdef DEBUG
 			jayus.debug.matchArray('Polygon.addPoints', xPoints, 'xPoints', jayus.TYPES.POINT);
 			//#end
-			for(var i=0;i<xPoints.length;i++){
+			for(var i=0;i<xPoints.length;i++) {
 				this.xPoints.push(xPoints[i].x);
 				this.yPoints.push(xPoints[i].y);
 			}
 		}
-		else if(arguments.length === 2){
+		else if(arguments.length === 2) {
 			//#ifdef DEBUG
 			jayus.debug.matchArray('Polygon.addPoints', xPoints, 'xPoints', jayus.TYPES.NUMBER);
 			jayus.debug.matchArray('Polygon.addPoints', yPoints, 'yPoints', jayus.TYPES.NUMBER);
@@ -262,8 +262,7 @@ jayus.Polygon = jayus.Shape.extend({
 			this.yPoints = this.yPoints.concat(yPoints);
 		}
 		this.frameDirty = true;
-		this.dirty(jayus.DIRTY.CONTENT);
-		return this;
+		return this.dirty(jayus.DIRTY.CONTENT);
 	},
 
 	/**
@@ -278,24 +277,20 @@ jayus.Polygon = jayus.Shape.extend({
 	@param {Number} y
 	*/
 
-	insertPoint: function Polygon_insertPoint(index, x, y){
-		if(arguments.length === 2){
+	insertPoint: function Polygon_insertPoint(index, x, y) {
+		if(arguments.length === 2) {
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('Polygon.insertPoint', arguments, 'index', jayus.TYPES.NUMBER, 'point', jayus.TYPES.POINT);
 			//#end
-			y = x.y;
-			x = x.x;
+			return this.insertPoint(index, x.x, x.y);
 		}
 		//#ifdef DEBUG
-		else{
-			jayus.debug.matchArgumentsAs('Polygon.insertPoint', arguments, jayus.TYPES.NUMBER, 'index', 'x', 'y');
-		}
+		jayus.debug.matchArgumentsAs('Polygon.insertPoint', arguments, jayus.TYPES.NUMBER, 'index', 'x', 'y');
 		//#end
 		this.xPoints.splice(index, 0, x);
 		this.yPoints.splice(index, 0, y);
 		this.frameDirty = true;
-		this.dirty(jayus.DIRTY.CONTENT);
-		return this;
+		return this.dirty(jayus.DIRTY.CONTENT);
 	},
 
 	/**
@@ -310,59 +305,55 @@ jayus.Polygon = jayus.Shape.extend({
 	@param {Number} y
 	*/
 
-	setPoint: function Polygon_setPoint(index, x, y){
-		if(arguments.length === 2){
+	setPoint: function Polygon_setPoint(index, x, y) {
+		if(arguments.length === 2) {
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('Polygon.setPoint', arguments, 'index', jayus.TYPES.NUMBER, 'point', jayus.TYPES.POINT);
 			//#end
-			y = x.y;
-			x = x.x;
+			return this.setPoint(index, x.x, x.y);
 		}
 		//#ifdef DEBUG
-		else{
-			jayus.debug.matchArgumentsAs('Polygon.setPoint', arguments, jayus.TYPES.NUMBER, 'index', 'x', 'y');
-		}
+		jayus.debug.matchArgumentsAs('Polygon.setPoint', arguments, jayus.TYPES.NUMBER, 'index', 'x', 'y');
 		//#end
 		this.xPoints[index] = x;
 		this.yPoints[index] = y;
 		this.frameDirty = true;
-		this.dirty(jayus.DIRTY.CONTENT);
-		return this;
+		return this.dirty(jayus.DIRTY.CONTENT);
 	},
 
 		//
 		//  Frame
 		//_________//
 
-	getLeft: function Shape_getLeft(){
+	getLeft: function Shape_getLeft() {
 		return this.getFrame().getLeft();
 	},
 
-	getTop: function Shape_getTop(){
+	getTop: function Shape_getTop() {
 		return this.getFrame().getTop();
 	},
 
-	getWidth: function Shape_getWidth(){
+	getWidth: function Shape_getWidth() {
 		return this.getFrame().getWidth();
 	},
 
-	getHeight: function Shape_getHeight(){
+	getHeight: function Shape_getHeight() {
 		return this.getFrame().getHeight();
 	},
 
-	getScope: function Polygon_getScope(){
+	getScope: function Polygon_getScope() {
 		return this.getFrame();
 	},
 
-	getFrame: function Polygon_getFrame(){
-		if(this.frameDirty){
+	getFrame: function Polygon_getFrame() {
+		if(this.frameDirty) {
 			this.reformFrame();
 			this.frameDirty = false;
 		}
 		return this.frame;
 	},
 
-	reformFrame: function Polygon_reformFrame(){
+	reformFrame: function Polygon_reformFrame() {
 
 		var i, x, y,
 			x1 = null,
@@ -370,24 +361,24 @@ jayus.Polygon = jayus.Shape.extend({
 			y1 = null,
 			y2 = null;
 
-		for(i=0;i<this.xPoints.length;i++){
+		for(i=0;i<this.xPoints.length;i++) {
 			x = this.xPoints[i];
 			y = this.yPoints[i];
-			if(x1 === null || x < x1){
+			if(x1 === null || x < x1) {
 				x1 = x;
 			}
-			if(x2 === null || x > x2){
+			if(x2 === null || x > x2) {
 				x2 = x;
 			}
-			if(y1 === null || y < y1){
+			if(y1 === null || y < y1) {
 				y1 = y;
 			}
-			if(y2 === null || y > y2){
+			if(y2 === null || y > y2) {
 				y2 = y;
 			}
 		}
 
-		if(this.frame === null){
+		if(this.frame === null) {
 			this.frame = new jayus.Rectangle();
 		}
 
@@ -400,7 +391,7 @@ jayus.Polygon = jayus.Shape.extend({
 		//________________//
 
 	//@ From Shape
-	intersectsAt: function Polygon_intersectsAt(x, y){
+	intersectsAt: function Polygon_intersectsAt(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchArgumentsAs('Polygon.intersectsAt', arguments, jayus.TYPES.NUMBER, 'x', 'y');
 		//#end
@@ -423,11 +414,11 @@ jayus.Polygon = jayus.Shape.extend({
 	@param {Boolean} on
 	*/
 
-	setClosed: function Polygon_setClosed(on){
+	setClosed: function Polygon_setClosed(on) {
 		//#ifdef DEBUG
 		jayus.debug.match('Polygon.setClosed', on, 'on', jayus.TYPES.BOOLEAN);
 		//#end
-		if(this.closed !== on){
+		if(this.closed !== on) {
 			this.closed = on;
 			this.dirty(jayus.DIRTY.CONTENT);
 		}
@@ -439,12 +430,12 @@ jayus.Polygon = jayus.Shape.extend({
 		//_____________//
 
 	//@ From Shape
-	clone: function Polygon_clone(){
+	clone: function Polygon_clone() {
 		return new jayus.Polygon(this.xPoints.slice(0), this.yPoints.slice(0));
 	},
 
 	//@ From Shape
-	cloneOnto: function Polygon_cloneOnto(ret){
+	cloneOnto: function Polygon_cloneOnto(ret) {
 		ret.xPoints = this.xPoints.slice(0);
 		ret.yPoints = this.yPoints.slice(0);
 		ret.frameDirty = true;
@@ -457,13 +448,13 @@ jayus.Polygon = jayus.Shape.extend({
 	@param {Matrix} matrix
 	*/
 
-	transform: function Polygon_transform(matrix){
+	transform: function Polygon_transform(matrix) {
 		//#ifdef DEBUG
 		jayus.debug.match('Polygon.transform', matrix, 'matrix', jayus.TYPES.MATRIX);
 		//#end
 		var i,
 			point = new jayus.Point();
-		for(i=0;i<this.xPoints.length;i++){
+		for(i=0;i<this.xPoints.length;i++) {
 			matrix.transformPointOnto(this.xPoints[i], this.yPoints[i], point);
 			this.xPoints[i] = point.x;
 			this.yPoints[i] = point.y;
@@ -473,14 +464,14 @@ jayus.Polygon = jayus.Shape.extend({
 	},
 
 	//@ From Shape
-	getTransformed: function Polygon_getTransformed(matrix){
+	getTransformed: function Polygon_getTransformed(matrix) {
 		//#ifdef DEBUG
 		jayus.debug.match('Polygon.getTransformed', matrix, 'matrix', jayus.TYPES.MATRIX);
 		//#end
 		return this.getTransformedOnto(matrix, new jayus.Polygon());
 	},
 
-	getTransformedOnto: function Polygon_getTransformedOnto(matrix, ret){
+	getTransformedOnto: function Polygon_getTransformedOnto(matrix, ret) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Polygon.getTransformedOnto', arguments, 'matrix', jayus.TYPES.MATRIX, 'ret', jayus.TYPES.POLYGON);
 		//#end
@@ -490,7 +481,7 @@ jayus.Polygon = jayus.Shape.extend({
 		ret.xPoints = [];
 		ret.yPoints = [];
 		// Push the transformed points from self onto ret
-		for(i=0;i<this.xPoints.length;i++){
+		for(i=0;i<this.xPoints.length;i++) {
 			matrix.transformPointOnto(this.xPoints[i], this.yPoints[i], point);
 			ret.xPoints.push(point.x);
 			ret.yPoints.push(point.y);
@@ -503,21 +494,21 @@ jayus.Polygon = jayus.Shape.extend({
 		//_____________//
 
 	//@ From Shape
-	etchOntoContext: function Polygon_etchOntoContext(ctx){
+	etchOntoContext: function Polygon_etchOntoContext(ctx) {
 		//#ifdef DEBUG
 		jayus.debug.matchContext('Polygon.etchOntoContext', ctx);
 		//#end
-		if(this.xPoints.length){
+		if(this.xPoints.length) {
 			// Start a new path
 			ctx.beginPath();
 			// Move to the first point
 			ctx.moveTo(this.xPoints[0], this.yPoints[0]);
 			// Trace out the other points
-			for(var i=0;i<this.xPoints.length;i++){
+			for(var i=0;i<this.xPoints.length;i++) {
 				ctx.lineTo(this.xPoints[i], this.yPoints[i]);
 			}
 			// Trace back to the starting point
-			if(this.closed){
+			if(this.closed) {
 				ctx.closePath();
 			}
 		}
@@ -539,25 +530,20 @@ Constructs a Polygon representing a line segment.
 @param {Number} height
 */
 
-jayus.Polygon.Line = function Polygon_Line(x1, y1, x2, y2){
-	if(arguments.length === 2){
+jayus.Polygon.Line = function Polygon_Line(x1, y1, x2, y2) {
+	if(arguments.length === 2) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Polygon.Line()', arguments, 'start', jayus.TYPES.POINT, 'end', jayus.TYPES.POINT);
 		//#end
-		y2 = y1.y;
-		x2 = y1.x;
-		y1 = x1.y;
-		x1 = x1.x;
+		return jayus.Polygon.Line(x1.x, x1.y, y1.x, y1.y);
 	}
 	//#ifdef DEBUG
-	else{
-		jayus.debug.matchArgumentsAs('Polygon.Line', arguments, jayus.TYPES.NUMBER, 'x1', 'y1', 'x2', 'y2');
-	}
+	jayus.debug.matchArgumentsAs('Polygon.Line', arguments, jayus.TYPES.NUMBER, 'x1', 'y1', 'x2', 'y2');
 	//#end
 	return new jayus.Polygon([x1, x2], [y1, y2]);
 };
 
-jayus.Polygon.LineOnto = function Polygon_LineOnto(x1, y1, x2, y2, ret){
+jayus.Polygon.LineOnto = function Polygon_LineOnto(x1, y1, x2, y2, ret) {
 	//#ifdef DEBUG
 	jayus.debug.matchArgumentsAs('Polygon.LineOnto', arguments, jayus.TYPES.NUMBER, 'x1', 'y1', 'x2', 'y2');
 	jayus.debug.match('Polygon.LineOnto', ret, 'ret', jayus.TYPES.POLYGON);
@@ -582,21 +568,16 @@ Constructs a Polygon representing an axis-aligned rectangle.
 @param {Number} height
 */
 
-jayus.Polygon.Rectangle = function Polygon_Rectangle(x, y, width, height){
+jayus.Polygon.Rectangle = function Polygon_Rectangle(x, y, width, height) {
 	// Expand the arguments
-	if(arguments.length === 3){
+	if(arguments.length === 3) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Polygon.Rectangle', arguments, 'origin', jayus.TYPES.POINT, 'width', jayus.TYPES.NUMBER, 'height', jayus.TYPES.NUMBER);
 		//#end
-		height = width;
-		width = y;
-		y = x.y;
-		x = x.x;
+		return jayus.Polygon.Rectangle(x.x, x.y, y, width);
 	}
 	//#ifdef DEBUG
-	else{
-		jayus.debug.matchArgumentsAs('Polygon.Rectangle', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'width', 'height');
-	}
+	jayus.debug.matchArgumentsAs('Polygon.Rectangle', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'width', 'height');
 	//#end
 	// Construct the polygon
 	return new jayus.Polygon(
@@ -612,7 +593,7 @@ Constructs a regular Polygon.
 @param {Number} radius
 */
 
-jayus.Polygon.Regular = function Polygon_Regular(count, radius){
+jayus.Polygon.Regular = function Polygon_Regular(count, radius) {
 	//#ifdef DEBUG
 	jayus.debug.matchArgumentsAs('Polygon.Regular', arguments, jayus.TYPES.NUMBER, 'count', 'radius');
 	//#end
@@ -620,7 +601,7 @@ jayus.Polygon.Regular = function Polygon_Regular(count, radius){
 		poly = new jayus.Polygon(),
 		angle = 0,
 		step = Math.PI*2/count;
-	for(i=0;i<count;i++){
+	for(i=0;i<count;i++) {
 		poly.addPoint(radius*Math.cos(angle), radius*Math.sin(angle));
 		angle += step;
 	}
@@ -635,7 +616,7 @@ Constructs a Polygon representing a star.
 @param {Number} outerRadius
 */
 
-jayus.Polygon.Star = function Polygon_Star(count, innerRadius, outerRadius){
+jayus.Polygon.Star = function Polygon_Star(count, innerRadius, outerRadius) {
 	//#ifdef DEBUG
 	jayus.debug.matchArgumentsAs('Polygon.Star', arguments, jayus.TYPES.NUMBER, 'count', 'innerRadius', 'outerRadius');
 	//#end
@@ -645,7 +626,7 @@ jayus.Polygon.Star = function Polygon_Star(count, innerRadius, outerRadius){
 		step = Math.PI/count,
 		atInner = true,
 		radius = innerRadius;
-	for(i=0;i<count*2;i++){
+	for(i=0;i<count*2;i++) {
 		poly.addPoint(radius*Math.cos(angle), radius*Math.sin(angle));
 		radius += atInner ? outerRadius : innerRadius;
 		atInner = !atInner;

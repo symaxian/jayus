@@ -65,23 +65,26 @@ jayus.SizePolicy = jayus.createClass({
 	expand: true,
 	//#replace jayus.SizePolicy.prototype.expand true
 
-	init: function SizePolicy_init(object) {
-		if (arguments.length) {
-			this.initFromObject(object);
-		}
-	},
+	flexible: true,
+
+	init: function SizePolicy() {},
 
 	toObject: function SizePolicy_toObject() {
 		// Add our own properties
-		object.type = 'SizePolicy';
-		if (this.size !== jayus.SizePolicy.prototype.size) {
+		var object = {
+			type: 'SizePolicy'
+		};
+		if(this.size !== jayus.SizePolicy.prototype.size) {
 			object.size = this.size;
 		}
-		if (this.weight !== jayus.SizePolicy.prototype.weight) {
+		if(this.weight !== jayus.SizePolicy.prototype.weight) {
 			object.weight = this.weight;
 		}
-		if (this.expand !== jayus.SizePolicy.prototype.expand) {
+		if(this.expand !== jayus.SizePolicy.prototype.expand) {
 			object.expand = this.expand;
+		}
+		if(this.flexible !== jayus.SizePolicy.prototype.flexible) {
+			object.flexible = this.flexible;
 		}
 		return object;
 	},
@@ -92,14 +95,17 @@ jayus.SizePolicy = jayus.createClass({
 		jayus.debug.match('SizePolicy.initFromObject', object, 'object', jayus.TYPES.OBJECT);
 		//#end
 		// Apply our own properties
-		if (typeof object.size === 'number') {
+		if(typeof object.size === 'number') {
 			this.size = object.size;
 		}
-		if (typeof object.weight === 'number') {
+		if(typeof object.weight === 'number') {
 			this.weight = object.weight;
 		}
-		if (typeof object.expand === 'boolean') {
+		if(typeof object.expand === 'boolean') {
 			this.expand = object.expand;
+		}
+		if(typeof object.flexible === 'boolean') {
+			this.flexible = object.flexible;
 		}
 		return this;
 	}

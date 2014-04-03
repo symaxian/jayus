@@ -39,20 +39,12 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	//______________//
 
 	/**
-	Whether the tiled map file is loaded or not.
+	The filepath of the tiled map file, if initialized with a filepath.
 	<br> Do not modify.
-	@property {Boolean} loaded
+	@property {String} filepath
 	*/
 
-	loaded: false,
-
-	/**
-	The filename of the tiled map file.
-	<br> Null until map is loaded.
-	@property {String} filename
-	*/
-
-	filename: null,
+	filepath: '',
 
 	/**
 	The Tiled map object, as defined in the map file.
@@ -90,6 +82,38 @@ jayus.TiledMap = jayus.RectEntity.extend({
 
 	layerVisibility: null,
 
+	/**
+	Whether the map file is loaded or not.
+	<br> Do not modify.
+	@property {Boolean} mapLoaded
+	*/
+
+	mapLoaded: false,
+
+	/**
+	Whether the tileset images are loaded or not.
+	<br> Do not modify.
+	@property {Boolean} tilesetsLoaded
+	*/
+
+	tilesetsLoaded: false,
+
+	/**
+	Whether the map is fully loaded or not.
+	<br> Do not modify.
+	@property {Boolean} loaded
+	*/
+
+	loaded: false,
+
+	/**
+	Whether the entity is awaiting on the map file to be loaded.
+	<br> Do not modify.
+	@property {Boolean} pendingLoad
+	*/
+
+	pendingLoad: false,
+
 	//
 	//  Methods
 	//___________//
@@ -97,52 +121,128 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	/**
 	Initiates the map.
 	@method init
-	@param {String} filename
+	@paramset Syntax 1
+	@param {String} filepath
+	@paramset Syntax 1
+	@param {Object} map
 	*/
 
-	init: function TiledMap_init(map) {
+	init: function TiledMap(map) {
 		jayus.Entity.prototype.init.apply(this);
-		if (arguments.length) {
+		if(arguments.length) {
 			this.setMap(map);
 		}
 	},
 
 	//#ifdef DEBUG
-	checkLoaded: function TiledMap_checkLoaded() {
-		if (!this.loaded) {
-			throw new Error('TiledMap.checkLoaded() - Error, map not yet loaded');
+	checkMapLoaded: function TiledMap_checkMapLoaded() {
+		if(!this.mapLoaded) {
+			throw new Error('TiledMap.checkMapLoaded() - Error, map file not yet loaded');
 		}
 	},
 	//#end
 
+	// TODO: TiledMap.setMap() - Document, clean up loaded flags
+
 	setMap: function TiledMap_setMap(map) {
-		if (typeof map === 'string') {
-			// FIXME: Expects the map object to have already been loaded
+		//#ifdef DEBUG
+		if(this.pendingLoad) {
+			console.warn('TiledMap.setMap() - Called while still waiting for map file "'+filepath+'" to be loaded');
+			return this;
+		}
+		//#end
+		var that, filepath, filepaths, i, data;
+		if(typeof map === 'string') {
+			filepath = map;
+			//#ifdef DEBUG
+			if(filepath === this.filepath) {
+				console.debug('TiledMap.setMap() - Called twice with same filepath: '+filepath);
+				return this;
+			}
+			//#end
+			this.filepath = filepath;
+			// Check if not loaded
+			if(!jayus.objects.isLoaded(filepath)) {
+				// Set loaded flag to false
+				this.mapLoaded = false;
+				this.loaded = false;
+				this.pendingLoad = true;
+				// Load the file
+				that = this;
+				jayus.objects.whenLoaded(filepath, function(data) {
+					// Clear the flags
+					that.pendingLoad = false;
+					// Set the map object
+					that.setMap(data.object);
+				});
+				return this;
+			}
+			// Get the object
 			map = jayus.objects.get(filepath);
 		}
+		//#ifdef DEBUG
+		if(map === this.map) {
+			console.debug('TiledMap.setMap() - Called twice with same map: '+map);
+			return this;
+		}
+		//#end
 		this.map = map;
-		for (var i=0;i<this.map.tilesets.length;i++) {
-			var data = this.map.tilesets[i];
-			// console.log(data.image);
-			// data.image = '../'+data.image;
-			jayus.images.load(data.image);
-			var sheet = new jayus.SpriteSheet();
-			// console.log(data);
-			sheet.setSpriteSize(data.tilewidth, data.tileheight);
-			jayus.images.get(data.image).sheet = sheet;
-			this.tileWidth = data.tilewidth;
-			this.tileHeight = data.tileheight;
+		// Load the tileset images
+		that = this;
+		filepaths = [];
+		for(i=0;i<this.map.tilesets.length;i++) {
+			data = this.map.tilesets[i];
+			filepaths.push(data.image);
+			// When loaded, if it doesnt have an attached spritesheet, give it one
+			jayus.images.whenLoaded(data.image, function(event) {
+				if(typeof event.image.sheet !== 'object') {
+					// var data = that.map.tilesets[i];
+					var sheet = new jayus.SpriteSheet(event.filepath);
+					sheet.setSpriteSize(data.tilewidth, data.tileheight);
+				}
+				that.dirty(jayus.DIRTY.ALL);
+			});
 		}
-		this.layerVisibility = [];
-		this.layerOffsetsX = [];
-		this.layerOffsetsY = [];
-		for (i=0;i<this.map.layers.length;i++) {
-			this.layerVisibility.push(this.map.layers[i].visible);
-			this.layerOffsetsX.push(0);
-			this.layerOffsetsY.push(0);
-		}
-		this.loaded = true;
+		// Set the size
 		this.setSize(this.map.width*this.map.tilewidth, this.map.height*this.map.tileheight);
+		// Construct the layerVisibility array
+		this.layerVisibility = [];
+		for(i=0;i<this.map.layers.length;i++) {
+			this.layerVisibility.push(this.map.layers[i].visible);
+		}
+		// Wait until all the tilesets are loaded to continue
+		this.mapLoaded = true;
+		this.loaded = false;
+		jayus.images.whenLoaded(filepaths, function() {
+			that.tilesetsLoaded = true;
+			that.loaded = true;
+			that.fire('loaded');
+		});
+		return this;
+	},
+
+	/**
+	Runs the callback handler once the map file is loaded.
+	<br> Attaches a handler for the 'loaded' event, or the map file is already loaded it calls the function immediately.
+	<br> The context for the handler is this entity.
+	@method {Self} whenLoaded
+	@param {Function} handler
+	*/
+
+	whenLoaded: function TiledMap_whenLoaded(handler) {
+		//#ifdef DEBUG
+		jayus.debug.match('TiledMap.whenLoaded', handler, 'handler', jayus.TYPES.FUNCTION);
+		//#end
+		if(this.loaded) {
+			handler.apply(this);
+		}
+		else {
+			this.addHandler('loaded', function(data, options) {
+				handler.apply(this);
+				options.remove = true;
+			});
+		}
+		return this;
 	},
 
 		//
@@ -163,13 +263,10 @@ jayus.TiledMap = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('TiledMap.getTileAt', x, y);
 		//#end
-		if (arguments.length === 1) {
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.getTileAt(x.x, x.y);
 		}
-		x -= this.x;
-		y -= this.y;
-		return new jayus.Point(Math.floor(x/this.map.tilewidth), Math.floor(y/this.map.tileheight));
+		return new jayus.Point(Math.floor((x-this.x)/this.map.tilewidth), Math.floor((y-this.y)/this.map.tileheight));
 	},
 
 	/**
@@ -185,11 +282,10 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	getSlotFrame: function TiledMap_getSlotFrame(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('TiledMap.getSlotFrame', x, y);
-		this.checkLoaded();
+		this.checkMapLoaded();
 		//#end
-		if (arguments.length === 1) {
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.getSlotFrame(x.x, x.y);
 		}
 		return new jayus.Rectangle(this.x+x*this.map.tilewidth, this.y+y*this.map.tileheight, this.map.tilewidth, this.map.tileheight);
 	},
@@ -208,7 +304,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	isLayerVisible: function TiledMap_isLayerVisible(index) {
 		//#ifdef DEBUG
 		jayus.debug.match('TiledMap.isLayerVisible', index, 'index', jayus.TYPES.NUMBER);
-		this.checkLoaded();
+		this.checkMapLoaded();
 		//#end
 		return this.layerVisibility[index];
 	},
@@ -224,9 +320,9 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	setLayerVisibility: function TiledMap_setLayerVisibility(index, visible) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('TiledMap.setLayerVisibility', arguments, 'index', jayus.TYPES.NUMBER, 'visible', jayus.TYPES.BOOLEAN);
-		this.checkLoaded();
+		this.checkMapLoaded();
 		//#end
-		if (this.layerVisibility[index] !== visible) {
+		if(this.layerVisibility[index] !== visible) {
 			this.layerVisibility[index] = visible;
 			this.dirty(jayus.DIRTY.ALL);
 		}
@@ -242,7 +338,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	showLayer: function TiledMap_showLayer(index) {
 		//#ifdef DEBUG
 		jayus.debug.match('TiledMap.showLayer', index, 'index', jayus.TYPES.NUMBER);
-		this.checkLoaded();
+		this.checkMapLoaded();
 		//#end
 		return this.setLayerVisibility(index, true);
 	},
@@ -256,7 +352,7 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	hideLayer: function TiledMap_hideLayer(index) {
 		//#ifdef DEBUG
 		jayus.debug.match('TiledMap.hideLayer', index, 'index', jayus.TYPES.NUMBER);
-		this.checkLoaded();
+		this.checkMapLoaded();
 		//#end
 		return this.setLayerVisibility(index, false);
 	},
@@ -270,47 +366,51 @@ jayus.TiledMap = jayus.RectEntity.extend({
 	paintContents: function TiledMap_paintContents(ctx) {
 		//#ifdef DEBUG
 		jayus.debug.matchContext('TiledMap.paintContents', ctx);
-		this.checkLoaded();
+		this.checkMapLoaded();
 		//#end
 
 		var i,
-			layer,
-			tileset = this.map.tilesets[0],
-			imageWidth = tileset.imagewidth,
+			tileset;
+
+		// Check the tilesheets
+		for(i=0;i<this.map.tilesets.length;i++) {
+			tileset = this.map.tilesets[i];
+			if(!jayus.images.isLoaded(tileset.image)) {
+				console.error('TiledMap.paintContents() - Tileset "'+tileset.image+'" not yet loaded');
+				return;
+			}
+		}
+
+		tileset = this.map.tilesets[0];
+
+		var layer,
 			image = jayus.images.get(tileset.image),
 			marginX = image.sheet.marginX,
 			marginY = image.sheet.marginY,
 			tileWidth = image.sheet.spriteWidth,
 			tileHeight = image.sheet.spriteHeight,
+			tilesPerRow = tileset.imagewidth/tileWidth,
 			tileY, tileX,
 			index,
 			sourceTileX, sourceTileY;
 
-		// Check the tilesheets
-		for (i=0;i<this.map.tilesets.length;i++) {
-			tileset = this.map.tilesets[i];
-			if (!jayus.images.isLoaded(tileset.image)) {
-				console.warn('TiledMap.paintContents() - Tileset "'+tileset.image+'" not yet loaded');
-			}
-		}
-
 		// Loop through each layer
-		for (i=0;i<this.map.layers.length;i++) {
+		for(i=0;i<this.map.layers.length;i++) {
 			layer = this.map.layers[i];
 			// Check if it's a tile layer and visible
-			if (layer.type === 'tilelayer' && this.layerVisibility[i]) {
+			if(layer.type === 'tilelayer' && this.layerVisibility[i]) {
 				// Loop through each tile
-				for (tileY=0;tileY<layer.height;tileY++) {
-					for (tileX=0;tileX<layer.width;tileX++) {
+				for(tileY=layer.height-1;tileY>=0;tileY--) {
+					for(tileX=layer.width-1;tileX>=0;tileX--) {
 						// Get the tile number, tiled indexes start from 1 not 0, so subtract it
 						index = layer.data[tileY*layer.width+tileX] - 1;
-						if (index !== -1) {
+						if(index !== -1) {
 
 							// sourceTileX = index%(tileset.imagewidth/tileset.tilewidth);
 							// sourceTileY = (index-sourceTileX)/(tileset.imagewidth/tileset.tilewidth);
 
-							sourceTileX = index%(imageWidth/tileWidth);
-							sourceTileY = (index-sourceTileX)/(imageWidth/tileWidth);
+							sourceTileX = index%tilesPerRow;
+							sourceTileY = (index-sourceTileX)/tilesPerRow;
 
 							// x = marginX + sourceTileX*tileWidth;
 							// y = marginY + sourceTileY*tileHeight;

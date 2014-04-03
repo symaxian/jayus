@@ -18,7 +18,7 @@
  */
 
 /**
-Defines the base Animator class.
+Defines the Animator class and some associated classes.
 @file Animator.js
 */
 
@@ -35,15 +35,24 @@ Defines the base Animator class.
 
 	// More animators
 
-	// Tweening
-		// Constructs a set of Animators to tween an entity from its current state to the target state
-		// Requires:
-			// Initial state
-			// Final state
-			// duration
-		// Would return the set of animators
-
 	// Testing
+
+/*
+
+	Three ways to do animation:
+		In order to to animation we need 2 out of 3 "position" variables, start, delta, end.
+		The start can be specified or gathered whenever the animator is started.
+		Depending on how the animator is setup, it may or may not work well when in a sequence.
+
+		Modes:
+			from x to y
+				Does not depend on entity state at all, a fixed/static animation
+			from current by x
+				Makes the most sense to me
+			from current to x
+				Could also be useful, no matter what the current state is, just get it to state x for me
+
+*/
 
 /**
 An abstract class for an animator, an object that performs an animation.
@@ -60,6 +69,8 @@ jayus.Animator = jayus.Responder.extend({
 	//  Properties
 	//______________//
 
+		// Meta
+
 	isAnimator: true,
 
 	/**
@@ -70,14 +81,7 @@ jayus.Animator = jayus.Responder.extend({
 
 	running: false,
 
-	/**
-	The duration of the animation, in milliseconds.
-	<br> Default is 1000(one second).
-	<br> Do not modify.
-	@property {Number} duration
-	*/
-
-	duration: 1000,
+	attachToJayus: true,
 
 	/**
 	The point in time when the animation was started, in milliseconds.
@@ -86,6 +90,17 @@ jayus.Animator = jayus.Responder.extend({
 	*/
 
 	startTime: null,
+
+		// Settings
+
+	/**
+	The duration of the animation, in milliseconds.
+	<br> Default is 1000(one second).
+	<br> Do not modify, use the setDuration method.
+	@property {Number} duration
+	*/
+
+	duration: 1000,
 
 	/**
 	The animator's easing function.
@@ -125,26 +140,54 @@ jayus.Animator = jayus.Responder.extend({
 	@param {Function} updater
 	*/
 
-	init: function Animator_init(updater){
+	init: function Animator(updater) {
 		//#ifdef DEBUG
-		jayus.debug.match('Animator.init', updater, 'updater', jayus.TYPES.FUNCTION);
+		jayus.debug.match('Animator', updater, 'updater', jayus.TYPES.FUNCTION);
 		//#end
 		this.update = updater;
+	},
+
+	initFromObject: function Animator_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('Animator.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		jayus.Dependency.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		if(typeof object.duration === 'number') {
+			this.duration = object.duration;
+		}
+		if(typeof object.looped === 'boolean') {
+			this.looped = object.looped;
+		}
+		if(typeof object.oscillate === 'boolean') {
+			this.oscillate = object.oscillate;
+		}
+		if(typeof object.easing !== 'undefined') {
+			this.setEasing(object.easing);
+		}
+		if(typeof object.target === 'object') {
+			this.target = object.target;
+		}
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 	/**
 	Starts the animator.
 	<br> Also fires the "started" event.
+	<br> Does not restart the event if already running.
 	@method {Self} start
 	*/
 
-	start: function Animator_start(){
-		if(!this.running){
+	start: function Animator_start() {
+		if(!this.running) {
 			// Save the start time
 			this.startTime = Date.now();
 			// Set as running and add to the animator list
 			this.running = true;
-			jayus.animators.push(this);
+			if(this.attachToJayus) {
+				jayus.animators.push(this);
+			}
 			this.fire('started');
 			// Update for the first time
 			// This was originally to solve the bug of sprites not being sized to their sprite, but the entire spritesheet
@@ -152,10 +195,30 @@ jayus.Animator = jayus.Responder.extend({
 			this.update(0);
 		}
 		//#ifdef DEBUG
-		else{
+		else {
 			console.warn('Animator.start() - Started when already running');
 		}
 		//#end
+		return this;
+	},
+
+	/**
+	Restarts the animator.
+	<br> Also fires the "started" event.
+	@method {Self} start
+	*/
+
+	restart: function Animator_restart() {
+		// Save the start time
+		this.startTime = Date.now();
+		// Set as running and add to the animator list
+		this.running = true;
+		jayus.animators.push(this);
+		this.fire('started');
+		// Update the target to its initial state
+		// This was originally to solve the bug of sprites not being sized to their sprite, but the entire spritesheet
+		// But seems to fit across all animations so was placed here
+		this.update(0);
 		return this;
 	},
 
@@ -166,16 +229,22 @@ jayus.Animator = jayus.Responder.extend({
 	@method {Self} stop
 	*/
 
-	stop: function Animator_stop(){
-		if(this.running){
+	stop: function Animator_stop() {
+		if(this.running) {
 			// Set the flag and fire the event
 			this.running = false;
-			jayus.animators.splice(jayus.animators.indexOf(this), 1);
+			if(this.attachToJayus) {
+				var index = jayus.animators.indexOf(this);
+				if(index !== -1) {
+					jayus.animators.splice(index, 1);
+				}
+			}
 			this.fire('stopped');
 		}
 		//#ifdef DEBUG
-		else{
-			console.warn('Animator.stop() - Stopped when not running');
+		else {
+			console.error('Animator.stop() - Stopped when not running');
+			console.log(this);
 		}
 		//#end
 		return this;
@@ -183,23 +252,29 @@ jayus.Animator = jayus.Responder.extend({
 
 	/**
 	Finishes the animation.
-	<br> This method does set the target[s] to its final state
+	<br> This method does set the target[s] to its final state.
 	<br> Also fires the "finished" event.
 	@method {Self} finish
 	*/
 
-	finish: function Animator_finish(){
-		if(this.running){
+	finish: function Animator_finish() {
+		if(this.running) {
 			// Stop and finish the animation
 			this.running = false;
-			jayus.animators.splice(jayus.animators.indexOf(this), 1);
+			if(this.attachToJayus) {
+				var index = jayus.animators.indexOf(this);
+				if(index !== -1) {
+					jayus.animators.splice(index, 1);
+				}
+			}
 			this.update(1);
 			// Fire the event
 			this.fire('finished');
 		}
 		//#ifdef DEBUG
-		else{
-			console.warn('Animator.finish() - Finished when not running');
+		else {
+			console.error('Animator.finish() - Finished when not running');
+			console.log(this);
 		}
 		//#end
 		return this;
@@ -211,7 +286,7 @@ jayus.Animator = jayus.Responder.extend({
 	@param {Number} duration
 	*/
 
-	setDuration: function Animator_setDuration(duration){
+	setDuration: function Animator_setDuration(duration) {
 		//#ifdef DEBUG
 		jayus.debug.match('Animator.setDuration', duration, 'duration', jayus.TYPES.NUMBER);
 		//#end
@@ -230,15 +305,15 @@ jayus.Animator = jayus.Responder.extend({
 	@param {Function} easing
 	*/
 
-	setEasing: function Animator_setEasing(easing){
-		if(typeof easing === 'string'){
+	setEasing: function Animator_setEasing(easing) {
+		if(typeof easing === 'string') {
 			//#ifdef DEBUG
 			jayus.debug.match('Animator.setEasing', easing, 'easing', jayus.TYPES.STRING);
 			//#end
 			easing = jayus.easing[easing];
 		}
 		//#ifdef DEBUG
-		else{
+		else {
 			jayus.debug.match('Animator.setEasing', easing, 'easing', jayus.TYPES.FUNCTION);
 		}
 		//#end
@@ -254,30 +329,31 @@ jayus.Animator = jayus.Responder.extend({
 	@param {Number} time
 	*/
 
-	tick: function Animator_tick(time){
+	tick: function Animator_tick(time) {
+		// console.log(this.id);
 		// Check if the time is past the duration
-		if(time-this.startTime < this.duration){
+		if(time-this.startTime < this.duration) {
 			// Update the position using the easing function
 			var pos = this.easing((time-this.startTime)/this.duration);
-			if(pos < 0){
+			if(pos < 0) {
 				pos = 0;
 			}
-			if(this.oscillate){
-				if(pos <= 0.5){
+			if(this.oscillate) {
+				if(pos <= 0.5) {
 					pos *= 2;
 				}
-				else{
+				else {
 					pos = (pos-0.5)*2;
 					pos = 1-pos;
 				}
 			}
 			this.update(pos);
 		}
-		else if(this.looped){
+		else if(this.looped) {
 			// Reset the start time
 			this.startTime = Date.now();
 		}
-		else{
+		else {
 			// Animation has finished
 			this.finish();
 		}
@@ -303,7 +379,7 @@ jayus.Animator = jayus.Responder.extend({
 	@param {Boolean} on
 	*/
 
-	setLooped: function Animator_setLooped(on){
+	setLooped: function Animator_setLooped(on) {
 		//#ifdef DEBUG
 		jayus.debug.match('Animator.setLooped', on, 'on', jayus.TYPES.BOOLEAN);
 		//#end
@@ -317,7 +393,7 @@ jayus.Animator = jayus.Responder.extend({
 	@param {Boolean} on
 	*/
 
-	setOscillate: function Animator_setOscillate(on){
+	setOscillate: function Animator_setOscillate(on) {
 		//#ifdef DEBUG
 		jayus.debug.match('Animator.setOscillate', on, 'on', jayus.TYPES.BOOLEAN);
 		//#end
@@ -353,7 +429,7 @@ jayus.Animatable = jayus.createClass({
 	@method {Self} animate
 	*/
 
-	animate: function Animatable_animate(){
+	animate: function Animatable_animate() {
 		this.actionsToAnimate++;
 		return this;
 	}
@@ -413,42 +489,44 @@ jayus.MethodAnimator = jayus.Animator.extend({
 	<br> Can be invoked with either a single or array of values to serve as parameters to the function.
 	@constructor init
 	@param {Object} target
-	@param {String} property
+	@param {Function} method
 	@param {Number|Array<Number>} initialValue
 	@param {Number|Array<Number>} finalValue
 	*/
 
-	init: function MethodAnimator_init(target, method, initialValue, finalValue){
-		//#ifdef DEBUG
-		jayus.debug.matchArguments('MethodAnimator.init', arguments,
-			'target', jayus.TYPES.OBJECT,
-			'method', jayus.TYPES.FUNCTION,
-			'initialValue', jayus.TYPES.DEFINED,
-			'finalValue', jayus.TYPES.DEFINED
-		);
-		//#end
-		// Set the properties
-		this.target = target;
-		this.method = method;
-		this.initialValue = initialValue;
-		this.finalValue = finalValue;
-		if(initialValue instanceof Array){
-			this.multipleParameters = true;
-			this.values = [];
+	init: function MethodAnimator(target, method, initialValue, finalValue) {
+		if(arguments.length) {
+			//#ifdef DEBUG
+			jayus.debug.matchArguments('MethodAnimator', arguments,
+				'target', jayus.TYPES.OBJECT,
+				'method', jayus.TYPES.FUNCTION,
+				'initialValue', jayus.TYPES.DEFINED,
+				'finalValue', jayus.TYPES.DEFINED
+			);
+			//#end
+			// Set the properties
+			this.target = target;
+			this.method = method;
+			this.initialValue = initialValue;
+			this.finalValue = finalValue;
+			if(initialValue instanceof Array) {
+				this.multipleParameters = true;
+				this.values = [];
+			}
 		}
 	},
 
 	//@ From Animator
-	update: function MethodAnimator_update(pos){
-		if(this.multipleParameters){
+	update: function MethodAnimator_update(pos) {
+		if(this.multipleParameters) {
 			// Update the values
-			for(var i=0;i<this.initialValue.length;i++){
+			for(var i=0;i<this.initialValue.length;i++) {
 				this.values[i] = this.initialValue[i] + pos*(this.finalValue[i]-this.initialValue[i]);
 			}
 			// Call the method with the values
 			this.method.apply(this.target, this.values);
 		}
-		else{
+		else {
 			// Call the method with the single value
 			this.method.call(this.target, this.initialValue + pos*(this.finalValue-this.initialValue));
 		}
@@ -456,6 +534,244 @@ jayus.MethodAnimator = jayus.Animator.extend({
 
 });
 
+/**
+An animator that continually calls a method on an object with numeric properties.
+@class jayus.MethodAnimatorBy
+@extends jayus.Animator
+*/
+
+jayus.MethodAnimatorBy = jayus.Animator.extend({
+
+	//
+	//  Properties
+	//______________//
+
+	/**
+	The entity to animate.
+	@property {Object} target
+	*/
+
+	target: null,
+
+	/**
+	The getter method of the property to animate.
+	@property {Function} getter
+	*/
+
+	getter: null,
+
+	/**
+	The setter method of the property to animate.
+	@property {Function} setter
+	*/
+
+	setter: null,
+
+	/**
+	The initial value of the property.
+	@property {Number} from
+	*/
+
+	from: null,
+
+	/**
+	The delta value of the property.
+	@property {Number} by
+	*/
+
+	by: null,
+
+	/**
+	Initiates the animator.
+	<br> Can be invoked with either a single or array of values to serve as parameters to the function.
+	@constructor init
+	@param {Object} target
+	@param {Function} getter
+	@param {Function} setter
+	@param {Number} by
+	*/
+
+	init: function MethodAnimatorBy(target, getter, setter, by) {
+		if(arguments.length) {
+			//#ifdef DEBUG
+			jayus.debug.matchArguments('MethodAnimatorBy', arguments,
+				'target', jayus.TYPES.OBJECT,
+				'getter', jayus.TYPES.FUNCTION,
+				'setter', jayus.TYPES.FUNCTION,
+				'by', jayus.TYPES.NUMBER
+			);
+			//#end
+			// Set the properties
+			this.target = target;
+			this.getter = getter;
+			this.setter = setter;
+			this.by = by;
+		}
+		// Set the handler to set the start value
+		var that = this;
+		this.addHandler('started', function() {
+			if(typeof that.getter === 'function') {
+				that.from = that.getter.call(that.target);
+			}
+			else {
+				that.from = that.target[that.getter];
+			}
+			// console.log('started', that.from);
+		});
+	},
+
+	initFromObject: function MethodAnimatorBy_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('MethodAnimatorBy.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		jayus.Animator.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		if(typeof object.target !== 'undefined') {
+			this.target = object.target;
+		}
+		if(typeof object.getter !== 'undefined') {
+			this.getter = object.getter;
+		}
+		if(typeof object.setter !== 'undefined') {
+			this.setter = object.setter;
+		}
+		if(typeof object.by === 'number') {
+			this.by = object.by;
+		}
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
+	},
+
+	//@ From Animator
+	update: function MethodAnimatorBy_update(pos) {
+		// Call the setter with the value
+		if(typeof this.setter === 'function') {
+			this.setter.call(this.target, this.from + pos*this.by);
+		}
+		else if(typeof this.target[this.setter] === 'function') {
+			this.target[this.setter](this.from + pos*this.by);
+		}
+		else {
+			this.target[this.setter] = this.from + pos*this.by;
+		}
+	}
+
+});
+
+jayus.MethodAnimatorFromTo = jayus.Animator.extend({
+
+	//
+	//  Properties
+	//______________//
+
+	/**
+	The entity to animate.
+	@property {Object} target
+	*/
+
+	target: null,
+
+	/**
+	The setter of the property to animate.
+	@property {Function} setter
+	*/
+
+	setter: null,
+
+	/**
+	The initial value of the property.
+	@property {Number} from
+	*/
+
+	from: null,
+
+	nullFrom: false,
+
+	/**
+	The final value of the property.
+	@property {Number} to
+	*/
+
+	to: null,
+
+	/**
+	Initiates the animator.
+	<br> The 'from' parameter may be null, in which case the state of the target when the animator is started will be used.
+	@constructor init
+	@param {Object} target
+	@param {Function} getter
+	@param {Function} setter
+	@param {Number} from
+	@param {Number} to
+	*/
+
+	init: function MethodAnimatorFromTo(target, getter, setter, from, to) {
+		if(arguments.length) {
+			//#ifdef DEBUG
+			jayus.debug.matchArguments('MethodAnimatorFromTo', arguments,
+				'target', jayus.TYPES.OBJECT,
+				'getter', jayus.TYPES.FUNCTION,
+				'setter', jayus.TYPES.FUNCTION,
+				'from', jayus.TYPES.DEFINED,
+				'to', jayus.TYPES.DEFINED
+			);
+			//#end
+			// Set the properties
+			this.target = target;
+			this.getter = getter;
+			this.setter = setter;
+			this.from = from;
+			this.to = to;
+		}
+		// Set the handler to set the start value
+		if(this.nullFrom) {
+			var that = this;
+			this.addHandler('started', function() {
+				that.from = that.setter.call(that.target);
+			});
+		}
+		this.nullFrom = this.from === null;
+	},
+
+	initFromObject: function MethodAnimatorBy_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('MethodAnimatorBy.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		jayus.Animator.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		if(typeof object.target !== 'undefined') {
+			this.target = object.target;
+		}
+		if(typeof object.getter !== 'undefined') {
+			this.getter = object.getter;
+		}
+		if(typeof object.setter !== 'undefined') {
+			this.setter = object.setter;
+		}
+		if(typeof object.from === 'number') {
+			this.from = object.from;
+		}
+		if(typeof object.to === 'number') {
+			this.to = object.to;
+		}
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
+	},
+
+	//@ From Animator
+	update: function MethodAnimatorFromTo_update(pos) {
+		if(typeof this.setter === 'function') {
+			this.setter.call(this.target, this.from + pos*(this.to-this.from));
+		}
+		else if(typeof this.target[this.setter] === 'function') {
+			this.target[this.setter](this.from + pos*(this.to-this.from));
+		}
+		else {
+			this.target[this.setter] = this.from + pos*(this.to-this.from);
+		}
+	}
+
+});
 
 //
 //  jayus.Animator.Discrete()
@@ -476,7 +792,7 @@ jayus.Animator.Discrete = jayus.Animator.extend({
 	@property {Number} count
 	*/
 
-	count: NaN,
+	count: null,
 
 	/*
 	The discrete update method.
@@ -494,18 +810,18 @@ jayus.Animator.Discrete = jayus.Animator.extend({
 	@param {Function} updater
 	*/
 
-	init: function DiscreteAnimator_init(count, updater){
+	init: function DiscreteAnimator(count, updater) {
 		//#ifdef DEBUG
-		jayus.debug.matchArguments('DiscreteAnimator.init', arguments, 'count', jayus.TYPES.NUMBER, 'updater', jayus.TYPES.FUNCTION);
+		jayus.debug.matchArguments('DiscreteAnimator', arguments, 'count', jayus.TYPES.NUMBER, 'updater', jayus.TYPES.FUNCTION);
 		//#end
 		this.count = count;
 		this.updater = updater;
 	},
 
 	//@ From Animator
-	update: function DiscreteAnimator_update(pos){
+	update: function DiscreteAnimator_update(pos) {
 		pos = Math.floor(pos*this.count);
-		if(pos === this.count){
+		if(pos === this.count) {
 			pos--;
 		}
 		this.updater(pos);
@@ -522,11 +838,13 @@ jayus.Animator.Discrete = jayus.Animator.extend({
 
 /**
 Keeps a list of animators and can run them in sequence.
+<br> Animators kept in a sequence are not updated by jayus, they are instead updated by the sequence in them.
+<br> Because the sequence also accepts an easing function, the animators in the sequence can be executed in a non-linear manner.
 @class jayus.Animator.Sequence
 @extends jayus.Animator
 */
 
-jayus.Animator.Sequence = jayus.Animator.extend({
+jayus.AnimatorSequence = jayus.Animator.extend({
 
 	//
 	//  Properties
@@ -539,15 +857,59 @@ jayus.Animator.Sequence = jayus.Animator.extend({
 
 	animators: null,
 
+	/*
+	Index of the currently running animator.
+	@property {Number} currentIndex
+	*/
+
+	currentIndex: null,
+
 	//
 	//  Methods
 	//___________//
 
-	init: function AnimatorSequence_init(){
-		this.animators = new jayus.List();
+	init: function AnimatorSequence() {
+		this.animators = new jayus.List(this);
 		//#ifdef DEBUG
 		this.animators.typeId = jayus.TYPES.ANIMATOR;
 		//#end
+	},
+
+	initFromObject: function AnimatorSequence_initFromObject(object) {
+		//#ifdef DEBUG
+		jayus.debug.match('AnimatorSequence.initFromObject', object, 'object', jayus.TYPES.OBJECT);
+		//#end
+		jayus.Animator.prototype.initFromObject.call(this, object);
+		// Apply our own properties
+		if(typeof object.animators === 'object') {
+			this.animators = new jayus.List(this);
+			for(var i=0;i<object.animators.length;i++) {
+				var child = object.animators[i];
+				this.animators.add(jayus.parse(child));
+			}
+		}
+		// Set as dirty
+		return this.dirty(jayus.DIRTY.ALL);
+	},
+
+	listItemAdded: function AnimatorSequence_listItemAdded(list, item) {
+		item.attachToJayus = false;
+	},
+
+	listItemsAdded: function AnimatorSequence_listItemsAdded(list, items) {
+		for(var i=0;i<items.length;i++) {
+			items[i].attachToJayus = false;
+		}
+	},
+
+	listItemRemoved: function AnimatorSequence_listItemRemoved(list, item) {
+		item.attachToJayus = true;
+	},
+
+	listItemsRemoved: function AnimatorSequence_listItemsRemoved(list, items) {
+		for(var i=0;i<items.length;i++) {
+			items[i].attachToJayus = true;
+		}
 	},
 
 		//
@@ -555,14 +917,21 @@ jayus.Animator.Sequence = jayus.Animator.extend({
 		//______________//
 
 	//@ From Animator
-	update: function AnimatorSequence_update(pos){
-		var count = this.animators.items.length,
-			index = Math.floor(pos*counts);
-		if(index === counts){
+	update: function AnimatorSequence_update(pos) {
+		var items = this.animators.items,
+			count = items.length,
+			index = Math.floor(pos*count);
+		if(index === count) {
 			index--;
 		}
-		pos = pos*counts - index;
-		this.animators.items[index].update(pos);
+		if(this.currentIndex !== index) {
+			if(this.currentIndex !== null) {
+				items[this.currentIndex].finish();
+			}
+			items[index].start();
+			this.currentIndex = index;
+		}
+		items[index].update(pos*count - index);
 	}
 
 });

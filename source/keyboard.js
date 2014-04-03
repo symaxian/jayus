@@ -62,12 +62,6 @@ jayus.keyboard = {
 
 	keys: [0,0,0,0,0,0,0,0,'backspace','tab',0,0,0,'enter',0,0,'shift','ctrl','alt','break','capsLock',0,0,0,0,0,0,'escape',0,0,0,0,'space','pageUp','pageDown','end','home','left','up','right','down',0,0,0,0,'insert','delete',0,'0','1','2','3','4','5','6','7','8','9',0,0,0,0,0,0,0,'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','leftWin','rightWin','select',0,0,'num0','num1','num2','num3','num4','num5','num6','num7','num8','num9','numMultiply','numAdd',0,'numSubtract','numPeriod','numDivide','f1','f2','f3','f4','f5','f6','f7','f8','f9','f10','f11','f12',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'numLock','scrollLock',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'semicolon','equalSign','comma','dash','period','forwardSlash','grave',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'leftBracket','backslash','rightBracket','quote'],
 
-	//@ Internal
-	keyPressEventData: {},
-
-	//@ Internal
-	charTypeEventData: {},
-
 	//
 	//  Methods
 	//___________//
@@ -78,32 +72,33 @@ jayus.keyboard = {
 	@method init
 	*/
 
-	init: function jayus_keyboard_init(){
+	init: function jayus_keyboard_init() {
 
 		// Add the key down handler
-		document.addEventListener('keydown', function jayus_onkeydownHandler(e){
+		document.addEventListener('keydown', function jayus_onkeydownHandler(e) {
 			//#ifdef DEBUG
 			// Check to stop jayus on escape key
-			if(jayus.debug.pauseOnEscape && e.keyCode === 27){
+			if(jayus.debug.pauseOnEscape && e.keyCode === 27) {
 				jayus.debug.pause();
 			}
 			//#end
 			// Check if focused
-			if(jayus.keyboard.requireFocus && jayus.hasFocus){
+			if(jayus.keyboard.requireFocus && jayus.hasFocus) {
 				// Get the key id
 				var key = jayus.keyboard.keys[e.keyCode],
-					data = jayus.keyboard.keyPressEventData;
-				data.event = e;
-				data.key = key;
+					data = {
+						event: e,
+						key: key
+					};
 				// Check if already pressed
-				if(jayus.keyboard.pressed[key]){
+				if(jayus.keyboard.pressed[key]) {
 					//Fire the keytap event, return true/false to allow/cancel the event
 					return !jayus.fire('keyTap', data);
 				}
 				// Fire the press and tap events, return true/false to allow/cancel the event
 				jayus.keyboard.pressed[key] = true;
 				var cancel = jayus.fire('keyPress', data) || jayus.fire('keyTap', data);
-				if(cancel){
+				if(cancel) {
 					e.preventDefault();
 					return false;
 				}
@@ -112,17 +107,17 @@ jayus.keyboard = {
 		});
 
 		// Add the key up handler
-		document.addEventListener('keyup', function jayus_onkeyupHandler(e){
+		document.addEventListener('keyup', function jayus_onkeyupHandler(e) {
 			// Get the key id and data
-			var key = jayus.keyboard.keys[e.keyCode],
-				data = jayus.keyboard.keyPressEventData;
-			data.event = e;
-			data.key = key;
+			var key = jayus.keyboard.keys[e.keyCode];
 			// Check if pressed
-			if(jayus.keyboard.pressed[key]){
+			if(jayus.keyboard.pressed[key]) {
 				// Fire the depress event, return true/false to allow/cancel the event
 				jayus.keyboard.pressed[key] = false;
-				if(jayus.fire('keyRelease', data)){
+				if(jayus.fire('keyRelease', {
+					event: e,
+					key: key
+				})) {
 					e.preventDefault();
 					return false;
 				}
@@ -130,14 +125,14 @@ jayus.keyboard = {
 		});
 
 		// Add the key press handler
-		document.addEventListener('keypress', function jayus_onkeypressHandler(e){
+		document.addEventListener('keypress', function jayus_onkeypressHandler(e) {
 			// Check if focused
-			if(jayus.keyboard.requireFocus && jayus.hasFocus){
-				var data = jayus.keyboard.charTypeEventData;
-				data.event = e;
-				data['char'] = String.fromCharCode(e.charCode);
+			if(jayus.keyboard.requireFocus && jayus.hasFocus) {
 				// Fire the charType event, return true/false to allow/cancel the event
-				if(jayus.fire('charType', data)){
+				if(jayus.fire('charType', {
+					event: e,
+					'char': String.fromCharCode(e.charCode)
+				})) {
 					e.preventDefault();
 					return false;
 				}
@@ -158,10 +153,10 @@ jayus.keyboard = {
 	@param {String} id
 	*/
 
-	isPressed: function jayus_keyboard_isPressed(id){
+	isPressed: function jayus_keyboard_isPressed(id) {
 		//#ifdef DEBUG
 		jayus.debug.match('jayus.keyboard.isPressed', id, 'id', jayus.TYPES.STRING);
-		if(!this.isKey(id)){
+		if(!this.isKey(id)) {
 			throw new RangeError('jayus.keyboard.isPressed() - Invalid id'+jayus.debug.toString(id)+' sent, unknown id');
 		}
 		//#end
@@ -174,7 +169,7 @@ jayus.keyboard = {
 	@param {String} id
 	*/
 
-	isKey: function jayus_keyboard_isKey(id){
+	isKey: function jayus_keyboard_isKey(id) {
 		//#ifdef DEBUG
 		jayus.debug.match('jayus.keyboard.isKey', id, 'id', jayus.TYPES.STRING);
 		//#end

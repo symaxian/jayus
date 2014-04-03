@@ -59,11 +59,26 @@ jayus.objects = {
 
 	/**
 	Returns whether the specified object is loaded.
-	@method {Object} has
-	@param {String} filepath
+	@method {Object} isLoaded
+	@param {String|Array<String>} filepath
 	*/
 
-	has: function jayus_objects_has(filepath){
+	isLoaded: function jayus_objects_isLoaded(filepath) {
+		// Check if array
+		if(typeof filepath === 'object') {
+			//#ifdef DEBUG
+			jayus.debug.match('jayus.objects.isLoaded', filepath, 'filepaths', jayus.TYPES.ARRAY);
+			//#end
+			for(var i=0;i<filepath.length;i++) {
+				if(!this.isLoaded(filepath[i])) {
+					return false;
+				}
+			}
+			return true;
+		}
+		//#ifdef DEBUG
+		jayus.debug.match('jayus.objects.isLoaded', filepath, 'filepath', jayus.TYPES.STRING);
+		//#end
 		return typeof this.objects[filepath] === 'object' && this.objects[filepath] !== null;
 	},
 
@@ -71,17 +86,83 @@ jayus.objects = {
 	Returns the specified object.
 	<br> Null is returned if the object is not loaded.
 	@method {Object} get
-	@param {String} filepath
+	@param {String|Array<String>} filepath
 	*/
 
-	get: function jayus_objects_get(filepath){
-		if(!this.has(filepath)){
+	get: function jayus_objects_get(filepath) {
+		// Check if array
+		if(typeof filepath === 'object') {
 			//#ifdef DEBUG
-			console.warn('jayus.objects.get() - Object "'+filepath+'" not yet loaded');
+			jayus.debug.match('jayus.objects.get', filepath, 'filepaths', jayus.TYPES.ARRAY);
 			//#end
-			this.load(filepath);
+			var objects = [];
+			for(var i=0;i<filepath.length;i++) {
+				objects[i] = this.get(filepath[i]);
+			}
+			return objects;
+		}
+		//#ifdef DEBUG
+		jayus.debug.match('jayus.objects.get', filepath, 'filepath', jayus.TYPES.STRING);
+		//#end
+		if(!this.isLoaded(filepath)) {
+			//#ifdef DEBUG
+			console.error('jayus.objects.get() - Object "'+filepath+'" not yet loaded');
+			//#end
 		}
 		return this.objects[filepath];
+	},
+
+	/**
+	Runs the callback handler when the object is loaded.
+	<br> Attaches a handler for the 'loaded' event, or the object is already loaded it calls the function immediately.
+	<br> The context for the handler is the global scope.
+	@method {Self} whenLoaded
+	@param {String|Array<String>} filepath
+	@param {Function} handler
+	*/
+
+	whenLoaded: function jayus_objects_whenLoaded(filepath, handler) {
+		// Check if array
+		if(typeof filepath === 'object') {
+			//#ifdef DEBUG
+			jayus.debug.matchArguments('jayus.objects.whenLoaded', arguments, 'filepaths', jayus.TYPES.ARRAY, 'handler', jayus.TYPES.FUNCTION);
+			//#end
+			if(this.isLoaded(filepath)) {
+				handler();
+			}
+			else {
+				jayus.addHandler('objectLoaded', function(data, options) {
+					// Use the cheap and slow way to check
+					if(jayus.objects.isLoaded(filepath)) {
+						// Call the handler and remove this handler
+						handler();
+						options.remove = true;
+					}
+				});
+				this.load(filepath);
+			}
+		}
+		else {
+			//#ifdef DEBUG
+			jayus.debug.matchArguments('jayus.objects.whenLoaded', arguments, 'filepath', jayus.TYPES.STRING, 'handler', jayus.TYPES.FUNCTION);
+			//#end
+			if(this.isLoaded(filepath)) {
+				handler({
+					filepath: filepath,
+					object: this.get(filepath)
+				});
+			}
+			else {
+				jayus.addHandler('objectLoaded', function(data, options) {
+					if(data.filepath === filepath) {
+						handler(data, options);
+						options.remove = true;
+					}
+				});
+				this.load(filepath);
+			}
+		}
+		return this;
 	},
 
 	/**
@@ -90,80 +171,50 @@ jayus.objects = {
 	<br> The arguments sent to the handler are the filepath followed by the retrieved object and the XMLHttpRequest object.
 	<br> An object will not be loaded twice.
 	@method load
-	@param {String} filepath
-	@param {Function} handler Optional
+	@param {String|Array<String>} filepath
 	*/
 
-	load: function jayus_objects_load(filepath, handler){
-		//#ifdef DEBUG
-		jayus.debug.match('jayus.objects.load', filepath, 'filepath', jayus.TYPES.STRING);
-		jayus.debug.matchOptional('jayus.objects.load', handler, 'handler', jayus.TYPES.FUNCTION);
-		//#end
-		if(!this.has(filepath)){
+	load: function jayus_objects_load(filepath) {
+		// Check if array
+		if(typeof filepath === 'object') {
 			//#ifdef DEBUG
-			// console.log('jayus.objects.load() - Loading object file "'+filepath+'"');
+			jayus.debug.match('jayus.objects.load', filepath, 'filepaths', jayus.TYPES.ARRAY);
 			//#end
-			// Create a request to fetch the file
-			var req = new XMLHttpRequest();
-			req.filepath = filepath;
-			req.open('get', filepath, true);
-			// Set the callback
-			req.onload = function(){
-				var object = JSON.parse(this.responseText);
-				jayus.objects.objects[this.filepath] = object;
-				// Call the callback
-				if(typeof handler === 'function'){
-					handler(this.filepath, object, this);
-				}
-				// Fire the loaded event on jayus and the surface
-				jayus.fire('objectLoaded', {
-					filepath: this.filepath,
-					object: object,
-					xhr: this
-				});
-				// Decrement the number of pending files and check to fire the event
-				jayus.objects.pendingObjectCount--;
-				if(!jayus.objects.pendingObjectCount){
-					jayus.fire('objectsLoaded');
-				}
-			};
-			// Init as null until loaded
-			this.objects[filepath] = null;
-			this.pendingObjectCount++;
-			// Send the request
-			req.send();
-		}
-		// Call the handler if already loaded
-		else if(arguments.length === 2){
-			handler(filepath, this.objects[filepath]);
-		}
-	},
-
-	/**
-	Loads the specified objects.
-	<br> The optional callback handler will be executed when all the objects have been loaded, or immediately if they have all already been loaded.
-	@method loadAll
-	@param {Array<String>} filepaths
-	@param {Function} handler Optional
-	*/
-
-	loadAll: function jayus_objects_loadAll(filepaths, handler){
-		var i, count, checkCount;
-		if(arguments.length === 1){
-			for(i=0;i<filepaths.length;i++){
-				this.load(filepaths[i]);
+			for(var i=0;i<filepath.length;i++) {
+				this.load(filepath[i]);
 			}
 		}
-		else if(arguments.length === 2){
-			count = filepaths.length;
-			checkCount = function(){
-				count--;
-				if(!count){
-					handler();
-				}
-			};
-			for(i=0;i<filepaths.length;i++){
-				this.load(filepaths[i], checkCount);
+		else {
+			//#ifdef DEBUG
+			jayus.debug.match('jayus.objects.load', filepath, 'filepath', jayus.TYPES.STRING);
+			//#end
+			// Check if not loading/loaded
+			if(typeof this.objects[filepath] !== 'object') {
+				// Create a request to fetch the file
+				var req = new XMLHttpRequest();
+				req.filepath = filepath;
+				req.open('get', filepath, true);
+				// Set the callback
+				req.onload = function() {
+					var object = JSON.parse(this.responseText);
+					jayus.objects.objects[this.filepath] = object;
+					// Fire the loaded event on jayus and the surface
+					jayus.fire('objectLoaded', {
+						filepath: this.filepath,
+						object: object,
+						xhr: this
+					});
+					// Decrement the number of pending files and check to fire the event
+					jayus.objects.pendingObjectCount--;
+					if(!jayus.objects.pendingObjectCount) {
+						jayus.fire('objectsLoaded');
+					}
+				};
+				// Init as null until loaded
+				this.objects[filepath] = null;
+				this.pendingObjectCount++;
+				// Send the request
+				req.send();
 			}
 		}
 	}

@@ -46,10 +46,41 @@ jayus.TextBox = jayus.Text.extend({
 	//  Methods
 	//___________//
 
-	init: function TextBox_init(){
-		jayus.Text.prototype.init.apply(this, arguments);
-		this.addHandler('dirty', function(type){
-			if(type & jayus.DIRTY.SIZE){
+	init: function TextBox(text, font, brush) {
+		// Call the entity's init method
+		jayus.Entity.prototype.init.apply(this);
+		// Init some derived properties
+		this.fontDesc = jayus.getFontDescriptor(this.font);
+		this.lines = [];
+		this.lineWidths = [];
+		//#ifdef DEBUG
+		// Check the arguments
+		if(arguments.length === 1) {
+			jayus.debug.match('Text', text, 'text', jayus.TYPES.STRING);
+		}
+		else if(arguments.length === 2) {
+			jayus.debug.matchArguments('Text', arguments, 'text', jayus.TYPES.STRING, 'font', jayus.TYPES.STRING);
+		}
+		else if(arguments.length === 3) {
+			jayus.debug.matchArguments('Text', arguments, 'text', jayus.TYPES.STRING, 'font', jayus.TYPES.STRING, 'brush', jayus.TYPES.OBJECT);
+		}
+		//#end
+		// Set the properties
+		if(arguments.length) {
+			this.ignoreDirty++;
+			this.setText(text);
+			if(arguments.length > 1) {
+				this.setFont(font);
+				if(arguments.length > 2) {
+					this.setBrush(brush);
+				}
+			}
+			this.ignoreDirty--;
+		}
+		this.words = this.divideText(this.text);
+		this.refreshMetrics();
+		this.addHandler('dirty', function(type) {
+			if(type & jayus.DIRTY.SIZE) {
 				this.refreshMetrics();
 			}
 		});
@@ -59,60 +90,66 @@ jayus.TextBox = jayus.Text.extend({
 		//  Frame
 		//_________//
 
-	refreshMetrics: function TextBox_refreshMetrics(){
-
-		if(this.fontDesc === null){
-			this.fontDesc = jayus.getFontDescriptor(this.font);
+	//@From jayus.Text
+	setText: function TextBox_setText(text) {
+		//#ifdef DEBUG
+		jayus.debug.match('TextBox.setText', text, 'text', jayus.TYPES.STRING);
+		//#end
+		// Check that the text is different
+		if(this.text !== text) {
+			// Set the text
+			this.text = text;
+			this.words = this.divideText(this.text);
+			this.refreshMetrics();
+			this.dirty(jayus.DIRTY.CONTENT);
 		}
+		return this;
+	},
 
-		var tempRet = {},
+	divideText: function TextBox_divideText(str) {
+		var i, c,
+			out = [],
+			curr = '';
+		for(i=0;i<str.length;i++) {
+			c = str[i];
+			if(c === ' ' || c === '\n') {
+				out.push(curr, c);
+				curr = '';
+			}
+			else {
+				curr += c;
+			}
+		}
+		out.push(curr);
+		return out;
+	},
 
-			font = this.font,
+	refreshMetrics: function TextBox_refreshMetrics() {
 
-			getWordLen = function(str){
-				return jayus.measureTextOnto(str, font, tempRet).width;
-			},
-
-			divideText = function(str, delims){
-				var i, out = [],
-					curr = '';
-				for(i=0;i<str.length;i++){
-					if(delims.indexOf(str[i]) >= 0){
-						out.push(curr);
-						out.push(str[i]);
-						curr = '';
-					}
-					else{
-						curr += str[i];
-					}
-				}
-				out.push(curr);
-				return out;
-			},
-
+		var font = this.font,
 			lines = [],
 			lineWidths = [],
-			words = divideText(this.text, ' \n'),
+			words = this.words,
 			i = 0,
+			currentLine, currentLineLength, nextWord, nextWordLength,
+			minW = 0;
 
-			currentLine, currentLineLength, nextWord, nextWordLength;
+		while(i !== words.length) {
 
-		while(i !== words.length){
-
-			currentLine = '\n';
+			currentLine = '';
 			currentLineLength = 0;
 
 			nextWord = words[i];
-			if(nextWord === ' ' || nextWord === '\n'){
+			if(nextWord === ' ' || nextWord === '\n') {
 				nextWordLength = 0;
 			}
-			else{
-				nextWordLength = getWordLen(nextWord);
+			else {
+				nextWordLength = jayus.getTextWidth(nextWord, font);
 			}
 
 			do {
 
-				if(nextWord === '\n'){
+				if(nextWord === '\n') {
 					i++;
 					break;
 				}
@@ -124,27 +161,39 @@ jayus.TextBox = jayus.Text.extend({
 
 				i++;
 
-				if(i === words.length){
+				if(i === words.length) {
 					break;
 				}
 
 				nextWord = words[i];
-				nextWordLength = getWordLen(nextWord);
+				nextWordLength = jayus.getTextWidth(nextWord, font);
+
+				if(nextWordLength > minW) {
+					minW = nextWordLength;
+				}
 
 			} while(currentLineLength+nextWordLength < this.width);
 
 			// console.log('LINE: '+currentLine+' - '+currentLineLength);
 
-			// if(currentLine !== '\n'){
+			// if(currentLine !== '\n') {
 				// currentLine = currentLine.trim();
 			// }
 
-			if(currentLine.length){
+			while(currentLine[0] === ' ' || currentLine[0] === '\n') {
+				currentLine = currentLine.substr(1);
+			}
+			// if(currentLine.length) {
+				// if(currentLine[0] === '\n') {
+				// 	currentLine = '';
+				// }
 				lines.push(currentLine);
 				lineWidths.push(currentLineLength);
-			}
+			// }
 
 		}
+
+		this.minWidth = minW;
 
 		this.lines = lines;
 		this.lineWidths = lineWidths;

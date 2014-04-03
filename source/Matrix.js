@@ -53,13 +53,10 @@ jayus.Matrix = jayus.createClass({
 	@param {Number} ty
 	*/
 
-	init: function Matrix_init(a, b, tx, c, d, ty) {
-		if (arguments.length === 1) {
-			this.initFromObject(a);
-		}
-		else if (arguments.length) {
+	init: function Matrix(a, b, tx, c, d, ty) {
+		if(arguments.length) {
 			//#ifdef DEBUG
-			jayus.debug.matchArgumentsAs('Matrix.init', arguments, jayus.TYPES.NUMBER, 'a', 'b', 'tx', 'c', 'd', 'ty');
+			jayus.debug.matchArgumentsAs('Matrix', arguments, jayus.TYPES.NUMBER, 'a', 'b', 'tx', 'c', 'd', 'ty');
 			//#end
 			this.a = a;
 			this.b = b;
@@ -81,7 +78,7 @@ jayus.Matrix = jayus.createClass({
 			d: this.d,
 			ty: this.ty
 		};
-		if (this.id !== jayus.Dependency.prototype.id) {
+		if(this.id !== jayus.Dependency.prototype.id) {
 			object.id = this.id;
 		}
 		return object;
@@ -115,13 +112,12 @@ jayus.Matrix = jayus.createClass({
 	@param {Number} y
 	*/
 
-	translate: function Matrix_translate(x, y){
+	translate: function Matrix_translate(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Matrix.translate', x, y);
 		//#end
-		if(arguments.length === 1){
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.translate(x.x, x.y);
 		}
 		this.tx += this.a*x + this.b*y;
 		this.ty += this.d*y + this.c*x;
@@ -138,13 +134,12 @@ jayus.Matrix = jayus.createClass({
 	@param {Number} y
 	*/
 
-	scale: function Matrix_scale(x, y){
+	scale: function Matrix_scale(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Matrix.scale', x, y);
 		//#end
-		if(arguments.length === 1){
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.scale(x.x, x.y);
 		}
 		this.a *= x;
 		this.c *= x;
@@ -159,7 +154,7 @@ jayus.Matrix = jayus.createClass({
 	@param {Number} angle
 	*/
 
-	rotate: function Matrix_rotate(angle){
+	rotate: function Matrix_rotate(angle) {
 		//#ifdef DEBUG
 		jayus.debug.match('Matrix.rotate', angle, 'angle', jayus.TYPES.NUMBER);
 		//#end
@@ -182,11 +177,11 @@ jayus.Matrix = jayus.createClass({
 	@param {Matrix} m1
 	*/
 
-	multiply: function Matrix_multiply(m1){
+	multiply: function Matrix_multiply(m1) {
 		//#ifdef DEBUG
 		jayus.debug.match('Matrix.multiply', m1, 'm1', jayus.TYPES.MATRIX);
 		//#end
-		m2 = this;
+		var m2 = this;
 		// a, b, tx, c, d, ty
 		return new jayus.Matrix(
 			m1.a*m2.a + m1.b*m2.c,
@@ -208,13 +203,12 @@ jayus.Matrix = jayus.createClass({
 	@param {Number} y
 	*/
 
-	transformPoint: function Matrix_transformPoint(x, y){
+	transformPoint: function Matrix_transformPoint(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Matrix.transformPoint', x, y);
 		//#end
-		if(arguments.length === 1){
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.transformPoint(x.x, x.y);
 		}
 		return this.transformPointOnto(x, y, new jayus.Point());
 		// return new jayus.Point(x*this.a+y*this.b+this.tx, x*this.c+y*this.d+this.ty);
@@ -228,7 +222,7 @@ jayus.Matrix = jayus.createClass({
 	@param {Point} ret
 	*/
 
-	transformPointOnto: function Matrix_transformPointOnto(x, y, ret){
+	transformPointOnto: function Matrix_transformPointOnto(x, y, ret) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Matrix.transformPointOnto', arguments, 'x', jayus.TYPES.NUMBER, 'y',jayus.TYPES.NUMBER, 'ret', jayus.TYPES.POINT);
 		//#end
@@ -239,6 +233,7 @@ jayus.Matrix = jayus.createClass({
 
 	/**
 	Inverse transforms the given coordinate.
+	<br> This method does not modify the point sent.
 	@method {Point} inverseTransformPoint
 	@paramset Syntax 1
 	@param {Number} point
@@ -247,17 +242,16 @@ jayus.Matrix = jayus.createClass({
 	@param {Number} y
 	*/
 
-	inverseTransformPoint: function Matrix_inverseTransformPoint(x, y){
+	inverseTransformPoint: function Matrix_inverseTransformPoint(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Matrix.inverseTransformPoint', x, y);
 		//#end
-		if(arguments.length === 1){
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.inverseTransformPoint(x.x, x.y);
 		}
 		return this.inverseTransformPointOnto(x, y, new jayus.Point());
 		// var det = this.getDeterminant();
-		// if(det){
+		// if(det) {
 		// 	x -= this.tx;
 		// 	y -= this.ty;
 		// 	return new jayus.Point( (x*this.d - y*this.b)/det, (y*this.a - x*this.c)/det );
@@ -267,18 +261,19 @@ jayus.Matrix = jayus.createClass({
 
 	/**
 	Inverse transforms the given coordinate, storing the result into the ret parameter.
+	<br> This method does not modify the point sent.
 	@method inverseTransformPointOnto
 	@param {Number} x
 	@param {Number} y
 	@param {Point} ret
 	*/
 
-	inverseTransformPointOnto: function Matrix_inverseTransformPointOnto(x, y, ret){
+	inverseTransformPointOnto: function Matrix_inverseTransformPointOnto(x, y, ret) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Matrix.inverseTransformPointOnto', arguments, 'x', jayus.TYPES.NUMBER, 'y',jayus.TYPES.NUMBER, 'ret', jayus.TYPES.POINT);
 		//#end
 		var det = this.getDeterminant();
-		if(det){
+		if(det) {
 			x -= this.tx;
 			y -= this.ty;
 			ret.x = (x*this.d - y*this.b)/det;
@@ -297,7 +292,7 @@ jayus.Matrix = jayus.createClass({
 	@method {Self} identity
 	*/
 
-	identity: function Matrix_identity(){
+	identity: function Matrix_identity() {
 		this.a = this.d = 1;
 		this.b = this.tx = this.c = this.ty = 0;
 		return this;
@@ -309,9 +304,9 @@ jayus.Matrix = jayus.createClass({
 	@method {Number} getDeterminant
 	*/
 
-	getDeterminant: function Matrix_getDeterminant(){
+	getDeterminant: function Matrix_getDeterminant() {
 		var det = this.a*this.d - this.b*this.c;
-		if(isFinite(det) && Math.abs(det) > 10e-12 && isFinite(this.tx) && isFinite(this.ty)){
+		if(isFinite(det) && Math.abs(det) > 10e-12 && isFinite(this.tx) && isFinite(this.ty)) {
 			return det;
 		}
 		return null;
@@ -322,7 +317,7 @@ jayus.Matrix = jayus.createClass({
 	@method {Matrix} clone
 	*/
 
-	clone: function Matrix_clone(){
+	clone: function Matrix_clone() {
 		//#ifdef DEBUG
 		jayus.chart.tallyInit('Matrix', 'Matrix.clone()');
 		//#end
@@ -335,7 +330,7 @@ jayus.Matrix = jayus.createClass({
 	@param {Matrix} ret
 	*/
 
-	cloneOnto: function Matrix_cloneOnto(ret){
+	cloneOnto: function Matrix_cloneOnto(ret) {
 		//#ifdef DEBUG
 		jayus.debug.match('Matrix.cloneOnto', ret, 'ret', jayus.TYPES.MATRIX);
 		//#end
@@ -349,7 +344,7 @@ jayus.Matrix = jayus.createClass({
 	@param {Matrix} mat
 	*/
 
-	equals: function Matrix_equals(mat){
+	equals: function Matrix_equals(mat) {
 		//#ifdef DEBUG
 		jayus.debug.match('Matrix.equals', mat, 'mat', jayus.TYPES.MATRIX);
 		//#end
@@ -362,7 +357,7 @@ jayus.Matrix = jayus.createClass({
 	@param {Context} ctx
 	*/
 
-	applyToContext: function Matrix_applyToContext(ctx){
+	applyToContext: function Matrix_applyToContext(ctx) {
 		//#ifdef DEBUG
 		jayus.debug.matchContext('Matrix.applyToContext', ctx);
 		//#end

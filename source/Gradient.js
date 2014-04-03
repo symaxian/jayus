@@ -32,8 +32,6 @@ jayus.Gradient = jayus.Dependency.extend({
 	//  Properties
 	//______________//
 
-	componentType: 'GRADIENT',
-
 	/**
 	An array of the positions of the color-stops.
 	<br> Do not modify.
@@ -78,14 +76,14 @@ jayus.Gradient = jayus.Dependency.extend({
 			type: 'Gradient'
 		};
 		// Apply our own properties
-		if (this.stopPositions !== jayus.Gradient.prototype.stopPositions) {
+		if(this.stopPositions !== jayus.Gradient.prototype.stopPositions) {
 			object.stopPositions = this.stopPositions;
 		}
-		if (this.stopColors !== jayus.Gradient.prototype.stopColors) {
+		if(this.stopColors !== jayus.Gradient.prototype.stopColors) {
 			object.stopColors = this.stopColors.toObject();
 		}
 		// Apply the id
-		if (this.id !== jayus.Dependency.prototype.id) {
+		if(this.id !== jayus.Dependency.prototype.id) {
 			object.id = this.id;
 		}
 		return object;
@@ -96,10 +94,10 @@ jayus.Gradient = jayus.Dependency.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('Gradient.initFromObject', object, 'object', jayus.TYPES.OBJECT);
 		//#end
-		if (typeof object.stopPositions === 'object') {
+		if(typeof object.stopPositions === 'object') {
 			this.stopPositions = object.stopPositions;
 		}
-		if (typeof object.stopColors === 'object') {
+		if(typeof object.stopColors === 'object') {
 			this.stopColors = object.stopColors;
 		}
 		// Set as dirty
@@ -107,7 +105,7 @@ jayus.Gradient = jayus.Dependency.extend({
 		return this.dirty(jayus.DIRTY.ALL);
 	},
 
-	componentDirtied: function Gradient_componentDirtied(component, type){
+	componentDirtied: function Gradient_componentDirtied(component, type) {
 		this.reformNative = true;
 		this.dirty(jayus.DIRTY.STYLE);
 	},
@@ -123,13 +121,12 @@ jayus.Gradient = jayus.Dependency.extend({
 	@param {Number} y
 	*/
 
-	translate: function Gradient_translate(x, y){
+	translate: function Gradient_translate(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Gradient.translate', x, y);
 		//#end
-		if(arguments.length === 1){
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.translate(x.x, x.y);
 		}
 		this.start.translate(x, y);
 		this.end.translate(x, y);
@@ -144,7 +141,7 @@ jayus.Gradient = jayus.Dependency.extend({
 	@param {String|jayus.Color} color
 	*/
 
-	addColorStop: function Gradient_addColorStop(position, color){
+	addColorStop: function Gradient_addColorStop(position, color) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Gradient.addColorStop', arguments, 'position', jayus.TYPES.NUMBER, 'color', jayus.TYPES.DEFINED);
 		//#end
@@ -158,9 +155,9 @@ jayus.Gradient = jayus.Dependency.extend({
 	@method {CanvasGradient} getNative
 	*/
 
-	getNative: function Gradient_getNative(){
+	getNative: function Gradient_getNative() {
 		// Reform if needed
-		if(this.reformNative){
+		if(this.reformNative) {
 			this.refresh();
 			this.reformNative = false;
 		}
@@ -218,40 +215,35 @@ jayus.LinearGradient = jayus.Gradient.extend({
 	@param {Number} y2
 	*/
 
-	init: overloadArgumentCount({
-
-		0: function LinearGradient_init(){},
-
-		2: function LinearGradient_init(start, end){
+	init: function LinearGradient(x1, y1, x2, y2) {
+		if(arguments.length === 2) {
 			//#ifdef DEBUG
-			jayus.debug.matchArguments('LinearGradient.init', arguments, 'start', jayus.TYPES.POINT, 'end', jayus.TYPES.POINT);
+			jayus.debug.matchArguments('LinearGradient', arguments, 'start', jayus.TYPES.POINT, 'end', jayus.TYPES.POINT);
 			//#end
 			this.stopPositions = [];
 			this.stopColors = [];
-			this.start = start;
+			this.start = x1;
 			this.start.attach(this);
-			this.end = end;
+			this.end = y1;
 			this.end.attach(this);
-		},
-
-		4: function LinearGradient_init(x1, y1, x2, y2){
+		}
+		else if(arguments.length === 4) {
 			//#ifdef DEBUG
-			jayus.debug.matchArgumentsAs('LinearGradient.init', arguments, jayus.TYPES.NUMBER, 'x1', 'y1', 'x2', 'y2');
+			jayus.debug.matchArgumentsAs('LinearGradient', arguments, jayus.TYPES.NUMBER, 'x1', 'y1', 'x2', 'y2');
 			//#end
 			this.init(new jayus.Point(x1, y1), new jayus.Point(x2, y2));
 		}
-
-	}),
+	},
 
 	//@ From Parsable
 	toObject: function LinearGradient_toObject() {
 		var object = jayus.Gradient.prototype.toObject.apply(this);
 		// Apply our own properties
 		object.type = 'LinearGradient';
-		if (this.start !== jayus.LinearGradient.prototype.start) {
+		if(this.start !== jayus.LinearGradient.prototype.start) {
 			object.start = this.start.toObject();
 		}
-		if (this.end !== jayus.LinearGradient.prototype.end) {
+		if(this.end !== jayus.LinearGradient.prototype.end) {
 			object.end = this.end.toObject();
 		}
 		return object;
@@ -263,23 +255,23 @@ jayus.LinearGradient = jayus.Gradient.extend({
 		jayus.debug.match('LinearGradient.initFromObject', object, 'object', jayus.TYPES.OBJECT);
 		//#end
 		jayus.Gradient.prototype.initFromObject.call(this, object);
-		if (typeof object.start === 'object') {
-			this.start = new jayus.Point(object.start);
+		if(typeof object.start === 'object') {
+			this.start = new jayus.Point().initFromObject(object.start);
 		}
-		if (typeof object.end === 'object') {
-			this.end = new jayus.Point(object.end);
+		if(typeof object.end === 'object') {
+			this.end = new jayus.Point().initFromObject(object.end);
 		}
 		// Set as dirty
 		return this.dirty(jayus.DIRTY.ALL);
 	},
 
 	//@ From Gradient
-	refresh: function LinearGradient_refresh(){
+	refresh: function LinearGradient_refresh() {
 		var i, color;
 		this.nativeGradient = jayus.getContext().createLinearGradient(this.start.x, this.start.y, this.end.x, this.end.y);
-		for(i=0;i<this.stopPositions.length;i++){
+		for(i=this.stopPositions.length-1;i>=0;i--) {
 			color = this.stopColors[i];
-			if(color instanceof jayus.Color){
+			if(color instanceof jayus.Color) {
 				color = color.toCSS();
 			}
 			this.nativeGradient.addColorStop(this.stopPositions[i], color);
@@ -343,45 +335,46 @@ jayus.RadialGradient = jayus.Gradient.extend({
 	@param {Number} r2
 	*/
 
-	init: overloadArgumentCount({
-
-		2: function RadialGradient_init(start, end){
+	init: function RadialGradient(cx1, cy1, r1, cx2, cy2, r2) {
+		this.stopPositions = [];
+		this.stopColors = [];
+		var start, end;
+		if(arguments.length === 2) {
 			//#ifdef DEBUG
-			jayus.debug.matchArguments('RadialGradient.init', arguments, 'start', jayus.TYPES.CIRCLE, 'end', jayus.TYPES.CIRCLE);
+			jayus.debug.matchArguments('RadialGradient', [cx1, cy1], 'cx1', jayus.TYPES.CIRCLE, 'cx2', jayus.TYPES.CIRCLE);
 			//#end
-			this.stopPositions = [];
-			this.stopColors = [];
-			this.start = start;
-			this.start.attach(this);
-			this.end = end;
-			this.end.attach(this);
-		},
-
-		4: function RadialGradient_init(start, r1, end, r2){
-			//#ifdef DEBUG
-			jayus.debug.matchArguments('RadialGradient.init', arguments, 'start', jayus.TYPES.POINT, 'r1', jayus.TYPES.NUMBER, 'end', jayus.TYPES.POINT, 'r2', jayus.TYPES.NUMBER);
-			//#end
-			this.init(new jayus.Circle(start, r1), new jayus.Circle(end, r2));
-		},
-
-		6: function RadialGradient_init(cx1, cy1, r1, cx2, cy2, r2){
-			//#ifdef DEBUG
-			jayus.debug.matchArgumentsAs('RadialGradient.init', arguments, jayus.TYPES.NUMBER, 'cx1', 'cy1', 'r1', 'cx2', 'cy2', 'r2');
-			//#end
-			this.init(new jayus.Circle(cx1, cy1, r1), new jayus.Circle(cx2, cy2, r2));
+			start = cx1;
+			end = cy1;
 		}
-
-	}),
+		else if(arguments.length === 4) {
+			//#ifdef DEBUG
+			jayus.debug.matchArguments('RadialGradient', [cx1, cy1, r1, cx2], 'cx1', jayus.TYPES.POINT, 'cy1', jayus.TYPES.NUMBER, 'r1', jayus.TYPES.POINT, 'cx2', jayus.TYPES.NUMBER);
+			//#end
+			start = new jayus.Circle(cx1, cy1);
+			end = new jayus.Circle(r1, cx2);
+		}
+		else {
+			//#ifdef DEBUG
+			jayus.debug.matchArgumentsAs('RadialGradient', arguments, jayus.TYPES.NUMBER, 'cx1', 'cy1', 'r1', 'cx2', 'cy2', 'r2');
+			//#end
+			start = new jayus.Circle(cx1, cy1, r1);
+			end = new jayus.Circle(cx2, cy2, r2);
+		}
+		start.attach(this);
+		this.start = start;
+		end.attach(this);
+		this.end = end;
+	},
 
 	//@ From Parsable
 	toObject: function RadialGradient_toObject() {
 		var object = jayus.Gradient.prototype.toObject.apply(this);
 		// Apply our own properties
 		object.type = 'RadialGradient';
-		if (this.start !== jayus.RadialGradient.prototype.start) {
+		if(this.start !== jayus.RadialGradient.prototype.start) {
 			object.start = this.start.toObject();
 		}
-		if (this.end !== jayus.RadialGradient.prototype.end) {
+		if(this.end !== jayus.RadialGradient.prototype.end) {
 			object.end = this.end.toObject();
 		}
 		return object;
@@ -393,10 +386,10 @@ jayus.RadialGradient = jayus.Gradient.extend({
 		jayus.debug.match('RadialGradient.initFromObject', object, 'object', jayus.TYPES.OBJECT);
 		//#end
 		jayus.Gradient.prototype.initFromObject.call(this, object);
-		if (typeof object.start === 'object') {
+		if(typeof object.start === 'object') {
 			this.start = new jayus.Circle(object.start);
 		}
-		if (typeof object.end === 'object') {
+		if(typeof object.end === 'object') {
 			this.end = new jayus.Circle(object.end);
 		}
 		// Set as dirty
@@ -404,12 +397,12 @@ jayus.RadialGradient = jayus.Gradient.extend({
 	},
 
 	//@ From Gradient
-	refresh: function RadialGradient_refresh(){
+	refresh: function RadialGradient_refresh() {
 		var i, color;
 		this.nativeGradient = jayus.getContext().createRadialGradient(this.start.x, this.start.y, this.start.radius, this.end.x, this.end.y, this.end.radius);
-		for(i=0;i<this.stopPositions.length;i++){
+		for(i=this.stopPositions.length-1;i>=0;i--) {
 			color = this.stopColors[i];
-			if(color instanceof jayus.Color){
+			if(color instanceof jayus.Color) {
 				color = color.toCSS();
 			}
 			this.nativeGradient.addColorStop(this.stopPositions[i], color);

@@ -32,7 +32,7 @@ An abstract class that represents a geometric shape.
 @class jayus.Shape
 */
 
-jayus.Shape = jayus.Dependency.extend({
+// jayus.Shape = jayus.Dependency.extend({
 
 	//
 	//  Methods
@@ -86,10 +86,6 @@ jayus.Shape = jayus.Dependency.extend({
 	@param {Object|Brush} brush
 	*/
 
-	paintedWith: function Shape_paintedWith(brush){
-		return new jayus.PaintedShape(this, brush);
-	}
-
 	/**
 	Returns the scope of the shape.
 	<br> The scope is not guranteed to be tight, especially for paths, the scope may lie far outside the actual shape.
@@ -108,4 +104,4 @@ jayus.Shape = jayus.Dependency.extend({
 	@param {Number} y
 	*/
 
-});
+// });

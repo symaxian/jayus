@@ -18,7 +18,7 @@
  */
 
 /**
-Defines the hStack and vStack Entities.
+Defines the hStack and vStack entities.
 @file Stack.js
 */
 
@@ -63,9 +63,9 @@ jayus.Stack = jayus.RectEntity.extend({
 
 	//#ifdef DEBUG
 
-	hasFlexibleWidth: false,
+	hasFlexibleWidth: true,
 
-	hasFlexibleHeight: false,
+	hasFlexibleHeight: true,
 
 	//#end
 
@@ -73,17 +73,18 @@ jayus.Stack = jayus.RectEntity.extend({
 	//  Methods
 	//___________//
 
-	init: function Stack_init(){
+	init: function Stack() {
 		jayus.RectEntity.prototype.init.apply(this, arguments);
 		this.children = new jayus.List(this);
+		this.items = this.children.items;
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
 		//#end
-		this.addHandler('dirty', function(type){
-			if(type & jayus.DIRTY.SIZE){
-				// this.formContents();
-			}
-		});
+		// this.addHandler('dirty', function(type) {
+		// 	if(type & jayus.DIRTY.SIZE) {
+		// 		this.formContents();
+		// 	}
+		// });
 	},
 
 	toObject: function Stack_toObject() {
@@ -91,10 +92,10 @@ jayus.Stack = jayus.RectEntity.extend({
 		jayus.groupToObject.call(this, object);
 		// Add our own properties
 		object.type = 'Stack';
-		if (this.spacing !== jayus.Stack.prototype.spacing) {
+		if(this.spacing !== jayus.Stack.prototype.spacing) {
 			object.spacing = this.spacing;
 		}
-		if (this.reversed !== jayus.Stack.prototype.reversed) {
+		if(this.reversed !== jayus.Stack.prototype.reversed) {
 			object.reversed = this.reversed;
 		}
 		return object;
@@ -105,63 +106,64 @@ jayus.Stack = jayus.RectEntity.extend({
 		//#ifdef DEBUG
 		jayus.debug.match('Stack.initFromObject', object, 'object', jayus.TYPES.OBJECT);
 		//#end
-		this.frozen++;
+		this.ignoreDirty++;
 		// Apply parent properties
 		jayus.RectEntity.prototype.initFromObject.call(this, object);
 		jayus.groupInitFromObject.call(this, object);
 		// Apply our own properties
-		if (typeof object.spacing === 'number') {
+		if(typeof object.spacing === 'number') {
 			this.spacing = object.spacing;
 		}
-		if (typeof object.reversed === 'boolean') {
+		if(typeof object.reversed === 'boolean') {
 			this.reversed = object.reversed;
 		}
-		this.frozen--;
+		this.formContents();
+		this.ignoreDirty--;
 		// Set as dirty
 		return this.dirty(jayus.DIRTY.ALL);
 	},
 
-	componentDirtied: function Stack_componentDirtied(component, type){
-
-		this.dirty(jayus.DIRTY.ALL);
-
+	componentDirtied: function Stack_componentDirtied(component, type) {
+		// Resize the stack if a child was resized
+		if(type & jayus.DIRTY.SIZE) {
+			this.formContents();
+		}
+		this.dirty(jayus.DIRTY.CONTENT);
 	},
 
 		//
 		//  Children
 		//____________//
 
-	listItemAdded: function Stack_listItemAdded(list, item){
+	listItemAdded: function Stack_listItemAdded(list, item) {
 		this.formContents();
 		item.setParent(this);
 		this.dirty(jayus.DIRTY.CONTENT);
 	},
 
-	listItemRemoved: function Stack_listItemRemoved(list, item){
+	listItemsAdded: function Stack_listItemsAdded(list, items) {
+		this.formContents();
+		for(var i=0;i<items.length;i++) {
+			items[i].setParent(this);
+		}
+		this.dirty(jayus.DIRTY.CONTENT);
+	},
+
+	listItemRemoved: function Stack_listItemRemoved(list, item) {
 		this.formContents();
 		item.removeParent();
 		this.dirty(jayus.DIRTY.CONTENT);
 	},
 
-	listItemsAdded: function Stack_listItemsAdded(list, items){
+	listItemsRemoved: function Stack_listItemsRemoved(list, items) {
 		this.formContents();
-		for(var i=0;i<items.length;i++){
-			item = items[i];
-			item.setParent(this);
+		for(var i=0;i<items.length;i++) {
+			items[i].removeParent();
 		}
 		this.dirty(jayus.DIRTY.CONTENT);
 	},
 
-	listItemsRemoved: function Stack_listItemsRemoved(list, items){
-		this.formContents();
-		for(var i=0;i<items.length;i++){
-			item = items[i];
-			item.removeParent();
-		}
-		this.dirty(jayus.DIRTY.CONTENT);
-	},
-
-	listItemsMoved: function Stack_listItemsMoved(){
+	listItemsMoved: function Stack_listItemsMoved() {
 		this.formContents();
 		this.dirty(jayus.DIRTY.CONTENT);
 	},
@@ -176,11 +178,11 @@ jayus.Stack = jayus.RectEntity.extend({
 	@param {Boolean} on
 	*/
 
-	setReversed: function Stack_setReversed(on){
+	setReversed: function Stack_setReversed(on) {
 		//#ifdef DEBUG
 		jayus.debug.match('Stack.setReversed', on, 'on', jayus.TYPES.BOOLEAN);
 		//#end
-		if(this.reversed !== on){
+		if(this.reversed !== on) {
 			this.reversed = on;
 			this.formContents();
 		}
@@ -197,11 +199,11 @@ jayus.Stack = jayus.RectEntity.extend({
 	@param {Number} spacing
 	*/
 
-	setSpacing: function Stack_setSpacing(spacing){
+	setSpacing: function Stack_setSpacing(spacing) {
 		//#ifdef DEBUG
 		jayus.debug.match('Stack.setSpacing', spacing, 'spacing', jayus.TYPES.NUMBER);
 		//#end
-		if(this.spacing !== spacing){
+		if(this.spacing !== spacing) {
 			this.spacing = spacing;
 			this.formContents();
 		}
@@ -212,27 +214,23 @@ jayus.Stack = jayus.RectEntity.extend({
 		//  Bounds
 		//__________//
 
-	findGreatestMinimalChildWidth: function Stack_findGreatestMinimalChildWidth(){
-		var i, width = 0;
-		//Loop through every child, keeping track of the greatest requested width.
-		for(i=0;i<this.children.items.length;i++){
-			width = Math.max(width, this.children.items[i].minW);
-		}
-		return width;
-	},
+	// findGreatestMinimalChildWidth: function Stack_findGreatestMinimalChildWidth() {
+	// 	var i, width = 0;
+	// 	//Loop through every child, keeping track of the greatest requested width.
+	// 	for(i=0;i<this.items.length;i++) {
+	// 		width = Math.max(width, this.items[i].minW);
+	// 	}
+	// 	return width;
+	// },
 
-	findGreatestMinimalChildHeight: function Stack_findGreatestMinimalChildHeight(){
-		var i, height = 0;
-		//Loop through every child, keeping track of the greatest requested height.
-		for(i=0;i<this.children.items.length;i++){
-			height = Math.max(height, this.children.items[i].minH);
-		}
-		return height;
-	},
-
-	reform: function Stack_reform(){
-		this.formContents(this.width, this.height);
-	},
+	// findGreatestMinimalChildHeight: function Stack_findGreatestMinimalChildHeight() {
+	// 	var i, height = 0;
+	// 	//Loop through every child, keeping track of the greatest requested height.
+	// 	for(i=0;i<this.items.length;i++) {
+	// 		height = Math.max(height, this.items[i].minH);
+	// 	}
+	// 	return height;
+	// },
 
 	paintContents: jayus.Scene.prototype.paintContents
 
@@ -264,6 +262,8 @@ jayus.hStack = jayus.Stack.extend({
 	automaticHeight: true,
 	//#replace jayus.hStack.prototype.automaticHeight true
 
+	hasFlexibleWidth: false,
+
 	//
 	//  Methods
 	//___________//
@@ -272,54 +272,56 @@ jayus.hStack = jayus.Stack.extend({
 		var object = jayus.Stack.prototype.toObject.apply(this);
 		// Add our own properties
 		object.type = 'hStack';
-		if (this.automaticHeight !== jayus.hStack.prototype.automaticHeight) {
+		if(this.automaticHeight !== jayus.hStack.prototype.automaticHeight) {
 			object.automaticHeight = this.automaticHeight.toObject();
 		}
 		return object;
 	},
 
-	formContents: function hStack_formContents(){
+	formContents: function hStack_formContents() {
 
 		var w = 0,
 			h = 0,
 			newH,
 			i, item;
 
-		if(this.reversed){
-			for(i=this.children.items.length-1;i>=0;i--){
-				item = this.children.items[i];
-				item.setX(w);
-				w += item.width+this.spacing;
-				if(this.automaticHeight){
+		if(this.reversed) {
+			for(i=this.items.length-1;i>=0;i--) {
+				item = this.items[i];
+				if(item.included) {
+					item.setX(w);
+					w += item.width+this.spacing;
 					newH = item.height;
-					if(newH > h){
+					if(newH > h) {
 						h = newH;
 					}
 				}
 			}
 		}
-		else{
-			for(i=0;i<this.children.items.length;i++){
-				item = this.children.items[i];
-				item.setX(w);
-				w += item.width+this.spacing;
-				if(this.automaticHeight){
+		else {
+			for(i=0;i<this.items.length;i++) {
+				item = this.items[i];
+				if(item.included) {
+					item.setX(w);
+					w += item.width+this.spacing;
 					newH = item.height;
-					if(newH > h){
+					if(newH > h) {
 						h = newH;
 					}
 				}
 			}
 		}
 
-		var width = w-this.spacing,
-			heigth = this.height;
+		var height = this.height;
 
-		if(this.automaticHeight){
+		this.minWidth = this.width;
+		this.minHeight = h;
+
+		if(this.height < this.minHeight) {
 			height = h;
 		}
 
-		this.changeSize(width, height);
+		this.changeSize(w-this.spacing, height);
 
 	}
 
@@ -349,12 +351,14 @@ jayus.vStack = jayus.Stack.extend({
 	automaticWidth: true,
 	//#replace jayus.hStack.prototype.automaticWidth true
 
+	hasFlexibleHeight: false,
+
 	/**
 	Gets the automaticWidth flag on the stack.
 	@method {Boolean} getAutomaticWidth
 	*/
 
-	getAutomaticWidth: function vStack_getAutomaticWidth(){
+	getAutomaticWidth: function vStack_getAutomaticWidth() {
 		return this.automaticWidth;
 	},
 
@@ -364,13 +368,13 @@ jayus.vStack = jayus.Stack.extend({
 	@param {Boolean} on
 	*/
 
-	setAutomaticWidth: function vStack_setAutomaticWidth(on){
+	setAutomaticWidth: function vStack_setAutomaticWidth(on) {
 		//#ifdef DEBUG
 		jayus.debug.match('vStack.setAutomaticWidth', on, 'on', jayus.TYPES.BOOLEAN);
 		//#end
-		if(this.automaticWidth !== on){
+		if(this.automaticWidth !== on) {
 			this.automaticWidth = on;
-			this.reform();
+			this.formContents();
 		}
 		return this;
 	},
@@ -383,39 +387,56 @@ jayus.vStack = jayus.Stack.extend({
 		var object = jayus.Stack.prototype.toObject.apply(this);
 		// Add our own properties
 		object.type = 'vStack';
-		if (this.automaticWidth !== jayus.hStack.prototype.automaticWidth) {
+		if(this.automaticWidth !== jayus.hStack.prototype.automaticWidth) {
 			object.automaticWidth = this.automaticWidth.toObject();
 		}
 		return object;
 	},
 
-	formContents: function vStack_formContents(){
+	formContents: function vStack_formContents() {
 
 		var h = 0,
-			w = 0;
+			w = 0,
+			i, item,
+			newW;
 
-		for(var i=0;i<this.children.items.length;i++){
-			var item = this.children.items[i];
-			item.frozen++;
-			item.setY(h);
-			item.frozen--;
-			h += item.height+this.spacing;
-			if(this.automaticWidth){
-				var newW = item.width;
-				if(newW > w){
-					w = newW;
+		if(this.reversed) {
+			for(i=this.items.length-1;i>=0;i--) {
+				item = this.items[i];
+				if(item.included) {
+					item.setY(h);
+					h += item.height+this.spacing;
+					newW = item.width;
+					if(newW > w) {
+						w = newW;
+					}
+				}
+			}
+		}
+		else {
+			for(i=0;i<this.items.length;i++) {
+				item = this.items[i];
+				if(item.included) {
+					item.setY(h);
+					h += item.height+this.spacing;
+					newW = item.width;
+					if(newW > w) {
+						w = newW;
+					}
 				}
 			}
 		}
 
-		var height = h-this.spacing,
-			width = this.width;
+		var width = this.width;
 
-		if(this.automaticWidth){
+		this.minWidth = w;
+		this.minHeight = this.height;
+
+		if(this.width < this.minWidth) {
 			width = w;
 		}
 
-		this.changeSize(width, height);
+		this.changeSize(width, h-this.spacing);
 
 	}
 

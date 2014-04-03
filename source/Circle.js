@@ -18,7 +18,7 @@ along with Jayus.  If not, see <http://www.gnu.org/licenses/>
 */
 
 /**
-Defines the Circle entity.
+Defines the Circle shape.
 @file Circle.js
 */
 
@@ -33,15 +33,13 @@ Standard Circle shape.
 @extends jayus.Shape
 */
 
-jayus.Circle = jayus.Shape.extend({
+jayus.Circle = jayus.Dependency.extend({
 
 	//
 	//  Properties
 	//______________//
 
 	shapeType: jayus.SHAPES.CIRCLE,
-
-	componentType: 'CIRCLE',
 
 	/**
 	The x position of the center of the circle.
@@ -67,64 +65,48 @@ jayus.Circle = jayus.Shape.extend({
 
 	radius: 1,
 
-	/**
-	How closely the toPolygon method approximates the circle.
-	<br>
-	The detail is number of faces on the resulting polygon from the toPolygon() method.
-	<br> Default is 10.
-	@property {Number} toPolygonDetail
-	*/
-
-	toPolygonDetail: 10,
-	//#replace jayus.Circle.prototype.toPolygonDetail 10
-
 	//
 	//  Methods
 	//___________//
 
 	/**
 	Initiates the circle with the default values.
-	@constructor init
+	@constructor Circle
 	@paramset Syntax 1
 	@paramset Syntax 2
-	@param {Object} properties
-	@paramset Syntax 3
 	@param {Point} center
 	@param {Number} radius
-	@paramset Syntax 4
+	@paramset Syntax 3
 	@param {Number} x
 	@param {Number} y
 	@param {Number} radius
 	*/
 
-	init: function Circle_init(x, y, radius) {
-		if (arguments.length === 1) {
-			this.initFromObject(x);
-		}
-		else if (arguments.length) {
+	init: function Circle(x, y, radius) {
+		if(arguments.length) {
 			//#ifdef DEBUG
-			if (arguments.length === 2) {
-				jayus.debug.matchArguments('Circle.init', arguments, 'center', jayus.TYPES.POINT, 'radius', jayus.TYPES.POINT);
+			if(arguments.length === 2) {
+				jayus.debug.matchArguments('Circle', arguments, 'center', jayus.TYPES.POINT, 'radius', jayus.TYPES.NUMBER);
 			}
-			else if (arguments.length === 3) {
-				jayus.debug.matchArgumentsAs('Circle.init', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'radius');
+			else if(arguments.length === 3) {
+				jayus.debug.matchArgumentsAs('Circle', arguments, jayus.TYPES.NUMBER, 'x', 'y', 'radius');
 			}
 			else {
-				throw new TypeError('Circle.init() - Invalid number of parameters sent, 0, 2, or 3 required');
+				throw new TypeError('Circle() - Invalid number of parameters sent, 0, 2, or 3 required');
 			}
 			//#end
-			if (arguments.length === 2) {
-				radius = y;
-				y = x.y;
-				x = x.x;
+			if(arguments.length === 2) {
+				this.radius = y;
+				this.y = x.y;
+				this.x = x.x;
 			}
-			this.x = x;
-			this.y = y;
-			this.radius = radius;
+			else {
+				this.x = x;
+				this.y = y;
+				this.radius = radius;
+			}
 		}
 	},
-
-	pointChanged: function Circle_pointChanged() {},
 
 	//@ From Parsable
 	toObject: function Circle_toObject() {
@@ -135,16 +117,12 @@ jayus.Circle = jayus.Shape.extend({
 			y: this.y,
 			radius: this.radius
 		};
-		if (this.toPolygonDetail !== jayus.Circle.prototype.toPolygonDetail) {
-			object.toPolygonDetail = this.toPolygonDetail;
-		}
-		if (this.id !== jayus.Dependency.prototype.id) {
+		if(this.id !== jayus.Dependency.prototype.id) {
 			object.id = this.id;
 		}
 		return object;
 	},
 
-	//@ From Parsable
 	initFromObject: function Circle_initFromObject(object) {
 		//#ifdef DEBUG
 		jayus.debug.match('Circle.initFromObject', object, 'object', jayus.TYPES.OBJECT);
@@ -154,9 +132,6 @@ jayus.Circle = jayus.Shape.extend({
 		this.x = object.x;
 		this.y = object.y;
 		this.radius = object.radius;
-		if (typeof object.toPolygonDetail === 'number') {
-			this.toPolygonDetail = object.toPolygonDetail;
-		}
 		// Set as dirty
 		return this.dirty(jayus.DIRTY.ALL);
 	},
@@ -210,9 +185,8 @@ jayus.Circle = jayus.Shape.extend({
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Circle.translate', x, y);
 		//#end
-		if (arguments.length === 1) {
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.setCenter(this.x+x.x, this.y+x.y);
 		}
 		return this.setCenter(this.x+x, this.y+y);
 	},
@@ -221,6 +195,11 @@ jayus.Circle = jayus.Shape.extend({
 	alignToCanvas: function Circle_alignToCanvas() {
 		// Can we do anything here?
 		return this;
+	},
+
+	//@ From Shape
+	paintedWith: function Circle_paintedWith(brush) {
+		return new jayus.PaintedShape(this, brush);
 	},
 
 		//
@@ -248,12 +227,12 @@ jayus.Circle = jayus.Shape.extend({
 		jayus.debug.match('Circle.setRadius', radius, 'radius', jayus.TYPES.NUMBER);
 		//#end
 		// Check if animated
-		if (this.actionsToAnimate) {
+		if(this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setRadius, this.radius, radius);
 		}
-		if (this.radius !== radius) {
+		if(this.radius !== radius) {
 			this.radius = radius;
 			this.dirty(jayus.DIRTY.SIZE);
 		}
@@ -294,10 +273,16 @@ jayus.Circle = jayus.Shape.extend({
 		return ret;
 	},
 
+	/**
+	Returns a polygon approximating this circle.
+	@method {Polygon} toPolygon
+	@param {Number} detail Number of faces, default is 10
+	*/
+
 	//@ From Shape
 	toPolygon: function Circle_toPolygon(detail) {
-		if (!arguments.length) {
-			detail = this.toPolygonDetail;
+		if(!arguments.length) {
+			return this.toPolygon(10);
 		}
 		//#ifdef DEBUG
 		else {

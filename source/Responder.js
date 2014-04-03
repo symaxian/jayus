@@ -31,7 +31,7 @@ The base class for an object that uses the jayus event system.
 @class jayus.Responder
 */
 
-// TODO: jayus.Responder() - A few tweaks could improve memory usage, dont create arrays for a single handler, and dont create an options object for the default options
+// TODO: jayus.Responder() - A few tweaks could improve memory usage, dont create arrays for a single handler
 
 jayus.Responder = jayus.createClass({
 
@@ -80,12 +80,12 @@ jayus.Responder = jayus.createClass({
 	@param {Object} handlers
 	*/
 
-	handle: function Responder_handle(handlers){
+	handle: function Responder_handle(handlers) {
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.handle', handlers, 'handlers', jayus.TYPES.OBJECT);
 		//#end
-		for(var event in handlers){
-			if(handlers.hasOwnProperty(event)){
+		for(var event in handlers) {
+			if(handlers.hasOwnProperty(event)) {
 				this.addHandler(event, handlers[event]);
 			}
 		}
@@ -103,32 +103,33 @@ jayus.Responder = jayus.createClass({
 	@... {Object} context The context the handler is executed in
 	*/
 
-	addHandler: function Responder_addHandler(event, handler, options){
+	addHandler: function Responder_addHandler(event, handler, options) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('Responder.addHandler', arguments, 'event', jayus.TYPES.STRING, 'handler', jayus.TYPES.FUNCTION);
 		jayus.debug.matchOptional('Responder.addHandler', options, 'options', jayus.TYPES.OBJECT);
 		//#end
 		// Initialize the objects if needed
-		if(!this.hasHandlers){
+		if(!this.hasHandlers) {
 			this.hasHandlers = true;
 			this.isHandler = {
 				frame: false
 			};
 			this.handlers = {};
 		}
-		if(arguments.length === 2){
+		// Create the options object, which serves as a descriptor for the handler
+		if(typeof options !== 'object') {
 			options = {};
 		}
-		// Set the handler
 		options.handler = handler;
 		options.hasContext = typeof options.context === 'object';
-		options.interceptor = !!options.interceptor;
+		options.enabled = true;
+		options.remove = false;
 		// Check if already a handler
-		if(this.isHandler[event]){
+		if(this.isHandler[event]) {
 			// Add the handler
 			this.handlers[event].push(options);
 		}
-		else{
+		else {
 			// Create the handler array and set the flag
 			this.handlers[event] = [options];
 			this.isHandler[event] = true;
@@ -137,64 +138,48 @@ jayus.Responder = jayus.createClass({
 	},
 
 	/**
-	Attaches a transient callback function to an event.
-	<br> A transient handler will only be called once in response to the event it's attached to, after which it is deleted.
-	@method {Self} interceptNextEvent
-	@param {String} event
-	@param {Function} handler
-	@param {Object} options Optional
-	@... {String} id The handler id, for easy removal
-	@... {Object} context The context the handler is executed in
-	*/
-
-	interceptNextEvent: function Responder_interceptNextEvent(event, handler, options){
-		//#ifdef DEBUG
-		jayus.debug.matchArguments('Responder.addHandler', arguments, 'event', jayus.TYPES.STRING, 'handler', jayus.TYPES.FUNCTION);
-		jayus.debug.matchOptional('Responder.addHandler', options, 'options', jayus.TYPES.OBJECT);
-		//#end
-		if(arguments.length === 2){
-			options = {};
-		}
-		options.interceptor = true;
-		return this.addHandler(event, handler, options);
-	},
-
-	/**
 	Removes an event handler.
 	<br> Requires that either the id or actual function be given.
 	@method {Self} removeHandler
-	@paramset Syntax 1
 	@param {String} event
-	@param {Function} handler
-	@paramset Syntax 2
-	@param {String} event
-	@param {String} id
+	@param {Function|String} handler
 	*/
 
-	removeHandler: function Responder_removeHandler(event, handler){
+	removeHandler: function Responder_removeHandler(event, handler) {
 		//#ifdef DEBUG
 		jayus.debug.match('Responder.removeHandler', event, 'event', jayus.TYPES.STRING);
-		if(!jayus.debug.is(jayus.TYPES.FUNCTION, handler) && !jayus.debug.is(jayus.TYPES.STRING, handler)){
+		if(!jayus.debug.is(jayus.TYPES.FUNCTION, handler) && !jayus.debug.is(jayus.TYPES.STRING, handler)) {
 			throw new TypeError('Responder.removeHandler() - Invalid handler'+jayus.debug.toString(handler)+' sent, Function or String required.');
 		}
 		//#end
-		if(this.isHandler[event]){
-			// Check for a function, else assume its the id(string)
-			if(handler instanceof Function){
-				this.handlers[event].splice(this.handlers[event].indexOf(handler), 1);
+		if(this.isHandler[event]) {
+			var i, options,
+				handlers = this.handlers[event];
+			// Check if the options object was sent
+			if(typeof handler === 'object') {
+				handlers.splice(handlers.indexOf(handler), 1);
 			}
-			else{
+			// Check for a function, else assume its the id(string)
+			else if(handler instanceof Function) {
 				// Search for the handler with the given id
-				var i, id = handler;
-				for(i=0;i<this.handlers[event].length;i++){
-					handler = this.handlers[event][i];
-					if(handler.id === id){
-						this.handlers[event].splice(i, 1);
+				for(i=0;i<handlers.length;i++) {
+					options = handlers[i];
+					if(options.handler === handler) {
+						handlers.splice(i, 1);
+					}
+				}
+			}
+			else {
+				// Search for the handler with the given id
+				for(i=0;i<handlers.length;i++) {
+					options = handlers[i];
+					if(options.id === handler) {
+						handlers.splice(i, 1);
 					}
 				}
 			}
 			// Remove the array and clear the isHandler flag if there are no remaining event handlers
-			if(!this.handlers[event].length){
+			if(!handlers.length) {
 				delete this.handlers[event];
 				this.isHandler[event] = false;
 			}
@@ -208,13 +193,13 @@ jayus.Responder = jayus.createClass({
 	@param {String} event
 	*/
 
-	removeHandlers: function Entity_removeHandlers(event){
+	removeHandlers: function Entity_removeHandlers(event) {
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.removeHandlers', event, 'event', jayus.TYPES.STRING);
 		//#end
 		// Remove the handler
-		if(this.isHandler[event]){
-			this.handlers[event] = [];
+		if(this.isHandler[event]) {
+			delete this.handlers[event];
 			this.isHandler[event] = false;
 		}
 		return this;
@@ -225,9 +210,11 @@ jayus.Responder = jayus.createClass({
 	@method {Self} removeAllHandlers
 	*/
 
-	removeAllHandlers: function Entity_removeAllHandlers(){
+	removeAllHandlers: function Entity_removeAllHandlers() {
 		this.hasHandlers = false;
-		if(typeof this.addDefaultHandlers === 'function'){
+		this.isHandler = null;
+		this.handlers = null;
+		if(typeof this.addDefaultHandlers === 'function') {
 			this.addDefaultHandlers();
 		}
 		return this;
@@ -246,31 +233,83 @@ jayus.Responder = jayus.createClass({
 	@param {*} data Optional
 	*/
 
-	fire: function Responder_fire(event, data){
+	/*
+		Possibilities for passing data from handler to caller:
+			Possible data:
+				Whether the event was accepted or not
+				Whether to remove the event handler or not
+			Methods:
+				Return true/false
+				Set flag in opts object
+				Return object with data
+					- Requires extra objects be made and trashes
+				Return a bitset
+					- Can be messy for the user to deal with
+	*/
+
+	// fire2: function Responder_fire2(event, data) {
+	// 	//#ifdef DEBUG
+	// 	jayus.debug.match('Responder.fire', event, 'event', jayus.TYPES.STRING);
+	// 	jayus.debug.matchOptional('Responder.fire', data, 'data', jayus.TYPES.DEFINED);
+	// 	//#end
+	// 	var i,
+	// 		opts,
+	// 		result,
+	// 		handlers;
+	// 	if(this.hasHandlers && this.isHandler[event]) {
+	// 		handlers = this.handlers[event];
+	// 		// Loop through the responders for the event
+	// 		for(i=0;i<handlers.length;i++) {
+	// 			// Get the event handler data
+	// 			opts = handlers[i];
+	// 			// Call the handler
+	// 			result = !!opts.handler.call(opts.hasContext ? opts.context : this, data);
+	// 			// Check to remove
+	// 			if(opts.remove) {
+	// 				// Remove the handler and decrement the count
+	// 				this.removeHandler(event, opts.handler);
+	// 				i--;
+	// 				// Check to exit the loop early
+	// 				if(!this.isHandler[event]) {
+	// 					// Return true if accepted, else false
+	// 					return result;
+	// 				}
+	// 			}
+	// 			else if(result) {
+	// 				return true;
+	// 			}
+	// 		}
+	// 	}
+	// 	return false;
+	// },
+
+	fire: function Responder_fire(event, data) {
 		//#ifdef DEBUG
 		jayus.debug.match('Responder.fire', event, 'event', jayus.TYPES.STRING);
 		jayus.debug.matchOptional('Responder.fire', data, 'data', jayus.TYPES.DEFINED);
 		//#end
-		var i, opts, result;
-		if(this.hasHandlers && this.isHandler[event]){
+		var i,
+			opts,
+			result,
+			handlers;
+		if(this.hasHandlers && this.isHandler[event]) {
+			handlers = this.handlers[event];
 			// Loop through the responders for the event
-			for(i=0;i<this.handlers[event].length;i++){
-				// Get the event handler
-				opts = this.handlers[event][i];
-				// Call the handler and store the result as a boolean
-				result = !!opts.handler.call(opts.hasContext ? opts.context : this, data);
-				// Remove the event handler if interceptor, return if it was the only handler
-				if(opts.interceptor){
+			for(i=0;i<handlers.length;i++) {
+				// Get the event handler data
+				opts = handlers[i];
+				// Check to remove
+				if(opts.remove) {
+					// Remove the handler and decrement the count
 					this.removeHandler(event, opts.handler);
-					// Check to exit the loop early
-					if(!this.isHandler[event]){
-						// Return true if accepted, else false
-						return result;
-					}
+					i--;
 				}
-				// Return true if accepted
-				if(result){
-					return true;
+				else if(opts.enabled) {
+					// Call the handler
+					// If a truthy value is returned, the event was accepted/cancelled, return true
+					if(opts.handler.call(opts.hasContext ? opts.context : this, data, opts)) {
+						return true;
+					}
 				}
 			}
 		}

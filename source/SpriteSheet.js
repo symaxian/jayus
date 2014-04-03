@@ -82,29 +82,55 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 	marginY: 0,
 
 	/**
-	Initial offset from where the sprites begin.
-	@property {Point} margin
+	An object of data for defined animations.
+	@property {Object} animations
 	*/
 
 	animations: null,
+
+	/**
+	An object of data for the named sprites, indexed by their name.
+	<br> It is generally safe to modify this object directly.
+	@property {Object} namedSprites
+	*/
 
 	namedSprites: null,
 
 	/**
 	Initiates the sprite sheet.
-	@constructor init
+	@constructor SpriteSheet
 	@param {String} filepath Optional
 	*/
 
-	init: function SpriteSheet_init(filepath){
+	init: function SpriteSheet(filepath) {
 		this.animations = {};
-		if(arguments.length){
+		this.namedSprites = {};
+		if(arguments.length) {
 			//#ifdef DEBUG
-			jayus.debug.match('SpriteSheet.init', filepath, 'filepath', jayus.TYPES.STRING);
+			jayus.debug.match('SpriteSheet', filepath, 'filepath', jayus.TYPES.STRING);
 			//#end
-			jayus.images.images[filepath].sheet = this;
+			var sheet = this;
+			jayus.images.whenLoaded(filepath, function(data) {
+				data.image.sheet = sheet;
+			});
+			// if(jayus.images.isLoaded(filepath)) {
+			// 	jayus.images.images[filepath].sheet = this;
+			// }
+			// else {
+			// 	var sheet = this;
+			// 	jayus.addHandler('imageLoaded', function(data, options) {
+			// 		if(data.filepath === filepath) {
+			// 			jayus.images.images[filepath].sheet = sheet;
+			// 			options.remove = true;
+			// 		}
+			// 	});
+			// }
 		}
 	},
+
+		//
+		//  Named Sprites
+		//_________________//
 
 	/**
 	Defines a named sprite.
@@ -117,10 +143,14 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 	*/
 
 	nameSprite: function SpriteSheet_nameSprite(name, x, y, width, height) {
-		// TODO: Argchk
-		if(this.namedSprites === null){
-			this.namedSprites = {};
-		}
+		//#ifdef DEBUG
+		jayus.debug.matchArguments('SpriteSheet.nameSprite', arguments,
+			'name', jayus.TYPES.STRING,
+			'x', jayus.TYPES.NUMBER,
+			'y', jayus.TYPES.NUMBER,
+			'width', jayus.TYPES.NUMBER,
+			'height', jayus.TYPES.NUMBER);
+		//#end
 		this.namedSprites[name] = {
 			x: x,
 			y: y,
@@ -132,32 +162,30 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 		return this;
 	},
 
+	/**
+	Sets the horizontal and vertical flipping properties of a named sprite.
+	@method {Self} setSpriteFlipping
+	@param {String} name
+	@param {Boolean} flipX
+	@param {Boolean} flipY
+	*/
+
 	setSpriteFlipping: function SpriteSheet_setSpriteFlipping(name, flipX, flipY) {
-		if(typeof this.namedSprites[name] === 'object'){
-			var data = this.namedSprites[name];
-			data.flipX = flipX;
-			data.flipY = flipY;
-			return;
+		//#ifdef DEBUG
+		jayus.debug.matchArguments('SpriteSheet.setSpriteFlipping', arguments, 'name', jayus.TYPES.STRING, 'flipX', jayus.TYPES.BOOLEAN, 'flipY', jayus.TYPES.BOOLEAN);
+		if(typeof this.namedSprites[name] !== 'object') {
+			throw new Error('SpriteSheet.setSpriteFlipping() - Unknown sprite name: '+name);
 		}
-		throw new Error('SpriteSheet.applySprite() - Unknown sprite name: '+name);
+		//#end
+		var data = this.namedSprites[name];
+		data.flipX = flipX;
+		data.flipY = flipY;
+		return this;
 	},
 
-	// TODO: Everything, support x/y
-	applySprite: function SpriteSheet_applySprite(sprite, name) {
-		if(typeof this.namedSprites[name] === 'object'){
-			var data = this.namedSprites[name];
-			sprite.setSection(data.x, data.y, data.width, data.height);
-			sprite.setRelativeAnchor(0.5, 0.5);
-			if(data.flipX){
-				sprite.setScale(-1, 1);
-			}
-			else{
-				sprite.setScale(1, 1);
-			}
-			return;
-		}
-		throw new Error('SpriteSheet.applySprite() - Unknown sprite name: '+name);
-	},
+		//
+		//  General Properties
+		//______________________//
 
 	/**
 	Sets the spriteSize property.
@@ -169,15 +197,15 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 	@param {Number} y
 	*/
 
-	setSpriteSize: function SpriteSheet_setSpriteSize(width, height){
+	setSpriteSize: function SpriteSheet_setSpriteSize(width, height) {
 		//#ifdef DEBUG
 		jayus.debug.matchSize('SpriteSheet.setSpriteSize', width, height);
 		//#end
-		if(arguments.length === 1){
+		if(arguments.length === 1) {
 			height = width.height;
 			width = width.width;
 		}
-		if(this.spriteWidth !== width || this.spriteHeight !== height){
+		if(this.spriteWidth !== width || this.spriteHeight !== height) {
 			this.spriteWidth = width;
 			this.spriteHeight = height;
 			this.dirty(jayus.DIRTY.SIZE);
@@ -195,19 +223,15 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 	@param {Number} y
 	*/
 
-	setSpacing: function SpriteSheet_setSpacing(x, y){
+	setSpacing: function SpriteSheet_setSpacing(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('SpriteSheet.setSpacing', x, y);
 		//#end
-		if(arguments.length === 1){
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.setSpacing(x.x, x.y);
 		}
-		// Check if different
-		if(this.spacingX !== x || this.spacingY !== y){
-			this.spacingX = x;
-			this.spacingY = y;
-		}
+		this.spacingX = x;
+		this.spacingY = y;
 		return this;
 	},
 
@@ -221,21 +245,21 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 	@param {Number} y
 	*/
 
-	setMargin: function SpriteSheet_setMargin(x, y){
+	setMargin: function SpriteSheet_setMargin(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('SpriteSheet.setMargin', x, y);
 		//#end
-		if(arguments.length === 1){
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.setMargin(x.x, x.y);
 		}
-		// Check if different
-		if(this.marginX !== x || this.marginY !== y){
-			this.marginX = x;
-			this.marginY = y;
-		}
+		this.marginX = x;
+		this.marginY = y;
 		return this;
 	},
+
+		//
+		//  Animation
+		//_____________//
 
 	/**
 	Reteurns whether the spritesheet has the given animation.
@@ -243,12 +267,13 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 	@param {String} name
 	*/
 
-	hasAnimation: function SpriteSheet_hasAnimation(name){
+	hasAnimation: function SpriteSheet_hasAnimation(name) {
 		return typeof this.animations[name] === 'object';
 	},
 
 	/**
-	Defines a named animation using sprites within the spritesheet.
+	Defines an animation for the spritesheet.
+	<br> The animation must be give a name and must be composed of sprites within this spritesheet.
 	<br> Default duration is 1000 milliseconds.
 	@method {Self} addAnimation
 	@param {String} name
@@ -256,15 +281,15 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 	@param {Number} duration Optional
 	*/
 
-	addAnimation: function SpriteSheet_addAnimation(name, sprites, duration){
-		if(arguments.length === 2){
+	addAnimation: function SpriteSheet_addAnimation(name, sprites, duration) {
+		if(arguments.length === 2) {
 			duration = 1000;
 			//#ifdef DEBUG
 			jayus.debug.matchArguments('SpriteSheet.addAnimation', arguments, 'name', jayus.TYPES.STRING, 'sprites', jayus.TYPES.ARRAY);
 			//#end
 		}
 		//#ifdef DEBUG
-		else{
+		else {
 			jayus.debug.matchArguments('SpriteSheet.addAnimation', arguments, 'name', jayus.TYPES.STRING, 'sprites', jayus.TYPES.ARRAY, 'duration', jayus.TYPES.NUMBER);
 		}
 		//#end
@@ -277,17 +302,17 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 		return this;
 	},
 
-	add: function SpriteSheet_add(animations){
-		for(var key in animations){
-			if(animations.hasOwnProperty(key)){
+	add: function SpriteSheet_add(animations) {
+		for(var key in animations) {
+			if(animations.hasOwnProperty(key)) {
 				var animation = animations[key];
-				if(typeof animation.flipX === 'undefined'){
+				if(typeof animation.flipX === 'undefined') {
 					animation.flipX = false;
 				}
-				if(typeof animation.flipY === 'undefined'){
+				if(typeof animation.flipY === 'undefined') {
 					animation.flipY = false;
 				}
-				if(typeof animation.duration === 'undefined'){
+				if(typeof animation.duration === 'undefined') {
 					animation.duration = 1000;
 				}
 				this.animations[key] = animation;
@@ -303,10 +328,10 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 	@param {Number} duration
 	*/
 
-	setAnimationDuration: function SpriteSheet_setAnimationDuration(animation, duration){
+	setAnimationDuration: function SpriteSheet_setAnimationDuration(animation, duration) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('SpriteSheet.setAnimationDuration', arguments, 'animation', jayus.TYPES.STRING, 'duration', jayus.TYPES.NUMBER);
-		if(!this.hasAnimation(animation)){
+		if(!this.hasAnimation(animation)) {
 			throw new Error('SpriteSheet.setAnimationDuration() - Invalid animation'+jayus.debug.toString(animation)+' sent, unknown animation');
 		}
 		//#end
@@ -322,10 +347,10 @@ jayus.SpriteSheet = jayus.Dependency.extend({
 	@param {Boolean} flipY
 	*/
 
-	setAnimationFlipping: function SpriteSheet_setAnimationFlipping(animation, flipX, flipY){
+	setAnimationFlipping: function SpriteSheet_setAnimationFlipping(animation, flipX, flipY) {
 		//#ifdef DEBUG
 		jayus.debug.matchArguments('SpriteSheet.setAnimationFlipping', arguments, 'animation', jayus.TYPES.STRING, 'flipX', jayus.TYPES.BOOLEAN, 'flipY', jayus.TYPES.BOOLEAN);
-		if(!this.hasAnimation(animation)){
+		if(!this.hasAnimation(animation)) {
 			throw new Error('SpriteSheet.setAnimationFlipping() - Invalid animation'+jayus.debug.toString(animation)+' sent, unknown animation');
 		}
 		//#end

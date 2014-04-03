@@ -158,7 +158,6 @@ class MacroEngine(object):
         return getattr(self, "handle_{m}".format(m=method))(args, code)
 
     def accumulateReplace(self, file_name):
-        now = datetime.now()
 
         # Save this for the @import implementation
         self._basepath = os.path.realpath(os.path.dirname(file_name))

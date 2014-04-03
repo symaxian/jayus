@@ -68,9 +68,9 @@ jayus.images = {
 
 	//#ifdef DEBUG
 
-	checkFilepath: function jayus_images_checkFilepath(filepath){
+	checkFilepath: function jayus_images_checkFilepath(filepath) {
 		jayus.debug.match('jayus.images.checkFilepath', filepath, 'filepath', jayus.TYPES.STRING);
-		if(filepath.indexOf('../') !== -1){
+		if(filepath.indexOf('../') !== -1) {
 			console.warn('jayus.images.checkFilepath() - Filepath "'+filepath+'" contains "./" or "../", avoid using these');
 		}
 	},
@@ -78,27 +78,25 @@ jayus.images = {
 	//#end
 
 	/**
-	Returns whether the specified image has been requested.
-	<br> Note that this does not mean that the image is loaded, only that the image object is available and that is has been requested.
-	@method {Image} has
-	@param {String} filepath
-	*/
-
-	has: function jayus_images_has(filepath){
-		//#ifdef DEBUG
-		jayus.debug.match('jayus.images.has', filepath, 'filepath', jayus.TYPES.STRING);
-		this.checkFilepath(filepath);
-		//#end
-		return typeof this.images[filepath] === 'object';
-	},
-
-	/**
 	Returns whether the specified image is loaded or not.
+	<br> If an array is sent, returns true iff every image is loaded.
 	@method {Boolean} isLoaded
-	@param {String} filepath
+	@param {String|Array<String>} filepath
 	*/
 
-	isLoaded: function jayus_images_isLoaded(filepath){
+	isLoaded: function jayus_images_isLoaded(filepath) {
+		// Check if array
+		if(typeof filepath === 'object') {
+			//#ifdef DEBUG
+			jayus.debug.match('jayus.images.isLoaded', filepath, 'filepaths', jayus.TYPES.ARRAY);
+			//#end
+			for(var i=0;i<filepath.length;i++) {
+				if(!this.isLoaded(filepath[i])) {
+					return false;
+				}
+			}
+			return true;
+		}
 		//#ifdef DEBUG
 		jayus.debug.match('jayus.images.isLoaded', filepath, 'filepath', jayus.TYPES.STRING);
 		this.checkFilepath(filepath);
@@ -110,24 +108,45 @@ jayus.images = {
 	Returns the specified image.
 	<br> The image will still be returned if it is not yet loaded.
 	@method {Image} get
-	@param {String} filepath
+	@param {String|Array<String>} filepath
 	*/
 
-	get: function jayus_images_get(filepath){
+	get: function jayus_images_get(filepath) {
+		// Check if array
+		if(typeof filepath === 'object') {
+			//#ifdef DEBUG
+			jayus.debug.match('jayus.images.get', filepath, 'filepaths', jayus.TYPES.ARRAY);
+			//#end
+			var images = [];
+			for(var i=0;i<filepath.length;i++) {
+				images[i] = this.get(filepath[i]);
+			}
+			return images;
+		}
 		//#ifdef DEBUG
 		jayus.debug.match('jayus.images.get', filepath, 'filepath', jayus.TYPES.STRING);
 		this.checkFilepath(filepath);
 		//#end
-		if(!this.has(filepath)){
+		if(!this.isLoaded(filepath)) {
 			//#ifdef DEBUG
 			console.warn('jayus.images.get() - Image "'+filepath+'" not yet loaded');
 			//#end
-			this.load(filepath);
 		}
 		return this.images[filepath];
 	},
 
-	setSubimage: function jayus_images_setSubimage(sourceImage, image, sourceX, sourceY, sourceWidth, sourceHeight){
+	/**
+	Defines an image from a section of another.
+	@method {Self} setSubimage
+	@param {String} sourceImage
+	@param {String} image
+	@param {Number} sourceX
+	@param {Number} sourceY
+	@param {Number} sourceWidth
+	@param {Number} sourceHeight
+	*/
+
+	setSubimage: function jayus_images_setSubimage(sourceImage, image, sourceX, sourceY, sourceWidth, sourceHeight) {
 		var source = this.get(sourceImage);
 		var canvas = document.createElement('canvas');
 		canvas.width = sourceWidth;
@@ -145,86 +164,117 @@ jayus.images = {
 			sourceHeight
 		);
 		this.images[image] = canvas;
+		jayus.fire('imageLoaded', {
+			filepath: sourceImage,
+			image: canvas
+		});
 		return this;
 	},
 
 	/**
-	Loads the specified image.
-	<br> An image will not be loaded twice.
-	<br> The optional callback handler will be executed when the image is loaded, or immediately if it is already loaded.
-	@method load
-	@param {String} filepath
-	@param {Function} handler Optional
+	Runs the callback handler when the image is loaded.
+	<br> Attaches a handler for the 'loaded' event, or the image is already loaded it calls the function immediately.
+	<br> The context for the handler is the global scope.
+	@method {Self} whenLoaded
+	@param {String|Array<String>} filepath
+	@param {Function} handler
 	*/
 
-	load: function jayus_images_load(filepath, handler){
-		//#ifdef DEBUG
-		jayus.debug.match('jayus.images.load', filepath, 'filepath', jayus.TYPES.STRING);
-		this.checkFilepath(filepath);
-		//#end
-		// Check if not loaded
-		if(!this.has(filepath)){
+	whenLoaded: function jayus_images_whenLoaded(filepath, handler) {
+		// Check if array
+		if(typeof filepath === 'object') {
 			//#ifdef DEBUG
-			if(!jayus.debug.is(jayus.TYPES.STRING, filepath)){
-				throw new TypeError('jayus.images.load() - Invalid filepath'+jayus.debug.toString(filepath)+' sent as argument '+i+', String required');
-			}
-			// console.log('jayus.images.load() - Loading image file "'+filepath+'"');
+			jayus.debug.matchArguments('jayus.images.whenLoaded', arguments, 'filepaths', jayus.TYPES.ARRAY, 'handler', jayus.TYPES.FUNCTION);
 			//#end
-			// Create and save a new image
-			var image = new Image();
-			image.isSheet = false;
-			image.loaded = false;
-			this.images[filepath] = image;
-			// Set the onload handler to fire some events
-			image.onload = function image_onload(){
-				this.loaded = true;
-				// Fire the image loaded event on jayus and the surface
-				jayus.fire('imageLoaded', {
-					filepath: filepath,
-					image: this
+			if(this.isLoaded(filepath)) {
+				handler();
+			}
+			else {
+				jayus.addHandler('imageLoaded', function(data, options) {
+					// Use the cheap and slow way to check
+					if(jayus.images.isLoaded(filepath)) {
+						// Call the handler and remove this handler
+						handler();
+						options.remove = true;
+					}
 				});
-				// Decrement the number of pending files and check to fire the event
-				jayus.images.pendingImageCount--;
-				if(!jayus.images.pendingImageCount){
-					jayus.fire('imagesLoaded');
-				}
-				// Call the callback
-				if(typeof handler === 'function'){
-					handler(filepath, this);
-				}
-			};
-			// Increment the pending image count
-			this.pendingImageCount++;
-			// Set the image source
-			image.src = filepath;
+				this.load(filepath);
+			}
 		}
+		else {
+			//#ifdef DEBUG
+			jayus.debug.matchArguments('jayus.images.whenLoaded', arguments, 'filepath', jayus.TYPES.STRING, 'handler', jayus.TYPES.FUNCTION);
+			//#end
+			if(this.isLoaded(filepath)) {
+				handler({
+					filepath: filepath,
+					image: this.get(filepath)
+				});
+			}
+			else {
+				jayus.addHandler('imageLoaded', function(data, options) {
+					if(data.filepath === filepath) {
+						// Call the handler and remove this handler
+						handler(data);
+						options.remove = true;
+					}
+				});
+				this.load(filepath);
+			}
+		}
+		return this;
 	},
 
 	/**
-	Loads the specified images.
-	<br> The optional callback handler will be executed when all the images have been loaded, or immediately if they have all already been loaded.
-	@method loadAll
-	@param {Array<String>} filepaths
-	@param {Function} handler Optional
+	Begins loading the specified image[s].
+	<br> If you want to perform an action after the image is loaded you should use the jayus.images.whenLoaded() method.
+	<br> An image will not be loaded twice.
+	@method load
+	@paramset Syntax 1
+	@param {String} filepath
+	@paramset Syntax 2
+	@param {Array} filepaths
 	*/
 
-	loadAll: function jayus_images_loadAll(filepaths, handler){
-		var i, count, checkCount;
-		if(arguments.length === 1){
-			for(i=0;i<filepaths.length;i++){
-				this.load(filepaths[i]);
+	load: function jayus_images_load(filepath) {
+		// Check if array
+		if(typeof filepath === 'object') {
+			//#ifdef DEBUG
+			jayus.debug.match('jayus.images.load', filepath, 'filepaths', jayus.TYPES.ARRAY);
+			//#end
+			for(var i=0;i<filepath.length;i++) {
+				this.load(filepath[i]);
 			}
 		}
-		else if(arguments.length === 2){
-			count = filepaths.length;
-			checkCount = function(){
-				count--;
-				if(!count){
-					handler();
-				}
-			};
-			for(i=0;i<filepaths.length;i++){
-				this.load(filepaths[i], checkCount);
+		else {
+			//#ifdef DEBUG
+			jayus.debug.match('jayus.images.load', filepath, 'filepath', jayus.TYPES.STRING);
+			//#end
+			// Check if not loading/loaded
+			if(typeof this.images[filepath] !== 'object') {
+				// Create and save a new image
+				var image = new Image();
+				image.isSheet = false;
+				image.loaded = false;
+				this.images[filepath] = image;
+				// Set the onload handler to fire some events
+				image.onload = function image_onload() {
+					this.loaded = true;
+					// Fire the image loaded event on jayus and the surface
+					jayus.fire('imageLoaded', {
+						filepath: filepath,
+						image: this
+					});
+					// Decrement the number of pending files and check to fire the event
+					jayus.images.pendingImageCount--;
+					if(!jayus.images.pendingImageCount) {
+						jayus.fire('imagesLoaded');
+					}
+				};
+				// Increment the pending image count
+				this.pendingImageCount++;
+				// Set the image source
+				image.src = filepath;
 			}
 		}
 	}

@@ -61,7 +61,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	linear: function jayus_easing_linear(t){
+	linear: function jayus_easing_linear(t) {
 		return t;
 	},
 
@@ -71,7 +71,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInQuad: function jayus_easing_easeInQuad(t){
+	easeInQuad: function jayus_easing_easeInQuad(t) {
 		return t*t;
 	},
 
@@ -81,7 +81,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeOutQuad: function jayus_easing_easeOutQuad(t){
+	easeOutQuad: function jayus_easing_easeOutQuad(t) {
 		return t*(2-t);
 	},
 
@@ -91,7 +91,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInOutQuad: function jayus_easing_easeInOutQuad(t){
+	easeInOutQuad: function jayus_easing_easeInOutQuad(t) {
 		return ((t/=0.5) < 1 ? t*t : (1-t)*(t-3)+1)/2;
 	},
 
@@ -101,7 +101,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInCubic: function jayus_easing_easeInCubic(t){
+	easeInCubic: function jayus_easing_easeInCubic(t) {
 		return t*t*t;
 	},
 
@@ -111,7 +111,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeOutCubic: function jayus_easing_easeOutCubic(t){
+	easeOutCubic: function jayus_easing_easeOutCubic(t) {
 		return --t*t*t+1;
 	},
 
@@ -121,7 +121,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInOutCubic: function jayus_easing_easeInOutCubic(t){
+	easeInOutCubic: function jayus_easing_easeInOutCubic(t) {
 		return (t/=0.5) < 1 ? t*t*t/2 : (t-=2)*t*t/2+1;
 	},
 
@@ -131,7 +131,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInQuart: function jayus_easing_easeInQuart(t){
+	easeInQuart: function jayus_easing_easeInQuart(t) {
 		return t*t*t*t;
 	},
 
@@ -141,7 +141,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeOutQuart: function jayus_easing_easeOutQuart(t){
+	easeOutQuart: function jayus_easing_easeOutQuart(t) {
 		return --t*t*t*-t+1;
 	},
 
@@ -151,7 +151,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInOutQuart: function jayus_easing_easeInOutQuart(t){
+	easeInOutQuart: function jayus_easing_easeInOutQuart(t) {
 		return (t/=0.5) < 1 ? t*t*t*t/2 : 1-(t-=2)*t*t*t/2;
 	},
 
@@ -161,7 +161,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInQuint: function jayus_easing_easeInQuint(t){
+	easeInQuint: function jayus_easing_easeInQuint(t) {
 		return t*t*t*t*t;
 	},
 
@@ -171,7 +171,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeOutQuint: function jayus_easing_easeOutQuint(t){
+	easeOutQuint: function jayus_easing_easeOutQuint(t) {
 		return --t*t*t*t*t+1;
 	},
 
@@ -181,7 +181,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInOutQuint: function jayus_easing_easeInOutQuint(t){
+	easeInOutQuint: function jayus_easing_easeInOutQuint(t) {
 		return (t/=0.5) < 1 ? t*t*t*t*t/2 : (t-=2)*t*t*t*t/2+1;
 	},
 
@@ -191,7 +191,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInSine: function jayus_easing_easeInSine(t){
+	easeInSine: function jayus_easing_easeInSine(t) {
 		return 1-Math.cos(t*Math.PI/2);
 	},
 
@@ -201,7 +201,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeOutSine: function jayus_easing_easeOutSine(t){
+	easeOutSine: function jayus_easing_easeOutSine(t) {
 		return Math.sin(t*Math.PI/2);
 	},
 
@@ -211,7 +211,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInOutSine: function jayus_easing_easeInOutSine(t){
+	easeInOutSine: function jayus_easing_easeInOutSine(t) {
 		return 0.5-Math.cos(t*Math.PI)/2;
 	},
 
@@ -221,7 +221,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInExpo: function jayus_easing_easeInExpo(t){
+	easeInExpo: function jayus_easing_easeInExpo(t) {
 		return (t > 0)*Math.pow(2,10*t-10);
 	},
 
@@ -231,7 +231,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeOutExpo: function jayus_easing_easeOutExpo(t){
+	easeOutExpo: function jayus_easing_easeOutExpo(t) {
 		return 1-(t !== 1)*Math.pow(2,-10*t);
 	},
 
@@ -241,8 +241,8 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInOutExpo: function jayus_easing_easeInOutExpo(t){
-		if(!t || t === 1){
+	easeInOutExpo: function jayus_easing_easeInOutExpo(t) {
+		if(!t || t === 1) {
 			return t;
 		}
 		return (t/=0.5) < 1 ? Math.pow(2,10*t-10)/2 : 1-Math.pow(2,10-10*t)/2;
@@ -254,7 +254,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInCirc: function jayus_easing_easeInCirc(t){
+	easeInCirc: function jayus_easing_easeInCirc(t) {
 		return 1-Math.sqrt(1-t*t);
 	},
 
@@ -264,7 +264,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeOutCirc: function jayus_easing_easeOutCirc(t){
+	easeOutCirc: function jayus_easing_easeOutCirc(t) {
 		return Math.sqrt(--t*-t+1);
 	},
 
@@ -274,8 +274,8 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInOutCirc: function jayus_easing_easeInOutCirc(t){
-		if((t/=0.5) < 1){
+	easeInOutCirc: function jayus_easing_easeInOutCirc(t) {
+		if((t/=0.5) < 1) {
 			return -(Math.sqrt(1 - t*t) - 1)/2;
 		}
 		return (Math.sqrt(1 - (t-=2)*t) + 1)/2;
@@ -287,8 +287,8 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInElastic: function jayus_easing_easeInElastic(t){
-		if(!t || t === 1){
+	easeInElastic: function jayus_easing_easeInElastic(t) {
+		if(!t || t === 1) {
 			return t;
 		}
 		var p = 0.3,
@@ -302,8 +302,8 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeOutElastic: function jayus_easing_easeOutElastic(t){
-		if(!t || t === 1){
+	easeOutElastic: function jayus_easing_easeOutElastic(t) {
+		if(!t || t === 1) {
 			return t;
 		}
 		var p = 0.3,
@@ -317,8 +317,8 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInOutElastic: function jayus_easing_easeInOutElastic(t){
-		if(!t || t === 1){
+	easeInOutElastic: function jayus_easing_easeInOutElastic(t) {
+		if(!t || t === 1) {
 			return t;
 		}
 		var p = 0.3*1.5,
@@ -332,7 +332,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInBack: function jayus_easing_easeInBack(t){
+	easeInBack: function jayus_easing_easeInBack(t) {
 		var s = 1.70158;
 		return t*t*(t*(s+1)-s);
 	},
@@ -343,7 +343,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeOutBack: function jayus_easing_easeOutBack(t){
+	easeOutBack: function jayus_easing_easeOutBack(t) {
 		var s = 1.70158;
 		return --t*t*((s+1)*t+s)+1;
 	},
@@ -354,7 +354,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInOutBack: function jayus_easing_easeInOutBack(t){
+	easeInOutBack: function jayus_easing_easeInOutBack(t) {
 		var s = 1.70158;
 		return (t/=0.5) < 1 ? t*t*(((s*=1.525)+1)*t-s)/2 : (t-=2)*t*(((s*=1.525)+1)*t+s)/2+1;
 	},
@@ -365,7 +365,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInBounce: function jayus_easing_easeInBounce(t){
+	easeInBounce: function jayus_easing_easeInBounce(t) {
 		return 1-jayus.easing.easeOutBounce(1-t);
 	},
 
@@ -375,14 +375,14 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeOutBounce: function jayus_easing_easeOutBounce(t){
-		if(t < 1/2.75){
+	easeOutBounce: function jayus_easing_easeOutBounce(t) {
+		if(t < 1/2.75) {
 			return 7.5625*t*t;
 		}
-		if(t < 2/2.75){
+		if(t < 2/2.75) {
 			return 7.5625*(t-=(1.5/2.75))*t+0.75;
 		}
-		if(t < 2.5/2.75){
+		if(t < 2.5/2.75) {
 			return 7.5625*(t-=(2.25/2.75))*t+0.9375;
 		}
 		return 7.5625*(t-=(2.625/2.75))*t+0.984375;
@@ -394,7 +394,7 @@ jayus.easing = {
 	@param {Number} t The percentage of the position of time the animation is at, from 0-1
 	*/
 
-	easeInOutBounce: function jayus_easing_easeInOutBounce(t){
+	easeInOutBounce: function jayus_easing_easeInOutBounce(t) {
 		return t < 0.5 ? jayus.easing.easeInBounce(t*2)/2 : jayus.easing.easeOutBounce(t*2-1)/2+0.5;
 	}
 

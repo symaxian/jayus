@@ -18,17 +18,13 @@
  */
 
 /**
-Defines the Parent mix-ins.
-@file Entity.Group.js
+Defines the abstract Group class.
+@file Group.js
 */
 
 //
 //  jayus.Parent
 //_________________//
-
-//TODO: Group find/search, traverse children for specific child/id
-
-// TODO: Flesh out or remove the clipping region idea.
 
 /*
 
@@ -61,15 +57,6 @@ jayus.Group = {
 	//@ From Entity
 	isParent: true,
 
-	/**
-	Whether or not to propagate cursor events to children.
-	<br> Default is true
-	@property {Boolean} propagateCursor
-	*/
-
-	propagateCursor: true,
-	//#replace jayus.Group.propagateCursor true
-
 	//
 	//  Methods
 	//___________//
@@ -85,19 +72,19 @@ jayus.Group = {
 	@param {String} id
 	*/
 
-	find: function Group_find(id){
+	find: function Group_find(id) {
 		//#ifdef DEBUG
 		jayus.debug.match('Entity.setId', id, 'id', jayus.TYPES.DEFINED);
 		//#end
 		var i, item;
-		for(i=0;i<this.children.items.length;i++){
-			item = this.children.items[i];
-			if(item.id === id){
+		for(i=this.items.length-1;i>=0;i--) {
+			item = this.items[i];
+			if(item.id === id) {
 				return item;
 			}
-			if(item.isParent){
+			if(item.isParent) {
 				item = item.find(id);
-				if(item !== null){
+				if(item !== null) {
 					return item;
 				}
 			}
@@ -114,19 +101,19 @@ jayus.Group = {
 	@param {Boolean} parentsAfter Optional
 	*/
 
-	getAllChildren: function Group_getAllChildren(parentsAfter){
+	getAllChildren: function Group_getAllChildren(parentsAfter) {
 		var i, item, children = [];
-		for(i=0;i<this.children.items.length;i++){
-			item = this.children.items[i];
-			if(item.isParent){
-				if(parentsAfter){
+		for(i=0;i<this.items.length;i++) {
+			item = this.items[i];
+			if(item.isParent) {
+				if(parentsAfter) {
 					children = children.concat(item, item.getAllChildren(parentsAfter));
 				}
-				else{
+				else {
 					children = children.concat(item.getAllChildren(parentsAfter), item);
 				}
 			}
-			else{
+			else {
 				children.push(item);
 			}
 		}
@@ -137,54 +124,30 @@ jayus.Group = {
 		//  Iteration
 		//_____________//
 
-	getChildrenUnderCursor: function Group_getChildrenUnderCursor(){
+	getChildrenUnderCursor: function Group_getChildrenUnderCursor() {
 		var i, ret = [];
-		for(i=0;i<this.children.items.length;i++){
-			if(this.children.items[i].underCursor){
-				ret.push(this.children.items[i]);
+		for(i=0;i<this.items.length;i++) {
+			if(this.items[i].underCursor) {
+				ret.push(this.items[i]);
 			}
 		}
 		return ret;
 	},
 
-	getChildrenAt: function Group_getChildrenAt(x, y){
+	getChildrenAt: function Group_getChildrenAt(x, y) {
 		//#ifdef DEBUG
 		jayus.debug.matchCoordinate('Group.getChildrenAt', x, y);
 		//#end
-		if(arguments.length === 1){
-			y = x.y;
-			x = x.x;
+		if(arguments.length === 1) {
+			return this.getChildrenAt(x.x, x.y);
 		}
 		var i, ret = [];
-		for(i=0;i<this.children.items.length;i++){
-			if(this.children.items[i].intersectsAt(x, y)){
-				ret.push(this.children.items[i]);
+		for(i=0;i<this.items.length;i++) {
+			if(this.items[i].intersectsAt(x, y)) {
+				ret.push(this.items[i]);
 			}
 		}
 		return ret;
-	},
-
-	runOnCursor: function Group_runOnCursor(func, args){
-		//#ifdef DEBUG
-		jayus.debug.match('Group.runOnCursor', func, 'func', jayus.TYPES.FUNCTION);
-		//#end
-		var i, item;
-		// Loop through the children
-		for(i=this.children.items.length-1;i>=0;i--){
-			item = this.children.items[i];
-			// Check if the cursor is over the child
-			if(item.underCursor){
-				// If the child is a parent, run on its children
-				if(item.isParent && item.runOnCursor(func,args)){
-					return true;
-				}
-				// Run the function on the child, return true if cancelled
-				if(func.apply(item,args)){
-					return true;
-				}
-			}
-		}
-		return false;
 	},
 
 	/**
@@ -195,11 +158,26 @@ jayus.Group = {
 	@param {Array} args Optional
 	*/
 
-	forEachChild: function Scene_forEachChild(func,args){
+	forEachChild: function Group_forEachChild(func, args) {
 		//#ifdef DEBUG
-		jayus.debug.match('Scene.forEachChild', func, 'func', jayus.TYPES.FUNCTION);
+		jayus.debug.match('Group.forEachChild', func, 'func', jayus.TYPES.FUNCTION);
 		//#end
 		return this.children.forEach(func, args);
+	},
+
+	/**
+	Calls the given function on every child under the container with the given arguments.
+	<br> The argument array is optional.
+	@method {*} forEveryChild
+	@param {Function} func
+	@param {Array} args Optional
+	*/
+
+	forEveryChild: function Group_forEveryChild(func, args) {
+		//#ifdef DEBUG
+		jayus.debug.match('Group.forEveryChild', func, 'func', jayus.TYPES.FUNCTION);
+		//#end
+		return this.children.forEvery(func, args);
 	},
 
 		//
@@ -214,21 +192,22 @@ jayus.Group = {
 	@param {Object} data Optional
 	*/
 
-	fireOnChildren: function Group_fireOnChildren(event, data){
+	fireOnChildren: function Group_fireOnChildren(event, data) {
 		//#ifdef DEBUG
 		jayus.debug.match('Group.fireOnChildren', event, 'event', jayus.TYPES.STRING);
 		//#end
 		// Loop through the children
-		var i, item;
-		// for(var item,i=this.children.items.length-1;i>=0;i--){
-		for(i=0;i<this.children.items.length;i++){
-			item = this.children.items[i];
+		var i, item,
+			items = this.items;
+		// for(var item,i=items.length-1;i>=0;i--) {
+		for(i=0;i<items.length;i++) {
+			item = items[i];
 			// If the child is a parent, fire on its children
-			if(item.isParent && item.fireOnChildren(event, data)){
+			if(item.isParent && item.fireOnChildren(event, data)) {
 				return true;
 			}
 			// Fire the event on the child, return true if cancelled
-			if(item.fire(event, data)){
+			if(item.fire(event, data)) {
 				return true;
 			}
 		}
@@ -243,23 +222,24 @@ jayus.Group = {
 	@param {Object} data Optional
 	*/
 
-	fireOnCursor: function Group_fireOnCursor(event, data){
+	fireOnCursor: function Group_fireOnCursor(event, data) {
 		//#ifdef DEBUG
 		jayus.debug.match('Group.fireOnCursor', event, 'event', jayus.TYPES.STRING);
 		//#end
 		// Loop through the children
-		var i, item;
-		for(i=this.children.items.length-1;i>=0;i--){
-		// for(;i<this.children.items.length;i++){
-			item = this.children.items[i];
+		var i, item,
+			items = this.items;
+		for(i=items.length-1;i>=0;i--) {
+		// for(;i<items.length;i++) {
+			item = items[i];
 			// Check if the cursor is over the child
-			if(item.underCursor){
+			if(item.underCursor) {
 				// If the child is a parent, fire on its children
-				if(item.isParent && item.fireOnCursor(event, data)){
+				if(item.isParent && item.fireOnCursor(event, data)) {
 					return true;
 				}
 				// Fire the event on the child, return true if cancelled
-				if(item.fire(event, data)){
+				if(item.fire(event, data)) {
 					return true;
 				}
 			}
@@ -272,51 +252,56 @@ jayus.Group = {
 		//__________//
 
 	/*
-	Used internally to update the known cursor position.
-	<br> Used to propagate the cursorMove event through the scenegraph, firing the cursorOver and cursorOut events if applicable.
+	Whether or not to propagate cursor events to children.
+	<br> Default is true
+	@property {Boolean} propagateCursor
+	*/
+
+	//@ Hidden
+	propagateCursor: false,
+	//#replace jayus.Group.propagateCursor true
+
+	/*
+	Used internally to propagate cursor movement to child entities.
+	<br> Fires the cursorOver and cursorOut events if applicable.
+	<br> The coordinate sent is expected to be in local space.
 	@method updateCursorOnChildren
 	@param {Number} x
 	@param {Number} y
 	*/
 
-	updateCursorOnChildren: function Group_updateCursorOnChildren(x, y){
-		var pos, i, item;
-		if(this.propagateCursor){
-			// Translate point from parent to local coordinate space
-			pos = this.parentToLocal(x, y);
-			// if(this.isTransformed){
-			// 	pos = this.getMatrix().inverseTransformPoint(pos.x, pos.y);
-			// }
-			x = pos.x;
-			y = pos.y;
-			// this.localX = x;
-			// this.localY = y;
-			// Loop through the children
-			for(i=this.children.items.length-1;i>=0;i--){
-			// for(i=0;i<this.children.items.length;i++){
-				item = this.children.items[i];
-				if(item.trackCursor){
-					item.updateCursor(x, y);
-				}
+	updateCursorOnChildren: function Group_updateCursorOnChildren(x, y) {
+		var i, item,
+			items = this.items;
+		if(this.contentsOriginX !== undefined) {
+			x -= this.contentsOriginX;
+			y -= this.contentsOriginY;
+		}
+		// Loop through the children
+		for(i=items.length-1;i>=0;i--) {
+		// for(i=0;i<items.length;i++) {
+			item = items[i];
+			if(item.trackCursor) {
+				item.updateCursor(x, y);
 			}
 		}
 	},
 
-	findCursorAcceptor: function Group_findCursorAcceptor(){
+	findCursorAcceptor: function Group_findCursorAcceptor() {
 		var i, item, acceptor;
-		for(i=this.children.items.length-1;i>=0;i--){
-			item = this.children.items[i];
-			if(item.underCursor){
-				if(item.isParent){
+		for(i=this.items.length-1;i>=0;i--) {
+			item = this.items[i];
+			if(item.underCursor) {
+				if(item.isParent) {
 					acceptor = item.findCursorAcceptor();
-					if(acceptor !== null){
+					if(acceptor !== null) {
 						return acceptor;
 					}
-					if(item.canAcceptCursor){
+					if(item.canAcceptCursor) {
 						return item;
 					}
 				}
-				else if(item.canAcceptCursor){
+				else if(item.canAcceptCursor) {
 					return item;
 				}
 			}
@@ -329,19 +314,39 @@ jayus.Group = {
 	@method removeCursorFromChildren
 	*/
 
-	removeCursorFromChildren: function Group_removeCursorFromChildren(){
+	removeCursorFromChildren: function Group_removeCursorFromChildren() {
 		// Loop through the children
-		var i, item;
-		for(i=0;i<this.children.items.length;i++){
-			item = this.children.items[i];
+		var i, item,
+			items = this.items;
+		for(i=0;i<items.length;i++) {
+			item = items[i];
 			// Check if the child has the cursor
-			if(item.underCursor){
+			if(item.underCursor) {
 				// Clear the cursor flag and fire the cursorOut event
 				item.underCursor = false;
 				item.fire('cursorOut');
 				// If its a group, call the removeCursorFromChildren() method
-				if(item.isParent){
+				if(item.isParent) {
 					item.removeCursorFromChildren();
+				}
+			}
+		}
+	},
+
+	/*
+	Used internally for children to tell their parents that they need to propagate the cursor.
+	@method childCursorTrackingChanged
+	@param {Entity} child
+	@param {Boolean} trackCursor
+	*/
+
+	childCursorTrackingChanged: function Group_childCursorTrackingChanged(child, trackCursor) {
+		if(trackCursor) {
+			this.propagateCursor = true;
+			if(!this.trackCursor) {
+				this.trackCursor = true;
+				if(this.parent !== null) {
+					this.parent.childCursorTrackingChanged(this, true);
 				}
 			}
 		}

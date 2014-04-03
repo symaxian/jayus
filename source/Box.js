@@ -18,7 +18,7 @@
  */
 
 /**
-Defines the hBox and vBox Entities.
+Defines the hBox and vBox entities.
 @file Box.js
 */
 
@@ -33,13 +33,6 @@ Base class for the hBox and vBox entities.
 @extends jayus.RectEntity
 @extends jayus.Group
 */
-
-// Notes:
-
-		// Setting default policies
-		// TODO: Find a better way:
-		//		Add onto child when added, requires code duplication
-		//		Use default if not there, requires lots of type checking
 
 jayus.Box = jayus.RectEntity.extend({
 
@@ -83,30 +76,28 @@ jayus.Box = jayus.RectEntity.extend({
 		//  Initiation
 		//______________//
 
-	init: function Box_init(object) {
+	init: function Box(object) {
 		jayus.Entity.prototype.init.apply(this,arguments);
 		this.children = new jayus.List(this);
+		this.items = this.children.items;
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
 		//#end
-		this.addHandler('dirty', function Box_dirtyHandler(type){
-			if(type & jayus.DIRTY.SIZE){
+		this.addHandler('dirty', function Box_dirtyHandler(type) {
+			if(type & jayus.DIRTY.SIZE) {
 				this.formContents();
 			}
 		});
-		if (arguments.length) {
-			this.initFromObject(object);
-		}
 	},
 
 	toObject: function Box_toObject() {
 		var object = jayus.RectEntity.prototype.toObject.call(this);
 		jayus.groupToObject.call(this, object);
 		object.id = '__Box__';
-		if (this.spacing !== jayus.Box.prototype.spacing) {
+		if(this.spacing !== jayus.Box.prototype.spacing) {
 			object.spacing = this.spacing;
 		}
-		if (this.reversed !== jayus.Box.prototype.reversed) {
+		if(this.reversed !== jayus.Box.prototype.reversed) {
 			object.reversed = this.reversed;
 		}
 		return object;
@@ -115,10 +106,10 @@ jayus.Box = jayus.RectEntity.extend({
 	initFromObject: function Box_initFromObject(object) {
 		jayus.RectEntity.prototype.initFromObject.call(this, object);
 		jayus.groupInitFromObject.call(this, object);
-		if (typeof object.spacing === 'number') {
+		if(typeof object.spacing === 'number') {
 			this.setSpacing(object.spacing);
 		}
-		if (typeof object.reversed === 'boolean') {
+		if(typeof object.reversed === 'boolean') {
 			this.setReversed(object.reversed);
 		}
 		return this.dirty(jayus.DIRTY.ALL);
@@ -128,33 +119,14 @@ jayus.Box = jayus.RectEntity.extend({
 		//  Children
 		//____________//
 
-	componentDirtied: function Box_componentDirtied(component, type){
-		if(!this.forming){
+	componentDirtied: function Box_componentDirtied(component, type) {
+		if(!this.forming) {
 			this.dirty(jayus.DIRTY.ALL);
 		}
 	},
 
-	listItemAdded: function Box_listItemAdded(list, item){
-		item.setParent(this);
-		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	listItemsAdded: function Box_listItemsAdded(list, items){
-		for(var i=0;i<items.length;i++){
-			items[i].setParent(this);
-		}
-		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	listItemRemoved: function Box_listItemRemoved(list, item){
+	listItemRemoved: function Box_listItemRemoved(list, item) {
 		item.removeParent();
-		this.dirty(jayus.DIRTY.ALL);
-	},
-
-	listItemsRemoved: function Box_listItemsRemoved(list, items){
-		for(var i=0;i<items.length;i++){
-			items[i].removeParent();
-		}
 		this.dirty(jayus.DIRTY.ALL);
 	},
 
@@ -168,11 +140,11 @@ jayus.Box = jayus.RectEntity.extend({
 	@param {Boolean} on
 	*/
 
-	setReversed: function Box_setReversed(on){
+	setReversed: function Box_setReversed(on) {
 		//#ifdef DEBUG
 		jayus.debug.match('Box.setReversed', on, 'on', jayus.TYPES.BOOLEAN);
 		//#end
-		if(this.reversed !== on){
+		if(this.reversed !== on) {
 			this.reversed = on;
 			this.formContents();
 		}
@@ -190,11 +162,11 @@ jayus.Box = jayus.RectEntity.extend({
 	@param {Number} spacing
 	*/
 
-	setSpacing: function Box_setSpacing(spacing){
+	setSpacing: function Box_setSpacing(spacing) {
 		//#ifdef DEBUG
 		jayus.debug.match('Box.setSpacing', spacing, 'spacing', jayus.TYPES.NUMBER);
 		//#end
-		if(this.spacing !== spacing){
+		if(this.spacing !== spacing) {
 			this.spacing = spacing;
 			this.formContents();
 		}
@@ -205,20 +177,20 @@ jayus.Box = jayus.RectEntity.extend({
 		//  Bounds
 		//__________//
 
-	findGreatestMinimalChildWidth: function Box_findGreatestMinimalChildWidth(){
+	findGreatestMinimalChildWidth: function Box_findGreatestMinimalChildWidth() {
 		var width = 0;
 		//Loop through every child, keeping track of the greatest requested width.
-		for(var i=0;i<this.children.items.length;i++){
-			width = Math.max(width, this.children.items[i].minW);
+		for(var i=0;i<this.items.length;i++) {
+			width = Math.max(width, this.items[i].minW);
 		}
 		return width;
 	},
 
-	findGreatestMinimalChildHeight: function Box_findGreatestMinimalChildHeight(){
+	findGreatestMinimalChildHeight: function Box_findGreatestMinimalChildHeight() {
 		var height = 0;
 		//Loop through every child, keeping track of the greatest requested height.
-		for(var i=0;i<this.children.items.length;i++){
-			height = Math.max(height, this.children.items[i].minH);
+		for(var i=0;i<this.items.length;i++) {
+			height = Math.max(height, this.items[i].minH);
 		}
 		return height;
 	},
@@ -247,61 +219,81 @@ jayus.hBox = jayus.Box.extend({
 
 	toObject: function hBox_toObject() {
 		var object = jayus.Box.prototype.toObject.call(this);
-		object.id = '__hBox__';
+		object.type = 'hBox';
 		return object;
 	},
 
-	formContents: function hBox_formContents(){
+	listItemAdded: function hBox_listItemAdded(list, item) {
+		// Give the item a blank width policy
+		if(typeof item.widthPolicy !== 'object') {
+			item.widthPolicy = new jayus.SizePolicy();
+		}
+		item.setParent(this);
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	listItemsAdded: function hBox_listItemsAdded(list, items) {
+		var i, item;
+		for(i=0;i<items.length;i++) {
+			item = items[i];
+			// Give the item a blank width policy
+			if(typeof item.widthPolicy !== 'object') {
+				item.widthPolicy = new jayus.SizePolicy();
+			}
+			item.setParent(this);
+		}
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	formContents: function hBox_formContents() {
 
 		this.forming = true;
 
 		var i, item,
 			x = 0,
-			space = this.width-(this.children.items.length-1)*this.spacing,
+			space = this.width-(this.items.length-1)*this.spacing,
 			totalWeight = 0,
 			totalFixedSize = 0,
-			itemWidth, itemHeight;
+			itemWidth, itemHeight,
+			minW,
+			minH;
 
 		// Tally up all the weights, fixed space, and extra space
 
-		for(i=0;i<this.children.items.length;i++){
-			item = this.children.items[i];
-			// Give the item the default size policy
-			if(typeof item.policy !== 'object'){
-				item.policy = new jayus.SizePolicy();
-			}
-			if(item.hasFlexibleWidth){
-				totalFixedSize += item.policy.size;
-				if(item.policy.expand){
-					totalWeight += item.policy.weight;
+		for(i=0;i<this.items.length;i++) {
+			item = this.items[i];
+			if(item.hasFlexibleWidth) {
+				totalFixedSize += item.widthPolicy.size;
+				if(item.widthPolicy.expand) {
+					totalWeight += item.widthPolicy.weight;
 				}
 			}
-			else{
+			else {
 				totalFixedSize += item.width;
 			}
 		}
 
 		var extraSpace = space-totalFixedSize;
 
-		for(i=0;i<this.children.items.length;i++){
-			item = this.children.items[i];
+		for(i=0;i<this.items.length;i++) {
+			item = this.items[i];
 			// Get the height
-			if(item.hasFlexibleHeight){
+			if(item.hasFlexibleHeight) {
 				itemHeight = this.height;
 			}
-			else{
+			else {
 				itemHeight = item.height;
 			}
 			// Get the width
-			if(item.hasFlexibleWidth){
-				if(item.policy.expand){
-					itemWidth = item.policy.size+extraSpace*(item.policy.weight/totalWeight);
+			if(item.hasFlexibleWidth) {
+				if(item.widthPolicy.expand) {
+					itemWidth = item.widthPolicy.size+extraSpace*(item.widthPolicy.weight/totalWeight);
 				}
-				else{
-					itemWidth = item.policy.size;
+				else {
+					itemWidth = item.widthPolicy.size;
 				}
 			}
-			else{
+			else {
 				itemWidth = item.width;
 			}
 			item.x = x;
@@ -314,6 +306,33 @@ jayus.hBox = jayus.Box.extend({
 			// item.height = itemHeight;
 			// item.frozen++;
 
+		}
+
+		// Find out our minimum width/height
+		// This must be done AFTER all the previous forming
+
+		minW = -this.spacing;
+		minH = 0;
+		for(i=0;i<this.items.length;i++) {
+			item = this.items[i];
+			if(typeof item.minWidth === 'number') {
+				minW += item.minWidth;
+			}
+			minW += this.spacing;
+			if(typeof item.minHeight === 'number' && item.minHeight > minH) {
+				minH = item.minHeight;
+			}
+		}
+
+		this.minWidth = minW;
+		this.minHeight = minH;
+
+		if(this.width < this.minWidth) {
+			this.changeSize(this.minWidth, this.height);
+		}
+
+		if(this.height < this.minHeight) {
+			this.changeSize(this.width, this.minHeight);
 		}
 
 		this.forming = false;
@@ -340,61 +359,82 @@ jayus.vBox = jayus.Box.extend({
 
 	toObject: function vBox_toObject() {
 		var object = jayus.Box.prototype.toObject.call(this);
-		object.id = '__vBox__';
+		object.type = 'vBox';
 		return object;
 	},
 
-	formContents: function vBox_formContents(){
+	listItemAdded: function vBox_listItemAdded(list, item) {
+		// Give the item a blank height policy
+		if(typeof item.heightPolicy !== 'object') {
+			item.heightPolicy = new jayus.SizePolicy();
+		}
+		item.setParent(this);
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	listItemsAdded: function vBox_listItemsAdded(list, items) {
+		var i, item;
+		for(i=0;i<items.length;i++) {
+			item = items[i];
+			// Give the item a blank width policy
+			if(typeof item.heightPolicy !== 'object') {
+				item.heightPolicy = new jayus.SizePolicy();
+			}
+			item.setParent(this);
+		}
+		this.dirty(jayus.DIRTY.ALL);
+	},
+
+	formContents: function vBox_formContents() {
+
+		if(this.forming) return;
 
 		this.forming = true;
 
 		var i, item,
 			y = 0,
-			space = this.height-(this.children.items.length-1)*this.spacing,
+			space = this.height-(this.items.length-1)*this.spacing,
 			totalWeight = 0,
 			totalFixedSize = 0,
-			itemWidth, itemHeight;
+			itemWidth, itemHeight,
+			minW, minH;
 
 		// Tally up all the weights, fixed space, and extra space
 
-		for(i=0;i<this.children.items.length;i++){
-			item = this.children.items[i];
-			// Set the default policy
-			if(typeof item.heightPolicy !== 'object'){
-				item.heightPolicy = new jayus.SizePolicy();
-			}
-			if(item.hasFlexibleHeight){
+		for(i=0;i<this.items.length;i++) {
+			item = this.items[i];
+			if(item.heightPolicy.flexible) {
 				totalFixedSize += item.heightPolicy.size;
-				if(item.heightPolicy.expand){
+				if(item.heightPolicy.expand) {
 					totalWeight += item.heightPolicy.weight;
 				}
 			}
-			else{
+			else {
 				totalFixedSize += item.height;
 			}
 		}
 
 		var extraSpace = space-totalFixedSize;
 
-		for(i=0;i<this.children.items.length;i++){
-			item = this.children.items[i];
+		for(i=0;i<this.items.length;i++) {
+			item = this.items[i];
 			// Get the width
-			if(item.hasFlexibleWidth){
+			// if(item.widthPolicy.flexible) {
 				itemWidth = this.width;
-			}
-			else{
-				itemWidth = item.width;
-			}
+			// }
+			// else {
+			// 	itemWidth = item.width;
+			// }
 			// Get the height
-			if(item.hasFlexibleHeight){
-				if(item.heightPolicy.expand){
+			if(item.heightPolicy.flexible) {
+				if(item.heightPolicy.expand) {
 					itemHeight = item.heightPolicy.size+extraSpace*(item.heightPolicy.weight/totalWeight);
 				}
-				else{
+				else {
 					itemHeight = item.heightPolicy.size;
 				}
 			}
-			else{
+			else {
 				itemHeight = item.height;
 			}
 			item.y = y;
@@ -402,8 +442,35 @@ jayus.vBox = jayus.Box.extend({
 			// Set the item size
 			// item.setSize(itemWidth, itemHeight);
 			// item.frozen--;
-			item.changeSize(itemWidth, itemHeight);
+			item.setSize(itemWidth, itemHeight);
 			// item.frozen++;
+		}
+
+		// Find out our minimum width/height
+		// This must be done AFTER all the previous forming
+
+		minW = 0;
+		minH = -this.spacing;
+		for(i=0;i<this.items.length;i++) {
+			item = this.items[i];
+			minH += this.spacing;
+			if(typeof item.minWidth === 'number' && item.minWidth > minH) {
+				minW = item.minWidth;
+			}
+			if(typeof item.minHeight === 'number') {
+				minH += item.minHeight;
+			}
+		}
+
+		this.minWidth = minW;
+		this.minHeight = minH;
+
+		if(this.width < this.minWidth) {
+			this.changeSize(this.minWidth, this.height);
+		}
+
+		if(this.height < this.minHeight) {
+			this.changeSize(this.width, this.minHeight);
 		}
 
 		this.forming = false;

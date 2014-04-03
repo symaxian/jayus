@@ -43,7 +43,7 @@ Contains styling information to describe how entities will draw their components
 			+ Allows for flexibility
 				Custom brushes
 				Nested brushes?
-			+ Can gain small performance boost from using fillRect/strokeRect
+			+ May gain small performance boost from using fillRect/strokeRect rather than fill/stroke
 			-- Must account for too many variations
 		The dealbreaker ended up being painting text
 			The brush would either have to loop over the lines of text itself(which would be hard to make abstract, would have to know metrics)
@@ -57,8 +57,6 @@ jayus.Brush = jayus.Dependency.extend({
 	//
 	//  Properties
 	//______________//
-
-	componentType: 'BRUSH',
 
 		// Meta
 
@@ -230,17 +228,17 @@ jayus.Brush = jayus.Dependency.extend({
 	//  Methods
 	//___________//
 
-	init: function Brush_init(styling){
+	init: function Brush(styling) {
 		// Apply the sent properties
-		if(arguments.length){
+		if(arguments.length) {
 			//#ifdef DEBUG
-			jayus.debug.match('Brush.init', styling, 'styling', jayus.TYPES.OBJECT);
+			jayus.debug.match('Brush', styling, 'styling', jayus.TYPES.OBJECT);
 			//#end
 			this.apply(styling);
 		}
 	},
 
-	componentDirtied: function Brush_componentDirtied(component, type){
+	componentDirtied: function Brush_componentDirtied(component, type) {
 		this.dirty(jayus.DIRTY.STYLE);
 	},
 
@@ -248,12 +246,12 @@ jayus.Brush = jayus.Dependency.extend({
 		var object = {};
 		object.type = 'Brush';
 		var i, key, val, valType;
-		for (i=0;i<jayus.Brush.prototype.properties.names.length;i++) {
+		for(i=0;i<jayus.Brush.prototype.properties.names.length;i++) {
 			key = jayus.Brush.prototype.properties.names[i];
 			val = object[key];
 			valType = typeof val;
-			if (val !== jayus.Brush.prototype[key]) {
-				if (valType === 'object') {
+			if(val !== jayus.Brush.prototype[key]) {
+				if(valType === 'object') {
 					val = val.toObject();
 				}
 				object[key] = val;
@@ -262,7 +260,6 @@ jayus.Brush = jayus.Dependency.extend({
 		return object;
 	},
 
-	//@ From Parsable
 	initFromObject: function Brush_initFromObject(object) {
 		//#ifdef DEBUG
 		jayus.debug.match('Brush.initFromObject', object, 'object', jayus.TYPES.OBJECT);
@@ -270,17 +267,17 @@ jayus.Brush = jayus.Dependency.extend({
 		// Apply parent properties
 		jayus.Dependency.prototype.initFromObject.call(this, object);
 		// Apply our own properties
-		this.frozen++;
+		this.ignoreDirty++;
 		var i, key, val, valType;
-		for (i=0;i<jayus.Brush.prototype.properties.names.length;i++) {
+		for(i=0;i<jayus.Brush.prototype.properties.names.length;i++) {
 			key = jayus.Brush.prototype.properties.names[i];
 			val = object[key];
 			valType = typeof val;
-			if (valType !== 'undefined') {
-				if (valType === 'object') {
+			if(valType !== 'undefined') {
+				if(valType === 'object') {
 					val = jayus.parse(val);
 				}
-				if (key === 'fill') {
+				if(key === 'fill') {
 					this.setFill(val);
 				}
 				else if(key === 'stroke') {
@@ -294,7 +291,7 @@ jayus.Brush = jayus.Dependency.extend({
 				}
 			}
 		}
-		this.frozen--;
+		this.ignoreDirty--;
 		// Set as dirty
 		this.dirty(jayus.DIRTY.ALL);
 	},
@@ -305,17 +302,17 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {Object} styling
 	*/
 
-	apply: function Brush_apply(styling){
+	apply: function Brush_apply(styling) {
 		//#ifdef DEBUG
 		jayus.debug.match('Brush.apply', styling, 'styling', jayus.TYPES.OBJECT);
 		//#end
-		this.frozen++;
-		for(var key in styling){
-			if(styling.hasOwnProperty(key)){
+		this.ignoreDirty++;
+		for(var key in styling) {
+			if(styling.hasOwnProperty(key)) {
 				//#ifdef DEBUG
-				if(typeof this['set'+key[0].toUpperCase()+key.slice(1)] !== 'function'){
+				if(typeof this['set'+key[0].toUpperCase()+key.slice(1)] !== 'function') {
 					var msg = 'Brush.apply() - Unknown property "'+key+'" present in styling object sent';
-					if(key === 'shadowColor'){
+					if(key === 'shadowColor') {
 						msg += ', did you mean to set the "shadow" property?';
 					}
 					console.warn(msg);
@@ -325,32 +322,31 @@ jayus.Brush = jayus.Dependency.extend({
 				this['set'+key[0].toUpperCase()+key.slice(1)](styling[key]);
 			}
 		}
-		this.frozen--;
-		this.dirty(jayus.DIRTY.STYLE);
-		return this;
+		this.ignoreDirty--;
+		return this.dirty(jayus.DIRTY.STYLE);
 	},
 
 	// Define a helper function
-	findStyleType: function Brush_findStyleType(style){
-		if(style === null){
+	findStyleType: function Brush_findStyleType(style) {
+		if(style === null) {
 			return 0;
 		}
-		if(typeof style === 'string'){
+		if(typeof style === 'string') {
 			return 1;
 		}
-		if(style instanceof CanvasGradient){
+		if(style instanceof CanvasGradient) {
 			return 2;
 		}
-		if(style instanceof CanvasPattern){
+		if(style instanceof CanvasPattern) {
 			return 3;
 		}
-		if(style instanceof jayus.Color){
+		if(style instanceof jayus.Color) {
 			return 4;
 		}
-		if(style instanceof jayus.LinearGradient){
+		if(style instanceof jayus.LinearGradient) {
 			return 5;
 		}
-		if(style instanceof jayus.RadialGradient){
+		if(style instanceof jayus.RadialGradient) {
 			return 6;
 		}
 		//#ifdef DEBUG
@@ -359,18 +355,18 @@ jayus.Brush = jayus.Dependency.extend({
 	},
 
 	// A helper function
-	getNativeStyle: function Brush_getNativeStyle(type, style){
-		if(type <= 3){
+	getNativeStyle: function Brush_getNativeStyle(type, style) {
+		if(type <= 3) {
 			// 0: CSS Color String
 			// 1: CanvasGradient
 			// 2: CanvasPattern
 			return style;
 		}
-		if(type === 4){
+		if(type === 4) {
 			// 4: jayus.Color
 			return style.toCSS();
 		}
-		if(type === 5 || type === 6){
+		if(type === 5 || type === 6) {
 			// 5: jayus.LinearGradient
 			// 6: jayus.RadialGradient
 			return style.getNative();
@@ -386,72 +382,70 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {Context} ctx
 	*/
 
-	applyTo: function Brush_applyTo(ctx){
+	applyTo: function Brush_applyTo(ctx) {
 
 		// Apply the alpha
-		if(this.alpha !== 1){
+		if(this.alpha !== 1) {
 			ctx.globalAlpha *= this.alpha;
 		}
 
 		// filling
-		if(this.filling){
+		if(this.filling) {
 			// fillStyle
 			ctx.fillStyle = this.getNativeStyle(this.fillType, this.fill);
 		}
 
 		// stroking
-		if(this.stroking){
+		if(this.stroking) {
 			// strokeStyle
 			ctx.strokeStyle = this.getNativeStyle(this.strokeType, this.stroke);
 			// Stroke properties
-			if(this.lineWidth !== null){
+			if(this.lineWidth !== null) {
 				ctx.lineWidth = this.lineWidth;
 			}
-			if(this.lineCap !== null){
+			if(this.lineCap !== null) {
 				ctx.lineCap = this.lineCap;
 			}
-			if(this.lineJoin !== null){
+			if(this.lineJoin !== null) {
 				ctx.lineJoin = this.lineJoin;
 			}
-			if(this.miterLimit !== null){
+			if(this.miterLimit !== null) {
 				ctx.miterLimit = this.miterLimit;
 			}
 			// Line dashing, if supported
-			if(this.lineDash !== null && jayus.ua.lineDash){
+			if(this.lineDash !== null && jayus.ua.lineDash) {
 				ctx.setLineDash(this.lineDash);
-				if(this.lineDashOffset !== null){
+				if(this.lineDashOffset !== null) {
 					ctx.lineDashOffset = this.lineDashOffset;
 				}
 			}
 		}
 
 		// shadows
-		if(this.shadowType){
+		if(this.shadowType) {
 			// shadowColor
-			if(this.shadowType === 1){
+			if(this.shadowType === 1) {
 				ctx.shadowColor = this.shadow;
 			}
-			else if(this.shadowType === 2){
+			else if(this.shadowType === 2) {
 				ctx.shadowColor = this.shadow.toCSS();
 			}
 			//#ifdef DEBUG
-			else{
+			else {
 				throw new Error('Style.applyTo() - Invalid shadow type identifier: '+jayus.debug.toString(this.shadowType));
 			}
 			//#end
 			// Shadow properties
-			if(this.shadowOffsetX !== null){
+			if(this.shadowOffsetX !== null) {
 				ctx.shadowOffsetX = this.shadowOffsetX;
 			}
-			if(this.shadowOffsetY !== null){
+			if(this.shadowOffsetY !== null) {
 				ctx.shadowOffsetY = this.shadowOffsetY;
 			}
-			if(this.shadowBlur !== null){
+			if(this.shadowBlur !== null) {
 				ctx.shadowBlur = this.shadowBlur;
 			}
 		}
-
-
 
 	},
 
@@ -462,19 +456,19 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {Context} ctx
 	*/
 
-	paintShape: function Brush_paintShape(ctx){
+	paintShape: function Brush_paintShape(ctx) {
 		// Apply my styling
 		this.applyTo(ctx);
 		// Check if stroking first
-		if(this.stroking && this.strokeFirst){
+		if(this.stroking && this.strokeFirst) {
 			ctx.stroke();
 		}
 		// Fill the shape
-		if(this.filling){
+		if(this.filling) {
 			ctx.fill();
 		}
 		// Check if stroking last
-		if(this.stroking && !this.strokeFirst){
+		if(this.stroking && !this.strokeFirst) {
 			ctx.stroke();
 		}
 	},
@@ -490,20 +484,20 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {Number} height
 	*/
 
-	paintRect: function Brush_paintRect(ctx, x, y, width, height){
+	paintRect: function Brush_paintRect(ctx, x, y, width, height) {
 		// Save the context and apply the styling
 		ctx.save();
 		this.applyTo(ctx);
 		// Check if stroking first
-		if(this.stroking && this.strokeFirst){
+		if(this.stroking && this.strokeFirst) {
 			ctx.strokeRect(x, y, width, height);
 		}
 		// Fill the shape
-		if(this.filling){
+		if(this.filling) {
 			ctx.fillRect(x, y, width, height);
 		}
 		// Check if stroking last
-		if(this.stroking && !this.strokeFirst){
+		if(this.stroking && !this.strokeFirst) {
 			ctx.strokeRect(x, y, width, height);
 		}
 		// Restore the context
@@ -521,16 +515,16 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {Number} alpha
 	*/
 
-	setAlpha: function Brush_setAlpha(alpha){
+	setAlpha: function Brush_setAlpha(alpha) {
 		//#ifdef DEBUG
-		if(alpha !== null){
+		if(alpha !== null) {
 			jayus.debug.match('Brush.setAlpha', alpha, 'alpha', jayus.TYPES.NUMBER);
 		}
 		//#end
-		if(alpha === null){
+		if(alpha === null) {
 			alpha = 1;
 		}
-		if(this.alpha !== alpha){
+		if(this.alpha !== alpha) {
 			this.alpha = alpha;
 			this.dirty(jayus.DIRTY.STYLE);
 		}
@@ -544,30 +538,29 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {*} style
 	*/
 
-	setFill: function Brush_setFill(style){
+	setFill: function Brush_setFill(style) {
 		//#ifdef DEBUG
-		if(style !== null){
+		if(style !== null) {
 			jayus.debug.match('Brush.setFill', style, 'style', jayus.TYPES.DEFINED);
 		}
 		//#end
 		// If the old style was a Dependency, detach self
-		if(this.fillType >= 4){
+		if(this.fillType >= 4) {
 			this.fill.detach(this);
 		}
 		// Check if we need to turn it form an object to an entity
-		if (typeof style === 'object' && typeof style.type === 'string') {
-			style = jayus.fromObject(style);
+		if(typeof style === 'object' && style !== null && typeof style.type === 'string') {
+			style = jayus.parse(style);
 		}
 		// Set the new style and type
 		this.fill = style;
 		this.fillType = this.findStyleType(style);
 		// If the new style is a Dependency, attach self
-		if(this.fillType >= 4){
+		if(this.fillType >= 4) {
 			this.fill.attach(this);
 		}
 		this.filling = !!this.fillType;
-		this.dirty(jayus.DIRTY.STYLE);
-		return this;
+		return this.dirty(jayus.DIRTY.STYLE);
 	},
 
 	/**
@@ -577,30 +570,32 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {*} style
 	*/
 
-	setStroke: function Brush_setStroke(style){
+	setStroke: function Brush_setStroke(style) {
 		//#ifdef DEBUG
-		if(style !== null){
+		if(style !== null) {
 			jayus.debug.match('Brush.setStroke', style, 'style', jayus.TYPES.DEFINED);
 		}
 		//#end
-		// If the old style was a Dependency, detach self
-		if(this.strokeType >= 4){
-			this.stroke.detach(this);
-		}
-		// Check if we need to turn it form an object to an entity
-		if (typeof style === 'object' && typeof style.type === 'string') {
-			style = jayus.fromObject(style);
-		}
-		// Set the new style and type
-		this.stroke = style;
-		this.strokeType = this.findStyleType(style);
-		// If the new style is a Dependency, attach self
-		if(this.strokeType >= 4){
-			this.stroke.attach(this);
-		}
-		this.stroking = !!this.strokeType;
-		this.dirty(jayus.DIRTY.STYLE);
-		return this;
+		// if(this.stroke !== style) {
+			// If the old style was a Dependency, detach self
+			if(this.strokeType >= 4) {
+				this.stroke.detach(this);
+			}
+			// Check if we need to turn it form an object to an entity
+			if(typeof style === 'object' && style !== null && typeof style.type === 'string') {
+				style = jayus.parse(style);
+			}
+			// Set the new style and type
+			this.stroke = style;
+			this.strokeType = this.findStyleType(style);
+			// If the new style is a Dependency, attach self
+			if(this.strokeType >= 4) {
+				this.stroke.attach(this);
+			}
+			this.stroking = !!this.strokeType;
+			return this.dirty(jayus.DIRTY.STYLE);
+		// }
+		// return this;
 	},
 
 	/**
@@ -610,13 +605,13 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {Number} lineWidth
 	*/
 
-	setLineWidth: function Brush_setLineWidth(lineWidth){
+	setLineWidth: function Brush_setLineWidth(lineWidth) {
 		//#ifdef DEBUG
-		if(lineWidth !== null){
+		if(lineWidth !== null) {
 			jayus.debug.match('Brush.setLineWidth', lineWidth, 'lineWidth', jayus.TYPES.NUMBER);
 		}
 		//#end
-		if(this.lineWidth !== lineWidth){
+		if(this.lineWidth !== lineWidth) {
 			this.lineWidth = lineWidth;
 			this.dirty(jayus.DIRTY.STYLE);
 		}
@@ -630,13 +625,13 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {String} lineCap
 	*/
 
-	setLineCap: function Brush_setLineCap(lineCap){
+	setLineCap: function Brush_setLineCap(lineCap) {
 		//#ifdef DEBUG
-		if(lineCap !== null){
+		if(lineCap !== null) {
 			jayus.debug.match('Brush.setLineCap', lineCap, 'lineCap');
 		}
 		//#end
-		if(this.lineCap !== lineCap){
+		if(this.lineCap !== lineCap) {
 			this.lineCap = lineCap;
 			this.dirty(jayus.DIRTY.STYLE);
 		}
@@ -650,13 +645,13 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {String} lineJoin
 	*/
 
-	setLineJoin: function Brush_setLineJoin(lineJoin){
+	setLineJoin: function Brush_setLineJoin(lineJoin) {
 		//#ifdef DEBUG
-		if(lineJoin !== null){
+		if(lineJoin !== null) {
 			jayus.debug.match('Brush.setLineJoin', lineJoin, 'lineJoin', jayus.TYPES.STRING);
 		}
 		//#end
-		if(this.lineJoin !== lineJoin){
+		if(this.lineJoin !== lineJoin) {
 			this.lineJoin = lineJoin;
 			this.dirty(jayus.DIRTY.STYLE);
 		}
@@ -670,13 +665,13 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {Number} miterLimit
 	*/
 
-	setMiterLimit: function Brush_setMiterLimit(miterLimit){
+	setMiterLimit: function Brush_setMiterLimit(miterLimit) {
 		//#ifdef DEBUG
-		if(miterLimit !== null){
+		if(miterLimit !== null) {
 			jayus.debug.match('Brush.setMiterLimit', miterLimit, 'miterLimit', jayus.TYPES.STRING);
 		}
 		//#end
-		if(this.miterLimit !== miterLimit){
+		if(this.miterLimit !== miterLimit) {
 			this.miterLimit = miterLimit;
 			this.dirty(jayus.DIRTY.STYLE);
 		}
@@ -690,9 +685,9 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {Array} lineDash
 	*/
 
-	setLineDash: function Brush_setLineDash(lineDash){
+	setLineDash: function Brush_setLineDash(lineDash) {
 		//#ifdef DEBUG
-		if(lineDash !== null){
+		if(lineDash !== null) {
 			jayus.debug.matchArray('Style.setLineDash', lineDash, 'lineDash', jayus.TYPES.NUMBER);
 		}
 		//#end
@@ -708,13 +703,13 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {Number} lineDashOffset
 	*/
 
-	setLineDashOffset: function Brush_setLineDashOffset(lineDashOffset){
+	setLineDashOffset: function Brush_setLineDashOffset(lineDashOffset) {
 		//#ifdef DEBUG
-		if(lineDashOffset !== null){
+		if(lineDashOffset !== null) {
 			jayus.debug.match('Brush.setLineDashOffset', lineDashOffset, 'lineDashOffset', jayus.TYPES.NUMBER);
 		}
 		//#end
-		if(this.lineDashOffset !== lineDashOffset){
+		if(this.lineDashOffset !== lineDashOffset) {
 			this.lineDashOffset = lineDashOffset;
 			this.dirty(jayus.DIRTY.STYLE);
 		}
@@ -728,30 +723,30 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {*} shadow
 	*/
 
-	setShadow: function Brush_setShadow(shadow){
+	setShadow: function Brush_setShadow(shadow) {
 		//#ifdef DEBUG
-		if(shadow !== null){
+		if(shadow !== null) {
 			jayus.debug.match('Brush.setShadow', shadow, 'shadow', jayus.TYPES.DEFINED);
 		}
 		//#end
 		// If the old shadow was a Dependency, detach self
-		if(this.shadowType === 2){
+		if(this.shadowType === 2) {
 			this.shadow.detach(this);
 		}
 		// Set the new shadow and type
 		this.shadow = shadow;
-		if(shadow === null){
+		if(shadow === null) {
 			this.shadowType = 0;
 		}
-		else if(typeof shadow === 'string'){
+		else if(typeof shadow === 'string') {
 			this.shadowType = 1;
 		}
-		else if(shadow instanceof jayus.Color){
+		else if(shadow instanceof jayus.Color) {
 			this.shadowType = 2;
 			this.shadow.attach(this);
 		}
 		//#ifdef DEBUG
-		else{
+		else {
 			throw new Error('Style.setShadow() - Invalid shadow style: '+jayus.debug.toString(shadow));
 		}
 		//#end
@@ -766,13 +761,13 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {Number} shadowOffsetX
 	*/
 
-	setShadowOffsetX: function Brush_setShadowOffsetX(shadowOffsetX){
+	setShadowOffsetX: function Brush_setShadowOffsetX(shadowOffsetX) {
 		//#ifdef DEBUG
-		if(shadowOffsetX !== null){
+		if(shadowOffsetX !== null) {
 			jayus.debug.match('Brush.setShadowOffsetX', shadowOffsetX, 'shadowOffsetX', jayus.TYPES.NUMBER);
 		}
 		//#end
-		if(this.shadowOffsetX !== shadowOffsetX){
+		if(this.shadowOffsetX !== shadowOffsetX) {
 			this.shadowOffsetX = shadowOffsetX;
 			this.dirty(jayus.DIRTY.STYLE);
 		}
@@ -786,13 +781,13 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {Number} shadowOffsetY
 	*/
 
-	setShadowOffsetY: function Brush_setShadowOffsetY(shadowOffsetY){
+	setShadowOffsetY: function Brush_setShadowOffsetY(shadowOffsetY) {
 		//#ifdef DEBUG
-		if(shadowOffsetY !== null){
+		if(shadowOffsetY !== null) {
 			jayus.debug.match('Brush.setShadowOffsetY', shadowOffsetY, 'shadowOffsetY', jayus.TYPES.NUMBER);
 		}
 		//#end
-		if(this.shadowOffsetY !== shadowOffsetY){
+		if(this.shadowOffsetY !== shadowOffsetY) {
 			this.shadowOffsetY = shadowOffsetY;
 			this.dirty(jayus.DIRTY.STYLE);
 		}
@@ -806,13 +801,13 @@ jayus.Brush = jayus.Dependency.extend({
 	@param {Number} shadowBlur
 	*/
 
-	setShadowBlur: function Brush_setShadowBlur(shadowBlur){
+	setShadowBlur: function Brush_setShadowBlur(shadowBlur) {
 		//#ifdef DEBUG
-		if(shadowBlur !== null){
+		if(shadowBlur !== null) {
 			jayus.debug.match('Brush.setShadowBlur', shadowBlur, 'shadowBlur', jayus.TYPES.NUMBER);
 		}
 		//#end
-		if(this.shadowBlur !== shadowBlur){
+		if(this.shadowBlur !== shadowBlur) {
 			this.shadowBlur = shadowBlur;
 			this.dirty(jayus.DIRTY.STYLE);
 		}

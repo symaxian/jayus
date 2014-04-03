@@ -39,8 +39,6 @@ jayus.Wrapper = {
 
 	isParent: false,
 
-	child: null,
-
 	/**
 	Whether or not to propagate cursor events to children.
 	<br> Default is true
@@ -57,6 +55,18 @@ jayus.Wrapper = {
 		//  Cursor
 		//__________//
 
+	childCursorTrackingChanged: function Wrapper_childCursorTrackingChanged(child, trackCursor) {
+		if(trackCursor) {
+			this.propagateCursor = true;
+			if(!this.trackCursor) {
+				this.trackCursor = true;
+				if(this.parent !== null) {
+					this.parent.childCursorTrackingChanged(this, true);
+				}
+			}
+		}
+	},
+
 	/*
 	Used internally to update the known cursor position.
 	<br> Used to propagate the cursorMove event through the scenegraph, firing the cursorOver and cursorOut events if applicable.
@@ -65,13 +75,10 @@ jayus.Wrapper = {
 	@param {Number} y
 	*/
 
-	updateCursorOnChildren: function Wrapper_updateCursorOnChildren(x, y){
-		this.localX = x;
-		this.localY = y;
-		if(this.propagateCursor){
-			// Translate point from parent to local coordinate space
-			var pos = this.parentToLocal(x, y);
-			jayus.util.updateCursorOnChild(this.child, pos.x, pos.y);
+	updateCursorOnChildren: function Frame_updateCursorOnChildren(x, y) {
+		if(this.child.trackCursor) {
+			// Update on child
+			this.child.updateCursor(x, y);
 		}
 	},
 
@@ -80,22 +87,24 @@ jayus.Wrapper = {
 	@method removeCursorFromChildren
 	*/
 
-	removeCursorFromChildren: function Wrapper_removeCursorFromChildren(){
-		this.child.removeCursor();
+	removeCursorFromChildren: function Wrapper_removeCursorFromChildren() {
+		if(this.child.underCursor) {
+			this.child.removeCursor();
+		}
 	},
 
-	findCursorAcceptor: function Group_findCursorAcceptor(){
-		if(this.child.underCursor){
-			if(this.child.isParent){
+	findCursorAcceptor: function Wrapper_findCursorAcceptor() {
+		if(this.child.underCursor) {
+			if(this.child.isParent) {
 				var acceptor = this.child.findCursorAcceptor();
-				if(acceptor !== null){
+				if(acceptor !== null) {
 					return acceptor;
 				}
-				if(this.child.canAcceptCursor){
+				if(this.child.canAcceptCursor) {
 					return this.child;
 				}
 			}
-			else{
+			else {
 				return this.child;
 			}
 		}
@@ -107,22 +116,12 @@ jayus.Wrapper = {
 		//_________//
 
 	/**
-	Returns the child.
-	@method {Entity} getChild
+	The sole child of the wrapper.
+	<br> Do not modify.
+	@property {Entity} child
 	*/
 
-	getChild: function Wrapper_getChild(){
-		return this.child;
-	},
-
-	/**
-	Returns whether the container is holding a child.
-	@method {Boolean} hasChild
-	*/
-
-	hasChild: function Wrapper_hasChild(){
-		return this.isParent;
-	},
+	child: null,
 
 	/**
 	Sets the child of the container.
@@ -130,7 +129,7 @@ jayus.Wrapper = {
 	@param {Entity} child
 	*/
 
-	setChild: function Wrapper_setChild(child){
+	setChild: function Wrapper_setChild(child) {
 		//#ifdef DEBUG
 		jayus.debug.match('Wrapper.setChild', child, 'child', jayus.TYPES.ENTITY);
 		//#end
@@ -139,6 +138,9 @@ jayus.Wrapper = {
 		// Set the parent
 		child.setParent(this);
 		this.isParent = true;
+		if(child.trackCursor) {
+			this.childCursorTrackingChanged(child, true);
+		}
 		return this;
 	},
 
@@ -147,7 +149,7 @@ jayus.Wrapper = {
 	@method {Self} removeChild
 	*/
 
-	removeChild: function Wrapper_removeChild(){
+	removeChild: function Wrapper_removeChild() {
 		this.child.removeParent();
 		this.child = null;
 		this.isParent = false;
@@ -160,17 +162,17 @@ jayus.Wrapper = {
 
 	/**
 	Searches the container and all entities below it for an Entity with the specified id.
-	@method {Entity} findChild
+	@method {Entity} find
 	@param {String} id
 	*/
 
-	findChild: function Wrapper_findChild(id){
-		if(this.isParent){
-			if(this.child.id === id){
+	find: function Wrapper_find(id) {
+		if(this.isParent) {
+			if(this.child.id === id) {
 				return this.child;
 			}
-			if(this.child.isParent){
-				return this.child.findChild(id);
+			if(this.child.isParent) {
+				return this.child.find(id);
 			}
 		}
 		return null;
@@ -184,7 +186,7 @@ jayus.Wrapper = {
 	@param {Array} args Optional
 	*/
 
-	onEachChild: function Wrapper_onEachChild(method, args){
+	onEachChild: function Wrapper_onEachChild(method, args) {
 		//#ifdef DEBUG
 		jayus.debug.match('Wrapper.onEachChild', method, 'method', jayus.TYPES.STRING);
 		//#end
@@ -199,28 +201,29 @@ jayus.Wrapper = {
 	@param {Array} args Optional
 	*/
 
-	forEachChild: function Wrapper_forEachChild(func, args){
+	forEachChild: function Wrapper_forEachChild(func, args) {
 		//#ifdef DEBUG
 		jayus.debug.match('Wrapper.forEachChild', func, 'func', jayus.TYPES.FUNCTION);
 		//#end
 		return func.apply(this.child, args);
 	},
 
-	// TODO: Wrapper.runOnCursor() - Improve/document
+	/**
+	Calls the given function on every child under the container with the given arguments.
+	<br> The argument array is optional.
+	@method {*} forEveryChild
+	@param {Function} func
+	@param {Array} args Optional
+	*/
 
-	runOnCursor: function Wrapper_runOnCursor(func, args){
-		// Check if the cursor is over the child
-		if(this.child.underCursor){
-			// If the child is a parent, run on its children
-			if(this.child.isParent && this.child.runOnCursor(func, args)){
-				return true;
-			}
-			// Run the function on the child, return true if accepted
-			if(func.apply(this.child, args)){
-				return true;
-			}
+	forEveryChild: function Wrapper_forEveryChild(func, args) {
+		//#ifdef DEBUG
+		jayus.debug.match('Wrapper.forEveryChild', func, 'func', jayus.TYPES.FUNCTION);
+		//#end
+		if(this.child.isParent) {
+			this.child.forEveryChild(func, args);
 		}
-		return false;
+		return func.apply(this.child, args);
 	},
 
 		//
@@ -235,7 +238,7 @@ jayus.Wrapper = {
 	@param {Object} data Optional
 	*/
 
-	fireOnChildren: function Wrapper_fireOnChildren(event, data){
+	fireOnChildren: function Wrapper_fireOnChildren(event, data) {
 		//#ifdef DEBUG
 		jayus.debug.match('Wrapper.fireOnChildren', event, 'event', jayus.TYPES.STRING);
 		//#end
@@ -251,14 +254,14 @@ jayus.Wrapper = {
 	@param {Object} data Optional
 	*/
 
-	fireOnCursor: function Wrapper_fireOnCursor(event,data){
+	fireOnCursor: function Wrapper_fireOnCursor(event, data) {
 		//#ifdef DEBUG
 		jayus.debug.match('Wrapper.fireOnCursor', event, 'event', jayus.TYPES.STRING);
 		//#end
 		// Check if the cursor is tracked and over the child
-		if(this.child.trackCursor && this.child.underCursor){
+		if(this.isParent && this.child.underCursor) {
 			// If the child is a parent, fire on its children
-			if(this.child.isParent && this.child.fireOnCursor(event, data)){
+			if(this.child.isParent && this.child.fireOnCursor(event, data)) {
 				return true;
 			}
 			// Fire the event on the child, return true if accepted

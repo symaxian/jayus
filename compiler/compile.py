@@ -7,9 +7,8 @@ import shutil
 
 # The order in which to compile the files
 #   Taken from jayusLoader.js
-FILE_PRIORITY = [
+FILE_LIST = [
 
-    'argumentOverloading.min.js',
     'jayus.js',
     'easing.js',
     'Responder.js',
@@ -30,7 +29,7 @@ FILE_PRIORITY = [
     'objects.js',
     'keyboard.js',
 
-    'Shape.js',
+    # 'Shape.js',
     'Point.js',
     'Rectangle.js',
     'Circle.js',
@@ -68,68 +67,40 @@ FILE_PRIORITY = [
 
 ]
 
+CLOSURE_COMPILER_FILENAME = 'compiler.jar'
+
+VERBOSE_WARNINGS = True
+
+OFF_OPTIONS = [
+    'globalThis',
+    'nonStandardJsDocs',
+    'checkTypes'
+]
+
+WARNING_OPTIONS = [
+    'accessControls',
+    'checkDebuggerStatement',
+    'checkRegExp',
+    'const',
+    'constantProperty',
+    'strictModuleDepCheck',
+    'visibility'
+]
+
 DEBUG = False                   # Whether or not to print verbose information
 
 TEMP_DIR = 'temp'               # The name of the directory to place temporary file into
 
 REMOVE_TEMP_DIR = True          # Whether or not to delete the temporary directory after compilation
 
-VERSION_FILE = 'jayus.js'       # The file to look in for the version tag'
-
-VERSION_TAG = '@version '       # The tag that marks the beginning of the version string
-                                #   The version string must immediately follow the version tag
-                                #   The version tag must be at the beginning of the line
 
 
-
-def getVersion():
-
-    inputFile = open(os.path.join(INPUT_DIR, VERSION_FILE))
-    data = inputFile.readlines()
-    inputFile.close()
-
-    for line in data:
-        if line.startswith(VERSION_TAG):
-            version = line[len(VERSION_TAG):-1]
-            if DEBUG:
-                print 'Version: '+version
-            return version
-
-    print 'ERROR: Version tag "'+VERSION_TAG+'" not found in file "'+VERSION_FILE+'"'
-    exit()
-
-
-def loadFiles():
-
-    # Initiate some variables
-
-    filenames = []
-    fileData = {}
-
-    # Get the files
-
-    if DEBUG:
-        print 'Reading files in from directory "'+INPUT_DIR+'"'
-
-    filenames = os.listdir(INPUT_DIR)
-
-    for filename in filenames:
-
-        inputFile = open(os.path.join(INPUT_DIR, filename))
-        fileData[filename] = inputFile.read()
-        inputFile.close()
-
-    return (filenames, fileData)
-
-
-# Define the compile function
-
-def compileJS(filenames, fileData, outputFile, compilationLevel, definitions=[]):
+def compileJS(filenames, outputFileName, compilationLevel, definitions=[]):
 
     if DEBUG:
         print 'Compiling code'
         print 'Input directory: '+INPUT_DIR
-        print 'Output file: '+outputFile
+        print 'Output file: '+outputFileName
         print 'Temporary directory: '+TEMP_DIR
         print 'Tags to define: '+str(definitions)
         print 'Compilation Level: '+compilationLevel
@@ -138,26 +109,39 @@ def compileJS(filenames, fileData, outputFile, compilationLevel, definitions=[])
     # Preprocess
 
     cmd = 'python '+jsmacroFile+' --srcdir '+INPUT_DIR+' --dstdir '+TEMP_DIR
-    for tag in definitions:
-        cmd = cmd + ' --def '+tag
+    if len(definitions):
+        cmd += ' --def '+' --def '.join(definitions)
 
     os.system(cmd)
 
     # Compile the javascript
 
     if DEBUG:
-        print 'Compiling into file "'+outputFile+'"'
+        print 'Compiling into file "'+outputFileName+'"'
 
-    compileCommand = 'java -jar ClosureCompiler.jar --compilation_level '+compilationLevel
+    compileCommand = 'java -jar '+CLOSURE_COMPILER_FILENAME+' --compilation_level '+compilationLevel
+
+    if VERBOSE_WARNINGS:
+        compileCommand += ' --warning_level=VERBOSE'
+
+    for option in OFF_OPTIONS:
+        compileCommand += ' --jscomp_off='+option
+
+    for option in WARNING_OPTIONS:
+        compileCommand += ' --jscomp_warning='+option
+
     filenames = os.listdir(TEMP_DIR)
-    for filename in FILE_PRIORITY:
+    for filename in FILE_LIST:
         if filename in filenames:
             compileCommand += ' --js='+os.path.join(TEMP_DIR, filename)
             filenames.remove(filename)
-    for filename in filenames:
-        compileCommand += ' --js='+os.path.join(TEMP_DIR, filename)
+        else:
+            print('Did not find expected file "'+filename+'"')
 
-    compileCommand += ' --js_output_file='+outputFile
+    if len(filenames):
+        print('Found extra files: '+','.join(filenames))
+
+    compileCommand += ' --js_output_file='+outputFileName
 
     if DEBUG:
         print '    '+compileCommand
@@ -165,17 +149,18 @@ def compileJS(filenames, fileData, outputFile, compilationLevel, definitions=[])
 
     os.system(compileCommand)
 
+
+
 if __name__ == '__main__':
 
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            "hf:s:d:",
+            "h:s:d:",
             ["help", "jsmacro=", "srcdir=", "dstdir="]
         )
     except getopt.GetoptError as err:
         print(str(err))
-        print(__usage__)
         sys.exit(2)
 
     # Handle parameters
@@ -186,7 +171,6 @@ if __name__ == '__main__':
 
     # Get the version
 
-    # version = getVersion()
     version = 'latest'
 
     # OUTPUT_DIR_2 = '../jayus/compiled/'
@@ -222,15 +206,16 @@ if __name__ == '__main__':
 
     os.mkdir(TEMP_DIR)
 
-    # Load the files
+    # Get the filenames
 
-    result = loadFiles()
-    filenames = result[0]
-    fileData = result[1]
+    if DEBUG:
+        print 'Reading files in from directory "'+INPUT_DIR+'"'
+
+    filenames = os.listdir(INPUT_DIR)
 
     # Compile multiple versions of the code
-    compileJS(filenames, fileData, OUTPUT_DIR+'jayus-'+version+'-debug.min.js', 'WHITESPACE_ONLY', ['DEBUG'])
-    compileJS(filenames, fileData, OUTPUT_DIR+'jayus-'+version+'.min.js', 'SIMPLE_OPTIMIZATIONS')
+    compileJS(filenames, OUTPUT_DIR+'jayus-'+version+'-debug.min.js', 'WHITESPACE_ONLY', ['DEBUG'])
+    compileJS(filenames, OUTPUT_DIR+'jayus-'+version+'.min.js', 'SIMPLE_OPTIMIZATIONS')
 
     # Remove the temporary directory
     if REMOVE_TEMP_DIR:

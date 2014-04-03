@@ -28,6 +28,8 @@ Defines the Display class.
 
 /**
 A Scene that can be placed onto the page.
+<br> The display class also manages the cursor events for itself and it's children.
+<br> Each display is refreshed by jayus each frame if needed.
 @class jayus.Display
 @extends jayus.Scene
 */
@@ -75,7 +77,7 @@ jayus.Display = jayus.Scene.extend({
 	Whether or not to delay the processing of mousemove events until actually required.
 	<br> Unless your application requires extreme cursor movement tracking accuracy, it is highly recommended to leave this option enabled.
 		When enabled, the processing of the native mousemove event is postponed until either the start of the next frame, or when another cursor event is fired(such as a button press).
-		Which can result in the a huge reduction of time and garbage spent processing and responding to redundant cursor movement events.
+		This can result in the a reduction of time and garbage(discarded objects) spent processing and responding to redundant cursor movement events.
 	<br> Default is true.
 	@property {Boolean} pendMousemoveEvents
 	*/
@@ -83,7 +85,7 @@ jayus.Display = jayus.Scene.extend({
 	pendMousemoveEvents: true,
 
 	/**
-	* Whether or not a mousemove event is currently waiting to be processed by jayus.
+	* Whether or not a mousemove event is currently waiting to be processed.
 	<br> Do not modify.
 	@property {Boolean} hasPendingMousemoveEvent
 	*/
@@ -104,7 +106,7 @@ jayus.Display = jayus.Scene.extend({
 
 	/**
 	Initializes the Display.
-	@method init
+	@method Display
 	@paramset 1
 	@paramset 2
 	@param {HTMLCanvasElement} canvas
@@ -113,37 +115,40 @@ jayus.Display = jayus.Scene.extend({
 	@param {Number} height
 	*/
 
-	init: function Display_init(width, height){
+	init: function Display(width, height) {
 		jayus.Entity.prototype.init.apply(this);
 		// Create the children list
 		this.children = new jayus.List(this);
+		this.items = this.children.items;
 		//#ifdef DEBUG
 		this.children.typeId = jayus.TYPES.ENTITY;
 		// Check the arguments
-		if(arguments.length){
-			if(arguments.length === 1){
-				jayus.debug.match('Display.init', width, 'canvas', jayus.TYPES.CANVAS);
+		if(arguments.length) {
+			if(arguments.length === 1) {
+				jayus.debug.match('Display', width, 'canvas', jayus.TYPES.CANVAS);
 			}
-			else if(arguments.length === 2){
-				jayus.debug.matchArguments('Display.init', arguments, 'width', jayus.TYPES.NUMBER, 'height', jayus.TYPES.NUMBER);
+			else if(arguments.length === 2) {
+				jayus.debug.matchArguments('Display', arguments, 'width', jayus.TYPES.NUMBER, 'height', jayus.TYPES.NUMBER);
 			}
-			else{
-				throw new TypeError('Display.init() - Invalid number of arguments sent, 0, 1, or 2 required');
+			else {
+				throw new TypeError('Display() - Invalid number of arguments sent, 0, 1, or 2 required');
 			}
 		}
 		//#end
 		// Check the argument count
-		if(arguments.length === 1){
+		var canvas;
+		if(arguments.length === 1) {
 			// Use the sent canvas element
-			var canvas = width;
-			// Position fix, remove or elaborate
+			canvas = width;
+			// Position fix
+			// TODO: Display() - Remove or elaborate 'relative' position fix
 			canvas.parentElement.style.position = 'relative';
 		}
-		else{
+		else {
 			// Create a new canvas element
-			var canvas = document.createElement('canvas');
+			canvas = document.createElement('canvas');
 			// Set the canvas size if specified
-			if(arguments.length){
+			if(arguments.length) {
 				canvas.width = width;
 				canvas.height = height;
 			}
@@ -157,30 +162,62 @@ jayus.Display = jayus.Scene.extend({
 		jayus.displays.push(this);
 		this.hookCursorListeners(this.canvas);
 		this.addDefaultHandlers();
+		this.addHandler('dirty', function Display_dirty_updateCursor(e) {
+			// console.log(e);
+			if(e & jayus.DIRTY.SCOPE) {
+				this.startCursorUpdate();
+			}
+		});
 	},
 
-	setBuffering: function Display_setBuffering(){},
+	//@ From Scene
+	// Overridden to set ourself as the parentDisplay property on the child
+	listItemAdded: function Display_listItemAdded(list, item) {
+		jayus.Scene.prototype.listItemAdded.call(this, list, item);
+		item.parentDisplay = this;
+		if(item.isParent) {
+			var display = this;
+			item.forEveryChild(function() {
+				this.parentDisplay = display;
+			});
+		}
+	},
+
+	//@ From Scene
+	// Overridden to set ourself as the parentDisplay property on the child
+	listItemsAdded: function Display_listItemsAdded(list, items) {
+		jayus.Scene.prototype.listItemsAdded.call(this, list, items);
+		var i, item,
+			displaySetter = function() {
+				this.parentDisplay = display;
+			};
+		for(i=0;i<items.length;i++) {
+			item = items[i];
+			item.parentDisplay = this;
+			if(item.isParent) {
+				var display = this;
+				item.forEveryChild(displaySetter);
+			}
+		}
+	},
+
+	//@ From RectEntity
+	// Overridden to disable turning buffering off
+	setBuffering: function Display_setBuffering() {},
 
 		//
 		//  Size
 		//________//
 
-	formContents: function RectEntity_formContents(width, height){
-		this.canvas.width = width;
-		this.canvas.height = height;
-		this.redrawAll = true;
-		this.dirty(jayus.DIRTY.SIZE);
-	},
-
-	processPendingMousemove: function Display_processPendingMousemove(e){
+	processPendingMousemove: function Display_processPendingMousemove(e) {
 		this.hasPendingMousemoveEvent = false;
 		return this.processMousemove(this.pendingMousemoveEvent);
 	},
 
-	processMousemove: function Display_processMousemove(e){
-		// Grab if new
-		// This is performed on every event so that the display "has" the cursor if the first action is not mousemove
-		if(!this.underCursor){
+	processMousemove: function Display_processMousemove(e) {
+		// "Grab" the cursor if we dont have it
+		// This is performed on every event so that the display "has" the cursor if the very first cursor event is not mousemove
+		if(!this.underCursor) {
 			this.underCursor = true;
 			this.fire('cursorOver');
 		}
@@ -198,19 +235,19 @@ jayus.Display = jayus.Scene.extend({
 		// Update the cursor property
 		this.cursor.x = x;
 		this.cursor.y = y;
-		if(this.cursor.dependentCount){
+		if(this.cursor.dependentCount) {
 			this.cursor.dirty(jayus.DIRTY.POSITION);
 		}
 		// Fire the cursorMove event on children under the cursor, then on the display unless accepted
-		if(!this.fireOnCursor('cursorMove', data)){
+		if(!this.fireOnCursor('cursorMove', data)) {
 			this.fire('cursorMove', data);
 		}
 		// Check to fire the drag events
-		// for(var i=0;i<3;i++){
+		// for(var i=0;i<3;i++) {
 		// 	var buttonName = ['left','middle','right'][i];
-		// 	if(jayus[buttonName+'Down']){
+		// 	if(jayus[buttonName+'Down']) {
 		// 		// Fire on jayus then the display if not accepted
-		// 		if(!jayus.fire(buttonName+'Drag', data)){
+		// 		if(!jayus.fire(buttonName+'Drag', data)) {
 		// 			display.fireOnCursor(buttonName+'Drag', data);
 		// 		}
 		// 	}
@@ -219,7 +256,7 @@ jayus.Display = jayus.Scene.extend({
 		this.startCursorUpdate();
 	},
 
-	hookCursorListeners: function Display_hookCursorListeners(canvas){
+	hookCursorListeners: function Display_hookCursorListeners(canvas) {
 
 		var display = this,
 
@@ -245,54 +282,54 @@ jayus.Display = jayus.Scene.extend({
 			},
 
 			// Refreshes the properties on the button event object from a native event object
-			updateCursorEventObject = function(e){
+			updateCursorEventObject = function(e) {
 				cursorEventObject.event = e;
 				cursorEventObject.x = e.offsetX === undefined ? e.layerX : e.offsetX;
 				cursorEventObject.y = e.offsetY === undefined ? e.layerY : e.offsetY;
 			},
 
 			// Refreshes the properties on the scroll event object from a native event object
-			updateScrollEventObject = function(e, scroll, xScroll, yScroll){
+			updateScrollEventObject = function(e, scroll, xScroll, yScroll) {
 				scrollEventObject.event = e;
-				scrollEventObject.x = e.offsetX === undefined ? e.layerX : e.offsetX;
-				scrollEventObject.y = e.offsetY === undefined ? e.layerY : e.offsetY;
 				scrollEventObject.scroll = scroll;
 				scrollEventObject.xScroll = xScroll;
 				scrollEventObject.yScroll = yScroll;
 			},
 
-			getButtonName = function(e){
-				if(e.button === 0){
+			getButtonName = function(e) {
+				if(e.button === 0) {
 					return 'left';
 				}
-				if(e.button === 1){
+				if(e.button === 1) {
 					return 'middle';
 				}
-				if(e.button === 2){
+				if(e.button === 2) {
 					return 'right';
 				}
 				return 'unknown';
 			},
 
-			mousemoveHandler = function Display_mousemoveHandler(e){
+			mousemoveHandler = function Display_mousemoveHandler(e) {
 				// Check to defer the event
-				if(display.pendMousemoveEvents){
+				if(display.pendMousemoveEvents) {
 					display.pendingMousemoveEvent = e;
 					display.hasPendingMousemoveEvent = true;
 				}
-				else{
+				else {
 					display.processMousemove(e);
 				}
 			},
 
-			mouseoutHandler = function Display_mouseoutHandler(e){
+			mouseoutHandler = function Display_mouseoutHandler(e) {
 				// Process any pending events
-				display.processPendingMousemove();
+				if(display.hasPendingMousemoveEvent) {
+					display.processPendingMousemove();
+				}
 				// Release any pressed buttons
 				updateCursorEventObject(e);
-				for(var i=0, buttonName;i<3;i++){
+				for(var i=0, buttonName;i<3;i++) {
 					buttonName = getButtonName(i);
-					if(jayus[buttonName+'Down']){
+					if(jayus[buttonName+'Down']) {
 						jayus[buttonName+'Down'] = false;
 						// Fire on jayus then the display
 						jayus.fire(buttonName+'Release', cursorEventObject);
@@ -300,7 +337,7 @@ jayus.Display = jayus.Scene.extend({
 					}
 				}
 				// Leave the focused entity
-				if(jayus.cursorFocus !== null){
+				if(jayus.cursorFocus !== null) {
 					jayus.cursorFocus.fire('cursorLeave');
 					jayus.cursorFocus = null;
 				}
@@ -317,15 +354,15 @@ jayus.Display = jayus.Scene.extend({
 		canvas.addEventListener('mouseleave', mouseoutHandler);
 
 		// Disable user selection on the canvas
-		if(this.suppressSelection){
+		if(this.suppressSelection) {
 			canvas.style.webkitUserSelect = 'none';
 			canvas.style.mozUserSelect = 'none';
-			canvas.onselectstart = function(){
+			canvas.onselectstart = function() {
 				return false;
 			};
 		}
 
-		canvas.addEventListener('focus', function(e){
+		canvas.addEventListener('focus', function(e) {
 			display.fire('focused', {
 				event: e,
 				display: display
@@ -335,7 +372,7 @@ jayus.Display = jayus.Scene.extend({
 			jayus.hasFocus = true;
 		});
 
-		canvas.addEventListener('blur', function(e){
+		canvas.addEventListener('blur', function(e) {
 			display.fire('blurred', {
 				event: e,
 				display: display
@@ -349,15 +386,15 @@ jayus.Display = jayus.Scene.extend({
 		canvas.style.outline = 0;
 
 		// onmousedown » leftPress, middlePress, rightPress
-		canvas.addEventListener('mousedown', function Display_mousedownHandler(e){
+		canvas.addEventListener('mousedown', function Display_mousedownHandler(e) {
 			// Process any pending events
-			if(display.hasPendingMousemoveEvent){
+			if(display.hasPendingMousemoveEvent) {
 				display.processPendingMousemove();
 			}
 			// Focus
 			display.focus();
 			// Grab if new
-			if(!display.underCursor){
+			if(!display.underCursor) {
 				display.underCursor = true;
 				display.fire('cursorOver');
 			}
@@ -367,8 +404,12 @@ jayus.Display = jayus.Scene.extend({
 				eventName = buttonName+'Press';
 			// Set the button property on jayus
 			jayus[buttonName+'Down'] = true;
+
+			// Set the entity pressed on
+			jayus.entityPressedOn = jayus.cursorFocus;
+
 			// Until cancelled, fire on jayus, then the display's children, then the display
-			if(jayus.fire(eventName, cursorEventObject) || display.fireOnCursor(eventName, cursorEventObject) || display.fire(eventName, cursorEventObject)){
+			if(jayus.fire(eventName, cursorEventObject) || display.fireOnCursor(eventName, cursorEventObject) || display.fire(eventName, cursorEventObject)) {
 				e.stopPropagation();
 				e.preventDefault();
 				return false;
@@ -376,9 +417,9 @@ jayus.Display = jayus.Scene.extend({
 		});
 
 		// mouseup » leftRelease, middleRelease, rightRelease
-		canvas.addEventListener('mouseup', function Display_mouseupHandler(e){
+		document.body.addEventListener('mouseup', function Display_mouseupHandler(e) {
 			// Process any pending events
-			if(display.hasPendingMousemoveEvent){
+			if(display.hasPendingMousemoveEvent) {
 				display.processPendingMousemove();
 			}
 			// Update the event object
@@ -388,74 +429,26 @@ jayus.Display = jayus.Scene.extend({
 			// Set the button property on jayus
 			jayus[buttonName+'Down'] = false;
 			// Fire on jayus then the display
-			jayus.fire(eventName, cursorEventObject);
-			display.fireOnCursor(eventName, cursorEventObject);
-			display.fire(eventName, cursorEventObject);
-		});
-
-		// click » leftClick, middleClick, rightClick
-		canvas.addEventListener('click', function Display_clickHandler(e){
-			// Process any pending events
-			if(display.hasPendingMousemoveEvent){
-				display.processPendingMousemove();
-			}
-			// Grab if new
-			if(!display.underCursor){
-				display.canvas.focus();
-				display.underCursor = true;
-				display.fire('cursorOver');
-			}
-			// Get the event object and button name
-			updateCursorEventObject(e);
-			var buttonName = getButtonName(e);
-			// Fire on jayus then the display if not accepted
-			if(!jayus.fire(buttonName+'Click', cursorEventObject)){
-				if(!display.fireOnCursor(buttonName+'Click', cursorEventObject)){
-					display.fire(buttonName+'Click', cursorEventObject);
-				}
-			}
-		});
-
-		// dblclick » leftDoubleClick, middleDoubleClick, rightDoubleClick
-		canvas.addEventListener('dblclick', function Display_dblclickHandler(e){
-			// Process any pending events
-			if(display.hasPendingMousemoveEvent){
-				display.processPendingMousemove();
-			}
-			// Grab if new
-			if(!display.underCursor){
-				display.underCursor = true;
-				display.fire('cursorOver');
-			}
-			// Get the event object and button name
-			updateCursorEventObject(e);
-			var buttonName = getButtonName(e);
-			// Until cancelled, fire on jayus, then the display's children, then the display
-			if(!jayus.fire(buttonName+'DoubleClick', cursorEventObject)){
-				if(!display.fireOnCursor(buttonName+'DoubleClick', cursorEventObject)){
-					display.fire(buttonName+'DoubleClick', cursorEventObject);
-				}
-			}
-
+			jayus.fire(eventName, cursorEventObject) || display.fireOnCursor(eventName, cursorEventObject) || display.fire(eventName, cursorEventObject);
 		});
 
 		// contextmenu
-		canvas.addEventListener('contextmenu', function Display_contextmenuHandler(e){
-			if(display.suppressContextMenu){
+		canvas.addEventListener('contextmenu', function Display_contextmenuHandler(e) {
+			if(display.suppressContextMenu) {
 				e.preventDefault();
 			}
 		});
 
 		// mousewheel
-		if(jayus.ua.browser === 'Firefox'){
+		if(jayus.ua.browser === 'Firefox') {
 			// For Firefox
-			canvas.addEventListener('wheel', function Display_DOMMouseScrollHandler(e){
+			canvas.addEventListener('wheel', function Display_DOMMouseScrollHandler(e) {
 				// Process any pending events
-				if(display.hasPendingMousemoveEvent){
+				if(display.hasPendingMousemoveEvent) {
 					display.processPendingMousemove();
 				}
 				// Grab if new
-				if(!display.underCursor){
+				if(!display.underCursor) {
 					display.underCursor = true;
 					display.fire('cursorOver');
 				}
@@ -464,40 +457,40 @@ jayus.Display = jayus.Scene.extend({
 				// updateScrollEventObject(e, e.detail/3, e.detail/3, e.detail/3);
 				updateScrollEventObject(e, NaN, e.deltaX, e.deltaY);
 				// Fire on jayus, then the display's children, then the display
-				if(jayus.fire('scroll', scrollEventObject) || display.fireOnCursor('scroll', scrollEventObject) || display.fire('scroll', scrollEventObject)){
+				if(jayus.fire('scroll', scrollEventObject) || display.fireOnCursor('scroll', scrollEventObject) || display.fire('scroll', scrollEventObject)) {
 					e.preventDefault();
 				}
 			});
 		}
-		else if(jayus.ua.browser === 'IE'){
+		else if(jayus.ua.browser === 'IE') {
 			// For IE
-			canvas.onmousewheel = function Display_onmousewheelHandler(e){
+			canvas.onmousewheel = function Display_onmousewheelHandler(e) {
 				// Process any pending events
-				if(display.hasPendingMousemoveEvent){
+				if(display.hasPendingMousemoveEvent) {
 					display.processPendingMousemove();
 				}
 				// Grab if new
-				if(!display.underCursor){
+				if(!display.underCursor) {
 					display.underCursor = true;
 					display.fire('cursorOver');
 				}
 				// Construct the event object
 				updateScrollEventObject(e, e.wheelDelta ,e.wheelDeltaX, e.wheelDeltaY);
 				// Fire on jayus, then the display's children, then the display
-				if(jayus.fire('scroll', scrollEventObject) || display.fireOnCursor('scroll', scrollEventObject) || display.fire('scroll', scrollEventObject)){
+				if(jayus.fire('scroll', scrollEventObject) || display.fireOnCursor('scroll', scrollEventObject) || display.fire('scroll', scrollEventObject)) {
 					return false;
 				}
 			};
 		}
-		else{
+		else {
 			// For Opera & Chrome
-			canvas.addEventListener('mousewheel', function Display_mousewheelHandler(e){
+			canvas.addEventListener('mousewheel', function Display_mousewheelHandler(e) {
 				// Process any pending events
-				if(display.hasPendingMousemoveEvent){
+				if(display.hasPendingMousemoveEvent) {
 					display.processPendingMousemove();
 				}
 				// Grab if new
-				if(!display.underCursor){
+				if(!display.underCursor) {
 					display.underCursor = true;
 					display.fire('cursorOver');
 				}
@@ -505,7 +498,7 @@ jayus.Display = jayus.Scene.extend({
 				// Chrome sends ±120, Opera?
 				updateScrollEventObject(e, -e.wheelDelta/120, e.wheelDeltaX/120, -e.wheelDeltaY/120);
 				// Fire on jayus, then the display's children, then the display
-				if(jayus.fire('scroll', scrollEventObject) || display.fireOnCursor('scroll', scrollEventObject) || display.fire('scroll', scrollEventObject)){
+				if(jayus.fire('scroll', scrollEventObject) || display.fireOnCursor('scroll', scrollEventObject) || display.fire('scroll', scrollEventObject)) {
 					e.preventDefault();
 				}
 			});
@@ -513,31 +506,31 @@ jayus.Display = jayus.Scene.extend({
 
 	},
 
-	addDefaultHandlers: function Display_addDefaultHandlers(){
+	addDefaultHandlers: function Display_addDefaultHandlers() {
 		//#ifdef DEBUG
 		var display = this;
-		jayus.addHandler('keyPress', function(e){
-			if(display.underCursor && e.key === 'grave'){
+		jayus.addHandler('keyPress', function(e) {
+			if(display.underCursor && e.key === 'grave') {
 				var i, target,
 					targets = display.getChildrenUnderCursor();
-				if(targets.length === 0){
+				if(targets.length === 0) {
 					targets.push(display);
 				}
-				for(i=0;i<targets.length;i++){
+				for(i=0;i<targets.length;i++) {
 					target = targets[i];
-					if(e.event.shiftKey){
-						if(target.exposingAll){
+					if(e.event.shiftKey) {
+						if(target.exposingAll) {
 							target.exposeAll();
 						}
-						else{
+						else {
 							target.unexposeAll();
 						}
 					}
-					else{
-						if(target.debugRenderer === null){
+					else {
+						if(target.debugRenderer === null) {
 							target.expose();
 						}
-						else{
+						else {
 							target.unexpose();
 						}
 					}
@@ -547,29 +540,39 @@ jayus.Display = jayus.Scene.extend({
 		//#end
 	},
 
-	startCursorUpdate: function Display_startCursorUpdate(){
-		var acceptor;
-		if(this.underCursor && this.propagateCursor){
+	startCursorUpdate: function Display_startCursorUpdate() {
+		var acceptor, tooltip;
+		if(this.underCursor && this.propagateCursor) {
 			this.updateCursorOnChildren(this.cursor.x, this.cursor.y);
 			acceptor = this.findCursorAcceptor();
 			this.cursorFocus = acceptor;
-			if(jayus.cursorFocus !== acceptor){
-				if(jayus.cursorFocus === null || jayus.cursorFocus.canReleaseCursor){
-					if(jayus.cursorFocus !== null){
+			if(jayus.cursorFocus !== acceptor) {
+				if(jayus.cursorFocus === null || jayus.cursorFocus.canReleaseCursor) {
+					if(jayus.cursorFocus !== null) {
 						jayus.cursorFocus.fire('cursorLeave');
 					}
-					if(acceptor !== null){
-						acceptor.fire('cursorEnter');
-					}
 					jayus.cursorFocus = acceptor;
+					// acceptor.hasCursor = true;
+					if(acceptor !== null) {
+						acceptor.fire('cursorEnter');
+						tooltip = acceptor.tooltip;
+						if(this.canvas.title !== tooltip) {
+							this.canvas.setAttribute('title', tooltip);
+						}
+					}
+					else if(this.canvas.title) {
+						this.canvas.removeAttribute('title');
+					}
 				}
 			}
 		}
 	},
 
-	getTopCanvas: function Display_getTopCanvas(){
-		return this.hasOverlay ? this.overlayCanvas : this.canvas;
+	getTopCanvas: function Display_getTopCanvas() {
+		return this.overlayCanvas !== null ? this.overlayCanvas : this.canvas;
 	},
+
+	//#ifdef DEBUG
 
 		//
 		//  Overlay
@@ -577,38 +580,33 @@ jayus.Display = jayus.Scene.extend({
 
 	showDamage: false,
 
-	hasOverlay: false,
-
 	overlayCanvas: null,
 
 	overlayContext: null,
 
 	overlayFadeAnimator: null,
 
-	initOverlay: function Display_initOverlay(){
-		if(this.showDamage && !this.hasOverlay){
-			var canvas = document.createElement('canvas');
-			canvas.width = this.width;
-			canvas.height = this.height;
-			canvas.style.position = 'absolute';
-			canvas.style.left = this.canvas.offsetLeft;
-			canvas.style.top = this.canvas.offsetTop;
-			canvas.style.opacity = '0.5';
-			this.overlayCanvas = canvas;
-			this.overlayContext = canvas.getContext('2d');
-			this.overlayContext.lineWidth = 4;
-			this.canvas.parentElement.appendChild(this.overlayCanvas);
-			this.hasOverlay = true;
-			this.hookCursorListeners(canvas);
-			// Create the fade animator
-			this.overlayFadeAnimator = new jayus.Animator(function update(pos){
-				canvas.style.opacity = 0.5 - 0.5*pos;
-			}).setDuration(500);
-		}
+	initOverlay: function Display_initOverlay() {
+		var canvas = document.createElement('canvas');
+		canvas.width = this.width;
+		canvas.height = this.height;
+		canvas.style.position = 'absolute';
+		canvas.style.left = this.canvas.offsetLeft;
+		canvas.style.top = this.canvas.offsetTop;
+		canvas.style.opacity = '0.5';
+		this.overlayCanvas = canvas;
+		this.overlayContext = canvas.getContext('2d');
+		this.overlayContext.lineWidth = 4;
+		this.canvas.parentElement.appendChild(this.overlayCanvas);
+		this.hookCursorListeners(canvas);
+		// Create the fade animator
+		this.overlayFadeAnimator = new jayus.Animator(function update(pos) {
+			canvas.style.opacity = 0.5 - 0.5*pos;
+		}).setDuration(500);
 	},
 
-	clearDamage: function Display_clearDamage(){
-		if(this.showDamage){
+	clearDamage: function Display_clearDamage() {
+		if(this.showDamage) {
 			this.initOverlay();
 			var ctx = this.overlayContext;
 			// Clear the canvas
@@ -616,16 +614,16 @@ jayus.Display = jayus.Scene.extend({
 		}
 	},
 
-	paintDamage: function Display_paintDamage(rect){
+	paintDamage: function Display_paintDamage(rect) {
 		this.paintOverlayRect(rect, 'red');
 	},
 
-	paintRedraw: function Display_paintRedraw(rect){
+	paintRedraw: function Display_paintRedraw(rect) {
 		this.paintOverlayRect(rect, 'yellow');
 	},
 
-	paintOverlayRect: function Display_paintOverlayRect(rect, color){
-		if(this.showDamage){
+	paintOverlayRect: function Display_paintOverlayRect(rect, color) {
+		if(this.showDamage) {
 			this.initOverlay();
 			var ctx = this.overlayContext;
 			// Draw the region
@@ -633,42 +631,46 @@ jayus.Display = jayus.Scene.extend({
 			ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
 			// Fade it out
 			this.overlayCanvas.style.opacity = '0.5';
-			this.overlayFadeAnimator.start();
+			this.overlayFadeAnimator.restart();
 		}
 	},
+
+	//#end
 
 		//
 		//  Page Stuff
 		//______________//
 
 	//@ From Entity
-	setVisible: function Display_setVisible(on){
+	// Overidden to apply the visible property to canvas element
+	setVisible: function Display_setVisible(on) {
 		//#ifdef DEBUG
 		jayus.debug.match('Display.setVisible', on, 'on', jayus.TYPES.BOOLEAN);
 		//#end
 		this.visible = on;
-		if(on){
+		if(on) {
 			this.canvas.style.visibility = '';
 		}
-		else{
+		else {
 			this.canvas.style.visibility = 'hidden';
 		}
 		return this;
 	},
 
 	//@ From Entity
-	setAlpha: function Display_setAlpha(alpha){
+	// Overidden to apply the alpha property to canvas element
+	setAlpha: function Display_setAlpha(alpha) {
 		//#ifdef DEBUG
 		jayus.debug.match('Display.setAlpha', alpha, 'alpha', jayus.TYPES.NUMBER);
 		//#end
 		// Check if animated
-		if(this.actionsToAnimate){
+		if(this.actionsToAnimate) {
 			// Clear the animate flag and return the animator
 			this.actionsToAnimate--;
 			return new jayus.MethodAnimator(this, this.setAlpha, this.alpha, alpha);
 		}
 		// Set the alpha
-		if(this.alpha !== alpha){
+		if(this.alpha !== alpha) {
 			this.alpha = alpha;
 			this.canvas.style.opacity = alpha;
 		}
@@ -682,11 +684,11 @@ jayus.Display = jayus.Scene.extend({
 	@param {HTMLElement} element
 	*/
 
-	setInto: function Display_setInto(element){
+	setInto: function Display_setInto(element) {
 		// ???
 		element.style.position = 'relative';
 		// Append the canvas if visible
-		if(this.visible){
+		if(this.visible) {
 			element.appendChild(this.canvas);
 		}
 		return this;
@@ -697,7 +699,7 @@ jayus.Display = jayus.Scene.extend({
 	@method {Self} focus
 	*/
 
-	focus: function Display_focus(){
+	focus: function Display_focus() {
 		this.canvas.focus();
 		return this;
 	},
@@ -707,10 +709,12 @@ jayus.Display = jayus.Scene.extend({
 	@method {Self} blur
 	*/
 
-	blur: function Display_blur(){
+	blur: function Display_blur() {
 		this.canvas.blur();
 		return this;
 	},
+
+	//#ifndef DISABLE_FULL_SCREEN
 
 	//
 	//  FullScreen
@@ -721,7 +725,7 @@ jayus.Display = jayus.Scene.extend({
 	@method {Boolean} isFullScreen
 	*/
 
-	isFullScreen: function Display_isFullScreen(){
+	isFullScreen: function Display_isFullScreen() {
 		return (
 			document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullScreenEnabled
 		) && this.canvas ===
@@ -735,15 +739,15 @@ jayus.Display = jayus.Scene.extend({
 	@method {Boolean} requestFullScreen
 	*/
 
-	requestFullScreen: function Display_requestFullScreen(){
+	requestFullScreen: function Display_requestFullScreen() {
 		var canvas = this.canvas;
-		if(canvas.requestFullScreen){
+		if(canvas.requestFullScreen) {
 			canvas.requestFullScreen();
 		}
-		else if(canvas.mozRequestFullScreen){
+		else if(canvas.mozRequestFullScreen) {
 			canvas.mozRequestFullScreen();
 		}
-		else if(canvas.webkitRequestFullScreen){
+		else if(canvas.webkitRequestFullScreen) {
 			canvas.webkitRequestFullScreen();
 		}
 		return this.isFullScreen();
@@ -754,18 +758,20 @@ jayus.Display = jayus.Scene.extend({
 	@method {Self} cancelFullScreen
 	*/
 
-	cancelFullScreen: function Display_cancelFullScreen(){
-		if(document.cancelFullScreen){
+	cancelFullScreen: function Display_cancelFullScreen() {
+		if(document.cancelFullScreen) {
 			document.cancelFullScreen();
 		}
-		else if(document.mozCancelFullScreen){
+		else if(document.mozCancelFullScreen) {
 			document.mozCancelFullScreen();
 		}
-		else if(document.webkitCancelFullScreen){
+		else if(document.webkitCancelFullScreen) {
 			document.webkitCancelFullScreen();
 		}
 		return this;
 	},
+
+	//#end
 
 		//
 		//  Cursor
@@ -779,7 +785,7 @@ jayus.Display = jayus.Scene.extend({
 	@method {String|Entity} getCursor
 	*/
 
-	getCursor: function Display_getCursor(){
+	getCursor: function Display_getCursor() {
 		return this.customIcon ? this.customCursor : this.getTopCanvas().style.cursor;
 	},
 
@@ -792,8 +798,8 @@ jayus.Display = jayus.Scene.extend({
 	@param {Entity} entity
 	*/
 
-	setCursor: function Display_setCursor(cursor){
-		if(typeof cursor === 'string'){
+	setCursor: function Display_setCursor(cursor) {
+		if(typeof cursor === 'string') {
 			//#ifdef DEBUG
 			jayus.debug.match('Display.setCursor', cursor, 'cursor', jayus.TYPES.STRING);
 			//#end
@@ -801,7 +807,7 @@ jayus.Display = jayus.Scene.extend({
 			this.getTopCanvas().style.cursor = cursor;
 			this.hasCustomCursor = false;
 		}
-		else{
+		else {
 			//#ifdef DEBUG
 			jayus.debug.match('Display.setCursor', cursor, 'cursor', jayus.TYPES.ENTITY);
 			//#end
@@ -819,7 +825,7 @@ jayus.Display = jayus.Scene.extend({
 	@method resetCursor
 	*/
 
-	resetCursor: function Display_resetCursor(){
+	resetCursor: function Display_resetCursor() {
 		// Reset the cursor
 		this.getTopCanvas().style.cursor = '';
 		this.hasCustomCursor = false;
